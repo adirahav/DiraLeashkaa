@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">דירה להשקעה</string>
+
+    <!-- splash -->
+    <string name="splash_loading">טוען... אנא המתן</string>
+
+    <!-- dialog -->
+    <string name="dialog_tooltip_button_ok">הבנתי</string>
+
+    <string name="dialog_no_internet_title">אין חיבור לאינטרנט</string>
+    <string name="dialog_no_internet_message">אנא בדוק את החיבור שלך לאינטרנט ונסה שנית.</string>
+    <string name="dialog_no_internet_positive">נסה שנית</string>
+
+    <string name="dialog_expired_registration_title">המנוי שברשותך פג תוקף</string>
+    <string name="dialog_expired_registration_message">המנוי שלך הסתיים\nב-%1$s, בשעה %2$s.\nלהמשך שימוש באפליקציה,\nאנא עדכן את המנוי.</string>
+    <string name="dialog_expired_registration_positive">עדכן מנוי</string>
+
+    <string name="dialog_new_version_available_not_required_title">גירסה חדשה זמינה בחנות</string>
+    <string name="dialog_new_version_available_not_required_message">קיימת גירסה חדשה בחנות. מומלץ לעדכנה כעת.</string>
+    <string name="dialog_new_version_available_not_required_positive">עדכן כעת</string>
+    <string name="dialog_new_version_available_not_required_negative"><![CDATA[עדכן אח\'\'כ]]></string>
+
+    <string name="dialog_new_version_available_required_title">גירסה חדשה זמינה בחנות</string>
+    <string name="dialog_new_version_available_required_message">קיימת גירסה חדשה בחנות. על מנת להמשיך אנא עדכן את האפליקציה כעת.</string>
+    <string name="dialog_new_version_available_required_positive">עדכן כעת</string>
+
+    <string name="dialog_data_error_title">אירעה שגיאה</string>
+    <string name="dialog_data_error_message">נסה שוב מאוחר יותר.</string>
+    <string name="dialog_data_error_positive">סגור</string>
+
+    <string name="dialog_server_down_title">תקלת מערכת</string>
+    <string name="dialog_server_down_message">אנא נסה שנית במועד מאוחר יותר.</string>
+    <string name="dialog_server_down_positive">סגור</string>
+
+    <string name="dialog_restore_title">אחזור נתונים</string>
+    <string name="dialog_restore_message">המערכת טוענת נתונים...\nאנא המתן</string>
+
+
+</resources>

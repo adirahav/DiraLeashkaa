@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="@dimen/padding"
+    android:layout_marginTop="100dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:id="@+id/drawerContainer" >
+
+        <LinearLayout style="@style/drawerContainer">
+            <TextView android:id="@+id/drawerUserName" style="@style/drawerTitle" />
+        </LinearLayout>
+
+        <View style="@style/drawerDivider" />
+
+        <LinearLayout style="@style/drawerContainer">
+            <ImageView android:src="@drawable/icon_drawer_personal_details" style="@style/drawerIcon"/>
+            <TextView android:id="@+id/drawerPersonalDetails" style="@style/drawerTitle" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/drawerContainer">
+            <ImageView android:src="@drawable/icon_drawer_financial_details" style="@style/drawerIcon"/>
+            <TextView android:id="@+id/drawerFinancialDetails" style="@style/drawerTitle" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/drawerContainer">
+            <ImageView android:src="@drawable/icon_drawer_registration_details" style="@style/drawerIcon"/>
+            <TextView android:id="@+id/drawerRegistrationDetails" style="@style/drawerTitle" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/drawerContainer">
+            <ImageView android:src="@drawable/icon_drawer_drawer_terms_of_use" style="@style/drawerIcon"/>
+            <TextView android:id="@+id/drawerTermsOfUse" style="@style/drawerTitle" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/drawerContainer">
+            <ImageView android:src="@drawable/icon_drawer_contact_us" style="@style/drawerIcon"/>
+            <TextView android:id="@+id/drawerContactUs" style="@style/drawerTitle" />
+        </LinearLayout>
+
+        <View style="@style/drawerDivider" />
+
+        <LinearLayout style="@style/drawerContainer">
+            <TextView android:id="@+id/drawerVersion" style="@style/drawerTitle" />
+        </LinearLayout>
+
+        <View style="@style/drawerDivider" />
+
+        <LinearLayout style="@style/drawerContainer">
+            <TextView android:id="@+id/drawerCopyright" style="@style/drawerTitle" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

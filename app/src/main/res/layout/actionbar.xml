@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    style="@style/actionBar">
+
+    <ImageView
+        android:id="@+id/back"
+        android:tag="back"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:src="@drawable/icon_back_arrow"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <LinearLayout
+        style="@style/actionbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" >
+
+       <TextView
+            android:id="@+id/titleText"
+            android:tag="titleText"
+            style="@style/actionbarTitle" />
+
+        <ImageView
+            android:id="@+id/trackUser"
+            android:tag="trackUser"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="@dimen/padding_small"
+            android:src="@drawable/icon_user_tracker"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/menu"
+        android:tag="menu"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@drawable/icon_menu"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+    </ImageView>
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/avatar"
+        android:tag="avatar"
+        style="@style/avatarActionbar"
+        app:civ_border_width="@dimen/avatar_actionbar_border"
+        app:civ_border_color="@color/avatarBorder"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/padding_tiny"
+    android:layout_marginBottom="@dimen/padding_tiny"
+    android:orientation="horizontal">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
+        android:layout_weight="6"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/label"
+            style="@style/formLabel"
+            android:layout_width="wrap_content"
+            android:maxWidth="130dp"
+            android:layout_height="match_parent"
+            android:layout_margin="0dp"
+            android:padding="0dp"
+            android:gravity="center_vertical"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/numberPickerContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layoutDirection="ltr"
+            android:visibility="gone"
+            android:background="@color/numberPickerBackground"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.adirahav.diraleashkaa.numberpickerlibrary.NumberPicker
+                android:id="@+id/numberPicker"
+                style="@style/NumberPicker.Filled"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_margin="0dp"
+                app:picker_tracker="exponential"
+                app:picker_orientation="vertical" />
+
+            <ImageView
+                android:id="@+id/numberPickerCancel"
+                style="@style/formIcon"
+                android:layout_margin="0dp"
+                android:padding="0dp"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/icon_cancel" />
+
+            <ImageView
+                android:id="@+id/numberPickerAccept"
+                style="@style/formIcon"
+                android:layout_margin="0dp"
+                android:padding="0dp"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/icon_accept" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/icon"
+            style="@style/formIcon"
+            android:layout_margin="0dp"
+            android:padding="0dp"
+            android:layout_gravity="center_vertical"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="parent" />
+
+        <ImageView
+            android:id="@+id/warning"
+            style="@style/formIcon"
+            android:layout_width="14dp"
+            android:src="@drawable/icon_warning"
+            android:layout_margin="0dp"
+            android:padding="0dp"
+            android:layout_gravity="center_vertical"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/label" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <EditText
+        android:id="@+id/input"
+        style="@style/formField"
+        android:paddingTop="@dimen/padding_tiny"
+        android:layout_width="0dp"
+        android:layout_weight="8"
+        android:inputType="numberDecimal"
+        android:textDirection="ltr"
+        android:textAlignment="viewStart" />
+
+    <com.skydoves.powerspinner.PowerSpinnerView
+        android:id="@+id/spinner"
+        android:layout_width="0dp"
+        android:layout_weight="8"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/padding"
+        android:paddingEnd="@dimen/padding"
+        android:paddingTop="@dimen/padding_small"
+        android:paddingBottom="@dimen/padding_small"
+        android:textColor="@color/formText"
+        android:textColorHint="@color/formHint"
+        android:textSize="18sp"
+        app:spinner_divider_color="@color/formSpinnerdivider"
+        app:spinner_divider_show="true"
+        app:spinner_divider_size="0.4dp"
+        app:spinner_popup_animation="dropdown"
+        app:spinner_popup_elevation="14dp"
+        app:spinner_popup_background="@color/formBackground"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/buttons"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:layout_margin="@dimen/padding_small">
+
+        <ImageView
+            android:id="@+id/rollback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/icon_rollback" />
+
+    </LinearLayout>
+
+</LinearLayout>

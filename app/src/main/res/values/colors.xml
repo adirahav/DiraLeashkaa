@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- palette colors -->
+    <color name="palette1">#ffffff</color>
+    <color name="palette2">#eeeeee</color>
+    <color name="palette2_transparent">#55eeeeee</color>
+    <color name="palette3">#dddddd</color>
+    <color name="palette4">#b0b0c1</color>
+    <color name="palette5">#717376</color>
+    <color name="palette5_transparent">#80717376</color>
+    <color name="palette6">#f6e0eb</color>
+    <color name="palette7">#eb4a7c</color>
+    <color name="palette8">#c9e6fa</color>
+    <color name="palette9">#44d9e6fa</color>
+    <color name="palette10">#ffcc00</color>
+    <color name="palette11">#547421</color>
+    <color name="palette12">#e2efd9</color>
+
+    <!-- theme -->
+    <color name="colorPrimary">@color/palette1</color>
+    <color name="colorPrimaryDark">@color/palette5</color>
+    <color name="colorAccent">@color/palette7</color>
+
+    <!-- elements colors -->
+    <color name="background">@color/palette2</color>
+    <color name="backgroundTooltip">@color/palette3</color>
+    <color name="backgroundOverlay">#7786888a</color>
+    <color name="backgroundTransparent">@color/palette2_transparent</color>
+    <color name="actionbarBackground">@color/palette2</color>
+    <color name="statusbarBackground">@color/palette2</color>
+    <color name="navigationbarBackground">@color/palette2</color>
+    <color name="drawerBackground">@color/palette1</color>
+    <color name="cardBackground">@color/palette1</color>
+
+    <color name="footerBackground">#550000ff</color>
+    <color name="snackText">@color/palette5</color>
+    <color name="snackBackground">@color/palette8</color>
+    <color name="snackBackgroundWarnning">@color/palette6</color>
+    <color name="snackBackgroundSuccess">@color/palette12</color>
+    <color name="actionsMenuBackground">@color/palette7</color>
+    <color name="progressBarBackground">@color/palette2</color>
+    <color name="progressBarPotentialGained">@color/palette6</color>
+    <color name="progressBarPotentialMissing">@color/palette7</color>
+    <color name="header">@color/palette7</color>
+    <color name="text">@color/palette5</color>
+    <color name="textActionbar">@color/palette7</color>
+    <color name="textNegative">@color/palette7</color>
+    <color name="textDisable">@color/palette4</color>
+    <color name="textSelected">@color/palette7</color>
+    <color name="textWarning">@color/palette7</color>
+    <color name="textActionsMenu">@color/palette1</color>
+    <color name="textActionsMenuSelected">@color/palette10</color>
+    <color name="textActionsMenuDisable">@color/palette3</color>
+    <color name="label">@color/palette4</color>
+    <color name="score">@color/palette7</color>
+    <color name="divider">@color/palette2</color>
+    <color name="dividerDrawer">@color/palette3</color>
+    <color name="formHint">@color/palette5</color>
+    <color name="formText">@color/palette5</color>
+    <color name="formLabel">@color/palette4</color>
+    <color name="formSpinnerdivider">@color/palette3</color>
+    <color name="formSpinnerdividerDark">@color/palette4</color>
+    <color name="formBackground">@color/palette2</color>
+    <color name="formBackgroundWizard">@color/palette3</color>
+    <color name="formBackgroundDisable">@color/palette3</color>
+    <color name="formBackgroundAutoFill">@color/palette9</color>
+    <color name="formBackgroundEmpty">@color/palette6</color>
+    <color name="formBackgroundTotal">@color/palette1</color>
+    <color name="formBackgroundTotalBorder">@color/palette2</color>
+    <color name="formError">@color/palette7</color>
+    <color name="numberPickerBackground">@color/palette1</color>
+    <color name="bullet">@color/palette5</color>
+    <color name="buttonText">@color/palette1</color>
+    <color name="buttonBackground">@color/palette7</color>
+    <color name="buttonDisableText">@color/palette5</color>
+    <color name="buttonDisableBackground">@color/palette4</color>
+    <color name="avatarBorder">@color/palette1</color>
+    <color name="interestsBackground">@color/palette1</color>
+    <color name="interestsBorder">@color/palette3</color>
+    <color name="cardHeader">@color/formText</color>
+    <color name="cardValue">@color/palette7</color>
+    <color name="cardIcon">@color/palette4</color>
+    <color name="actionbarTitle">@color/palette7</color>
+    <color name="messageTitlePositive">@color/palette11</color>
+    <color name="messageTitleNegative">@color/palette7</color>
+    <color name="googlePayCardPeriod">@color/palette7</color>
+    <color name="googlePayCardPrice">@color/palette7</color>
+    <color name="googlePayCardSeleced">@color/palette7</color>
+
+    <color name="help">@color/palette7</color>
+    <color name="helpFill">@color/palette1</color>
+    <color name="close">@color/palette7</color>
+    <color name="closeFill">@color/palette1</color>
+    <color name="edit">@color/palette8</color>
+    <color name="editFill">@color/palette1</color>
+    <color name="rollback">@color/palette8</color>
+    <color name="rollbackFill">@color/palette1</color>
+    <color name="warning">@color/palette10</color>
+    <color name="warningFill">@color/palette10</color>
+    <color name="error">@color/palette7</color>
+    <color name="errorFill">@color/palette7</color>
+    <color name="missing">@color/palette6</color>
+    <color name="missingFill">@color/palette1</color>
+    <color name="zoom">@color/palette7</color>
+    <color name="zoomFill">@color/palette1</color>
+    <color name="back">@color/palette7</color>
+    <color name="graphButtonOn">@color/palette7</color>
+    <color name="graphButtonOff">@color/palette3</color>
+    <color name="graphButtonFill">@color/palette1</color>
+    <color name="graphButtonBackground">@color/palette3</color>
+    <color name="menu">@color/palette7</color>
+    <color name="menuFill">@color/palette1</color>
+    <color name="home">@color/palette1</color>
+    <color name="homeFill">@color/palette1</color>
+    <color name="drawerIcon">@color/palette7</color>
+    <color name="drawerIconFill">@color/palette1</color>
+    <color name="medalIcon">@color/palette7</color>
+    <color name="medalIconFill">@color/palette1</color>
+    <color name="missingDataIcon">@color/palette4</color>
+    <color name="missingDataIconFill">@color/palette1</color>
+    <color name="lockIcon">@color/palette1</color>
+    <color name="lockIconFill">@color/palette7</color>
+
+    <color name="statePastPresentBackground">@color/palette7</color>
+    <color name="statePastPresentText">@color/palette1</color>
+    <color name="statePastFutureDescription">@color/palette5</color>
+    <color name="statePresentDescription">@color/palette7</color>
+    <color name="stateFutureBackground">@color/palette4</color>
+    <color name="stateFutureText">@color/palette5</color>
+
+    <color name="tableBorder">@color/palette5</color>
+    <color name="tableThBackground">@color/palette3</color>
+    <color name="tableRowBackground">@color/palette2</color>
+    <color name="tableRowBackgroundBold">@color/palette3</color>
+    <color name="tableRowBackgroundSelected">@color/palette10</color>
+    <color name="tableText">@color/palette5</color>
+    <color name="tableDivider">@color/palette3</color>
+
+    <color name="chartBackground">@color/palette2_transparent</color>
+    <color name="chartLegand">@color/palette5</color>
+    <color name="chartBottomScale">@color/chartLegand</color>
+    <color name="chartLeftScale">@color/chartBottomScale</color>
+    <color name="chartCircle">@color/chartLegand</color>
+    <color name="chartTextValue">@color/chartCircle</color>
+
+    <!-- dialog backgrounds -->
+
+    <color name="dialog_background_no_internet">#1113A3FB</color>
+    <color name="dialog_background_expired_registration">#118882EC</color>
+    <color name="dialog_background_beta_version">#1162B6AA</color>
+    <color name="dialog_background_new_version_available_not_required">#1162B6AA</color>
+    <color name="dialog_background_new_version_available_required">#1162B6AA</color>
+    <color name="dialog_background_data_error">#11EEEEEE</color>
+    <color name="dialog_background_server_down">#11EEEEEE</color>
+    <color name="dialog_background_restore">#11C98B03</color>
+    <color name="dialog_background_blocked">#11eb4a7c</color>
+    <color name="dialog_background_announcement">#119FFFE5</color>
+    <color name="dialog_background_unsubscribe">#1162B6AA</color>
+
+</resources>

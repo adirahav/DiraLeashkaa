@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layoutDirection="rtl"
+    tools:context=".ui.property.PropertyAmortizationScheduleFragment">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TableLayout
+            android:id="@+id/tableHeader"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/table_header_height"
+            android:layout_marginTop="0dp"
+            android:layout_marginStart="@dimen/table_margin_start"
+            android:layout_marginEnd="@dimen/table_margin_end">
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView android:id="@+id/monthNo" style="@style/table_header_first" android:layout_weight="0.7"></TextView>
+                <TextView android:id="@+id/fundBOP" style="@style/table_header"></TextView>
+                <TextView android:id="@+id/interest" style="@style/table_header"></TextView>
+                <TextView android:id="@+id/monthlyRepayments" style="@style/table_header"></TextView>
+                <TextView android:id="@+id/fundRefund" style="@style/table_header"></TextView>
+                <TextView android:id="@+id/interestRepayment" style="@style/table_header"></TextView>
+                <TextView android:id="@+id/fundEOP" style="@style/table_header"></TextView>
+                <!--<TextView android:id="@+id/interestDiscountingBOP" android:text="@string/amortization_schedule_bop_interest_discounting_label" style="@style/table_header"></TextView>
+                <TextView android:id="@+id/interestDiscountingEOP" android:text="@string/amortization_schedule_eop_interest_discounting_label" style="@style/table_header"></TextView>-->
+
+            </TableRow>
+        </TableLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/table_header_height"
+            android:layout_marginStart="@dimen/table_margin_start"
+            android:layout_marginEnd="@dimen/table_margin_end"
+            android:layout_marginBottom="@dimen/table_margin_bottom"
+            android:scrollbars="vertical" />
+
+    </FrameLayout>
+
+</LinearLayout>

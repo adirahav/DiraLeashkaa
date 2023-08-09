@@ -1,0 +1,6 @@
+include ':app'
+rootProject.name='DiraLeashkaa'
+include ':stepsView'
+include ':numberpicker'
+include ':chart'
+include ':gmailbackground'

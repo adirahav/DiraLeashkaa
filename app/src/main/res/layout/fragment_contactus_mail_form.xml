@@ -1,0 +1,67 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="@style/container"
+    android:layout_marginStart="@dimen/padding"
+    android:layout_marginEnd="@dimen/padding"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <!-- message type -->
+    <com.adirahav.diraleashkaa.views.LabelWithIcon
+        android:id="@+id/messageTypeTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        custom:iconExist="false"/>
+
+    <com.skydoves.powerspinner.PowerSpinnerView
+        android:id="@+id/messageType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/padding"
+        android:paddingEnd="@dimen/padding"
+        android:paddingTop="@dimen/padding_small"
+        android:paddingBottom="@dimen/padding_small"
+        android:textColor="@color/formText"
+        android:textColorHint="@color/formHint"
+        android:textSize="18sp"
+        android:background="@drawable/background_field_dark_round_corners"
+        app:spinner_divider_color="@color/palette4"
+        app:spinner_divider_show="true"
+        app:spinner_divider_size="0.4dp"
+        app:spinner_popup_animation="dropdown"
+        app:spinner_popup_elevation="14dp"
+        app:spinner_popup_background="@color/formBackground" />
+
+    <TextView
+        android:id="@+id/messageTypeError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/formError"
+        android:visibility="gone" />
+
+    <!-- message -->
+    <com.adirahav.diraleashkaa.views.LabelWithIcon
+        android:id="@+id/messageTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        custom:iconExist="false"/>
+
+    <EditText
+        android:id="@+id/message"
+        style="@style/formFieldDark"
+        android:layout_height="150dp"
+        android:inputType="text|textMultiLine"
+        android:gravity="top" />
+
+    <TextView
+        android:id="@+id/messageError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/formError"
+        android:visibility="gone" />
+
+</LinearLayout>

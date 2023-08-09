@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<TableLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout android:id="@+id/payNo" style="@style/table_cell_first" android:orientation="horizontal">
+            <TextView android:id="@+id/monthNo" android:layout_width="0dp" android:layout_weight="0.6" android:layout_height="wrap_content" android:textColor="@color/tableText"></TextView>
+            <TextView android:id="@+id/yearNo" android:layout_width="0dp" android:layout_weight="0.4" android:layout_height="wrap_content" android:textColor="@color/tableText" android:textSize="11sp" android:layout_gravity="bottom"></TextView>
+        </LinearLayout>
+        <TextView android:id="@+id/fundBOP" style="@style/table_cell"></TextView>
+        <TextView android:id="@+id/interest" style="@style/table_cell"></TextView>
+        <TextView android:id="@+id/monthlyRepayments" style="@style/table_cell"></TextView>
+        <TextView android:id="@+id/fundRefund" style="@style/table_cell"></TextView>
+        <TextView android:id="@+id/interestRepayment" style="@style/table_cell"></TextView>
+        <TextView android:id="@+id/fundEOP" style="@style/table_cell"></TextView>
+        <!--<TextView android:id="@+id/interestDiscountingBOP" style="@style/table_cell"></TextView>
+        <TextView android:id="@+id/interestDiscountingEOP" style="@style/table_cell"></TextView>-->
+    </TableRow>
+</TableLayout>
+
+
+<!--
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tableTD"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <TextView android:id="@+id/monthNo" style="@style/table_td_first" android:layout_weight="1" />
+    <TextView android:id="@+id/propertyPrice" style="@style/table_td" android:layout_weight="2" />
+    <TextView android:id="@+id/rent" style="@style/table_td" android:layout_weight="2" />
+    <TextView android:id="@+id/financingCosts" style="@style/table_td" android:layout_weight="2" />
+    <TextView android:id="@+id/valuationInRealization" style="@style/table_td" android:layout_weight="2" />
+    <TextView android:id="@+id/commendationTax" style="@style/table_td" android:layout_weight="2" />
+    <TextView android:id="@+id/profit" style="@style/table_td" android:layout_weight="2" />
+    <TextView android:id="@+id/totalReturn" style="@style/table_td" android:layout_weight="2" />
+    <TextView android:id="@+id/returnOnEquity" style="@style/table_td" android:layout_weight="2" />
+</LinearLayout>
+-->

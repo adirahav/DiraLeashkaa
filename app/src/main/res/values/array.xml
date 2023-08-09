@@ -1,0 +1,80 @@
+<resources>
+    <string-array name="state_progress_bar_description">
+        <item>פרטים\nאישיים</item>
+        <item>נתונים \nכלכליים</item>
+        <item>תנאי \nשימוש</item>
+        <item>תשלום</item>
+        <item>סיום</item>
+    </string-array>
+
+    <string-array name="apartment_type">
+        <item>CHOOSE</item>
+        <item>SINGLE</item>
+        <item>ALTERNATE</item>
+        <item>INVESTMENT</item>
+    </string-array>
+
+    <string-array name="cities">
+        <item>CHOOSE</item>
+        <item>UMM_EL_FAHM</item>
+        <item>OR_YEHUDA</item>
+        <item>ELAD</item>
+        <item>ASHDOD</item>
+        <item>ASHQELON</item>
+        <item>EILAT</item>
+        <item>BEERSHEBA</item>
+        <item>BET_SHEMESH</item>
+        <item>BENE_BERAQ</item>
+        <item>BAT_YAM</item>
+        <item>GIVATAYIM</item>
+        <item>DIMONA</item>
+        <item>HOD_HASHARON</item>
+        <item>HERZLIYYA</item>
+        <item>HADERA</item>
+        <item>HOLON</item>
+        <item>TIBERIAS</item>
+        <item>TAIYIBA</item>
+        <item>TAMRA</item>
+        <item>YEHUD</item>
+        <item>JERUSALEM</item>
+        <item>KEFAR_SAVA</item>
+        <item>KARMIEL</item>
+        <item>HAIFA</item>
+        <item>LOD</item>
+        <item>MODIIN_MAKKABBIM_REUT</item>
+        <item>MAALOT_TARSHIHA</item>
+        <item>NAHARIYYA</item>
+        <item>NES_ZIYYONA</item>
+        <item>NAZARETH</item>
+        <item>NETIVOT</item>
+        <item>NETANYA</item>
+        <item>SAKHNIN</item>
+        <item>AKKO</item>
+        <item>AFULA</item>
+        <item>PETAH_TIQWA</item>
+        <item>ZEFAT</item>
+        <item>QIRYAT_ONO</item>
+        <item>QIRYAT_ATA</item>
+        <item>QIRYAT_BIALIK</item>
+        <item>QIRYAT_GAT</item>
+        <item>QIRYAT_MOZQIN</item>
+        <item>QIRYAT_YAM</item>
+        <item>ROSH_HAAYIN</item>
+        <item>RISHON_LEZIYYON</item>
+        <item>RAHAT</item>
+        <item>RAMLA</item>
+        <item>RAMAT_GAN</item>
+        <item>RAMAT_HASHARON</item>
+        <item>RAANANNA</item>
+        <item>TEL_AVIV_YAFO</item>
+    </string-array>
+
+    <string-array name="mortgage_period">
+        <item>CHOOSE</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>25</item>
+        <item>30</item>
+    </string-array>
+</resources>

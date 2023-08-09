@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/buttons_height"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    android:gravity="center"
+    android:orientation="horizontal">
+
+    <Button
+        android:id="@+id/back"
+        android:layout_margin="@dimen/padding"
+        style="@style/buttonDisable"
+        android:onClick="submitBack"/>
+
+    <Button
+        android:id="@+id/next"
+        android:layout_margin="@dimen/padding"
+        style="@style/button"
+        android:onClick="submitNext" />
+
+    <Button
+        android:id="@+id/save"
+        android:layout_margin="@dimen/padding"
+        style="@style/button"
+        android:onClick="submitSave" />
+
+    <Button
+        android:id="@+id/send"
+        android:layout_margin="@dimen/padding"
+        style="@style/button"
+        android:onClick="submitSend" />
+
+    <include
+        android:id="@+id/googlePayButton"
+        layout="@layout/include_google_pay_button"
+        android:layout_width="@dimen/google_pay_button_width"
+        android:layout_height="@dimen/google_pay_button_height"
+        android:layout_margin="@dimen/padding"
+        android:visibility="gone" />
+
+</LinearLayout>

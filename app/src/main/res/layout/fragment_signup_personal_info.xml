@@ -1,0 +1,118 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    style="@style/container"
+    android:layout_marginStart="@dimen/padding"
+    android:layout_marginEnd="@dimen/padding"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:id="@+id/container">
+
+    <!-- name -->
+    <com.adirahav.diraleashkaa.views.LabelWithIcon
+        android:id="@+id/nameLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        custom:iconExist="false"/>
+
+    <EditText
+        android:id="@+id/name"
+        style="@style/formFieldDark"
+        android:inputType="text"/>
+
+    <TextView
+        android:id="@+id/nameError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/formError"
+        android:visibility="gone"/>
+
+    <!-- phone -->
+    <com.adirahav.diraleashkaa.views.LabelWithIcon
+        android:id="@+id/phoneLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        custom:iconExist="false"/>
+
+    <EditText
+        android:id="@+id/phone"
+        style="@style/formFieldDark"
+        android:inputType="phone"
+        android:maxLength="11" />
+
+    <TextView
+        android:id="@+id/phoneError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/formError"
+        android:visibility="gone"/>
+
+    <!-- email -->
+    <com.adirahav.diraleashkaa.views.LabelWithIcon
+        android:id="@+id/emailLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        custom:iconExist="false"/>
+
+    <EditText
+        android:id="@+id/email"
+        style="@style/formFieldDark"
+        android:inputType="textEmailAddress"/>
+
+    <TextView android:id="@+id/emailError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/formError"
+        android:visibility="gone"/>
+
+    <!--<com.adirahav.diraleashkaa.views.LabelWithIcon
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        custom:labelText="@string/signup_password_hint"
+        custom:iconExist="false"/>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:passwordToggleEnabled="true"
+        android:layout_marginTop="-10dp"
+        android:hint=" ">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/formFieldWizard"
+            android:inputType="textPassword"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/passwordError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/formError"
+        android:text="@string/signup_password_error"
+        android:visibility="gone"/>-->
+
+    <!-- age -->
+    <com.adirahav.diraleashkaa.views.LabelWithIcon
+        android:id="@+id/ageLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        custom:iconExist="false"/>
+
+    <EditText
+        android:id="@+id/age"
+        style="@style/formFieldDark"
+        android:inputType="numberDecimal"/>
+
+    <TextView
+        android:id="@+id/ageError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/formError"
+        android:visibility="gone"/>
+
+</LinearLayout>

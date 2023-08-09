@@ -1,0 +1,48 @@
+<resources>
+    <attr name="labelText" format="string" />
+    <attr name="labelTextWithoutValue" format="string" />
+    <attr name="iconSrc" format="integer" />
+    <attr name="iconExist" format="boolean" />
+    <attr name="iconTooltipText" format="string" />
+    <attr name="numberPickerExist" format="boolean" />
+    <attr name="numberPickerDefaultValue" format="float" />
+    <attr name="numberPickerMinValue" format="float" />
+    <attr name="numberPickerMaxValue" format="float" />
+    <attr name="numberPickerStepsSize" format="float" />
+
+    <declare-styleable name="LabelWithIcon">
+        <attr name="labelText" />
+        <attr name="iconSrc" />
+        <attr name="iconExist" />
+        <attr name="iconTooltipText" />
+    </declare-styleable>
+
+    <declare-styleable name="PropertyInput">
+        <attr name="inputType" format="string" />
+        <attr name="inputDefaultValue" format="integer" />
+        <attr name="labelText" />
+        <attr name="labelTextWithoutValue" />
+        <attr name="numberPickerExist" />
+        <attr name="numberPickerDefaultValue" />
+        <attr name="numberPickerMinValue" />
+        <attr name="numberPickerMaxValue" />
+        <attr name="numberPickerStepsSize" />
+        <attr name="dropDownOptions" format="string" />
+        <attr name="iconSrc" />
+        <attr name="iconExist" />
+        <attr name="iconTooltipText" />
+        <attr name="warningExist" format="boolean" />
+        <attr name="warningShow" format="boolean" />
+        <attr name="warningTooltipText" format="string" />
+    </declare-styleable>
+
+    <declare-styleable name="PropertyPercentInput">
+        <attr name="labelText" />
+        <attr name="numberPickerExist" />
+        <attr name="numberPickerDefaultValue" />
+        <attr name="numberPickerMinValue" />
+        <attr name="numberPickerMaxValue" />
+        <attr name="numberPickerStepsSize" />
+    </declare-styleable>
+
+</resources>
