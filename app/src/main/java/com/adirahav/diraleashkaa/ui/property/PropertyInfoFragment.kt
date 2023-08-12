@@ -1288,7 +1288,9 @@ class PropertyInfoFragment : Fragment() {
                 else
                     null
 
-            _activity?.insertUpdateProperty(Const.EQUITY, _activity?.propertyData?.calcEquity)
+            if (!equityInputView?.text.isNullOrEmpty()) {
+                _activity?.insertUpdateProperty(Const.EQUITY, _activity?.propertyData?.calcEquity)
+            }
         }
     }
 
@@ -1320,7 +1322,9 @@ class PropertyInfoFragment : Fragment() {
                 else
                     null
 
-            _activity?.insertUpdateProperty(Const.INCOMES, _activity?.propertyData?.calcIncomes)
+            if (!incomesInputView?.text.isNullOrEmpty()) {
+                _activity?.insertUpdateProperty(Const.INCOMES, _activity?.propertyData?.calcIncomes)
+            }
         }
     }
 
@@ -1332,7 +1336,9 @@ class PropertyInfoFragment : Fragment() {
                 else
                     null
 
-            _activity?.insertUpdateProperty(Const.COMMITMENTS, _activity?.propertyData?.calcCommitments)
+            if (!commitmentsInputView?.text.isNullOrEmpty()) {
+                _activity?.insertUpdateProperty(Const.COMMITMENTS, _activity?.propertyData?.calcCommitments)
+            }
         }
     }
 
