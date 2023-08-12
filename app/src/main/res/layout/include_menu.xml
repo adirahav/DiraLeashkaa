@@ -47,6 +47,11 @@
             <TextView android:id="@+id/drawerContactUs" style="@style/drawerTitle" />
         </LinearLayout>
 
+        <LinearLayout style="@style/drawerContainer">
+            <ImageView android:src="@drawable/icon_drawer_share" style="@style/drawerIcon"/>
+            <TextView android:id="@+id/drawerShare" style="@style/drawerTitle" />
+        </LinearLayout>
+
         <View style="@style/drawerDivider" />
 
         <LinearLayout style="@style/drawerContainer">

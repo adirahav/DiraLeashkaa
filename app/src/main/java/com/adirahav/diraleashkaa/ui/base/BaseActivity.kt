@@ -68,6 +68,7 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
     var drawerRegistrationDetails: TextView? = null
     var drawerTermsOfUse: TextView? = null
     var drawerContactUs: TextView? = null
+    var drawerShare: TextView? = null
     var drawerVersion: TextView? = null
     var drawerCopyright: TextView? = null
 
@@ -327,6 +328,26 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
             ContactUsActivity.start(context, Enums.ContactUsPageType.MAIL_FORM)
         }
 
+        // drawer - share
+        drawerShare = menu?.drawerShare
+
+        drawerShare?.setOnClickListener {
+            drawer?.closeDrawer(GravityCompat.START)
+
+            val intent: Intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT,
+                        String.format(
+                                Utilities.getRoomString("share_text"),
+                                preferences?.getString("appURL", ""))
+                )
+                type = "text/plain"
+            }
+
+            val shareIntent = Intent.createChooser(intent, null)
+            startActivity(shareIntent)
+        }
+
         // drawer - version
         drawerVersion = menu?.drawerVersion
 
@@ -564,6 +585,9 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
 
         // drawer - contact us
         drawerContactUs?.text = Utilities.getRoomString("drawer_contact_us")
+
+        // drawer - share
+        drawerShare?.text = Utilities.getRoomString("drawer_share")
 
         // drawer - version
         if (preferences?.getBoolean("isNewVersionAvailable", false) == true) {
