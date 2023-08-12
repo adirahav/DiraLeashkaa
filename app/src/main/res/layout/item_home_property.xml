@@ -57,6 +57,7 @@
           android:textColor="@color/formText"
           android:textSize="16sp"
           android:layout_marginTop="@dimen/padding_tiny"
+          android:paddingEnd="@dimen/padding"
           app:layout_constraintStart_toStartOf="parent"
           app:layout_constraintTop_toBottomOf="@+id/picture" />
 
