@@ -1,5 +1,6 @@
 package com.adirahav.diraleashkaa.ui.registration
 
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -76,11 +77,17 @@ class RegistrationGooglePayFragment : Fragment(),
         //val view = inflater.inflate(R.layout.fragment_google_pay, container, false)
         //activity?.setContentView(view)
 
+
+
+        return layout.root
+    }
+
+    override fun onResume() {
         initGlobal()
         initData()
         initEvents()
 
-        return layout.root
+        super.onResume()
     }
 
     //endregion == lifecycle methods ==
@@ -240,18 +247,6 @@ class RegistrationGooglePayFragment : Fragment(),
     }
 
     //endregion == strings ============
-
-    //region == unsubscribe ========
-
-    private fun responseAfterUnsubscribePositivePress() {
-        _registrationActivity?.viewModel?.getUnsubscribe(requireContext(), userData)
-    }
-
-    private fun responseAfterUnsubscribeNegativePress() {
-
-    }
-
-    //endregion == unsubscribe ========
 
     fun submitForm(skip: Boolean) {
         var isValid = true

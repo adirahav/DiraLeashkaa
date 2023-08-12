@@ -62,11 +62,17 @@ class RegistrationCouponCodeFragment : Fragment() {
     ): View? {
         layout = FragmentRegistrationCouponCodeBinding.inflate(layoutInflater)
 
+
+
+        return layout?.root
+    }
+
+    override fun onResume() {
         initGlobal()
         initData()
         initEvents()
 
-        return layout?.root
+        super.onResume()
     }
 
     //endregion == lifecycle methods ==
@@ -174,18 +180,6 @@ class RegistrationCouponCodeFragment : Fragment() {
     }
 
     //endregion == strings ============
-
-    //region == unsubscribe ========
-
-    private fun responseAfterUnsubscribePositivePress() {
-        _registrationActivity?.viewModel?.getUnsubscribe(requireContext(), userData)
-    }
-
-    private fun responseAfterUnsubscribeNegativePress() {
-
-    }
-
-    //endregion == unsubscribe ========
 
     fun setCode() {
 
