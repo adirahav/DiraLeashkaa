@@ -376,23 +376,18 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     }
 
     private fun responseAfterNewVersionAvailableRequiredPositivePress() {
-        val appURL = fixedParameters?.appVersionArray?.find { it.key == "url" }?.value ?: ""
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appURL")))
-        } catch (e: ActivityNotFoundException) {
-            Utilities.log(Enums.LogType.Error, TAG, "responseAfterNewVersionAvailableRequiredPositivePress(): ActivityNotFoundException = ${e.message}", userData)
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appURL")))
-        }
+        responseAfterNewVersionAvailableNotRequiredPositivePress()
     }
 
     private fun responseAfterNewVersionAvailableNotRequiredPositivePress() {
         val appURL = fixedParameters?.appVersionArray?.find { it.key == "url" }?.value ?: ""
-
+        val appURLArr = appURL.split("?id=")
+        val appID = if (appURLArr.size == 2) appURLArr[1] else ""
         try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appURL")))
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appID")))
         } catch (e: ActivityNotFoundException) {
             Utilities.log(Enums.LogType.Error, TAG, "responseAfterNewVersionAvailableNotRequiredPositivePress(): ActivityNotFoundException = ${e.message}", userData)
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appURL")))
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appID")))
         }
     }
 
