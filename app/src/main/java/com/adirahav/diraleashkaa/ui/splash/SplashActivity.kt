@@ -320,6 +320,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
                 val subscriberType = userData?.subscriberType
                 val expiredTime = userData?.registrationExpiredTime
                 val appURL = fixedParameters?.appVersionArray?.find { it.key == "url" }?.value ?: ""
+                val appID = Utilities.getAppID(fixedParameters)
                 val onErrorSendEmail = fixedParameters?.onErrorArray?.find { it.key == "send_email" }?.value?.toBoolean() ?: true
                 val onErrorMailTo = fixedParameters?.onErrorArray?.find { it.key == "mail_to" }?.value ?: ""
 
@@ -329,6 +330,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
                 preferences?.setString("userName", userData?.userName, false)
                 preferences?.setString("appVersion", userData?.appVersion, false)
                 preferences?.setString("appURL", appURL, false)
+                preferences?.setString("appID", appID, false)
                 preferences?.setBoolean("isNewVersionAvailable", isNewVersionAvailable == true, false)
                 preferences?.setBoolean("onErrorSendEmail", onErrorSendEmail, false)
                 preferences?.setString("onErrorMailTo", onErrorMailTo, false)
@@ -378,9 +380,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     }
 
     private fun responseAfterNewVersionAvailableNotRequiredPositivePress() {
-        val appURL = fixedParameters?.appVersionArray?.find { it.key == "url" }?.value ?: ""
-        val appURLArr = appURL.split("?id=")
-        val appID = if (appURLArr.size == 2) appURLArr[1] else ""
+        val appID = Utilities.getAppID(fixedParameters)
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appID")))
         } catch (e: ActivityNotFoundException) {

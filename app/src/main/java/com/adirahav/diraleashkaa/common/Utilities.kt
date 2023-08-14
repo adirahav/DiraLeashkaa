@@ -1037,6 +1037,13 @@ object Utilities {
             .plus("\"}]\"")
     }
 
+    fun getAppID(fixedParameters: FixedParameters?) : String {
+        val appURL = fixedParameters?.appVersionArray?.find { it.key == "url" }?.value ?: ""
+        val appURLArr = appURL.split("?id=")
+        val appID = if (appURLArr.size == 2) appURLArr[1] else ""
+        return appID
+    }
+
     //region == model to entity ====
     /*fun fixedParametersModelToEntity(fixedParametersModel: FixedParametersModel?) : FixedParametersEntity {
         val nowUTC = Calendar.getInstance()
