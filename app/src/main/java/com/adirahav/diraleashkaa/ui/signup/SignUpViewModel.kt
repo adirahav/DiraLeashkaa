@@ -87,6 +87,8 @@ class SignUpViewModel internal constructor(
     fun insertServerUser(userData: UserEntity?) {
         Utilities.log(Enums.LogType.Debug, TAG, "insertServerUser()")
 
+        Utilities.log(Enums.LogType.Notify, TAG, "NEW USER SIGN UP: ${userData?.userName}")
+
         CoroutineScope(Dispatchers.IO).launch {
 
             val call: Call<UserModel?>? = userService.userAPI.insertUser(

@@ -153,6 +153,9 @@ dependencies {
 
     implementation 'com.google.firebase:firebase-dynamic-links'
     implementation 'com.google.firebase:firebase-analytics'
+
+    // mixpanel
+    implementation 'com.mixpanel.android:mixpanel-android:7.+'
 }
 
 repositories {

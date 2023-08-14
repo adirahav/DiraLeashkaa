@@ -126,7 +126,6 @@ object Utilities {
     fun composeEmail(subject: String?, message: String?, userData: UserEntity?, propertyData: PropertyEntity?, responseSuccess: (() -> Unit)?, responseFail: (() -> Unit)?) {
         val preferences = AppPreferences.instance
 
-
         BackgroundMail.newBuilder(context)
             .withMailFrom("diraleashkaa@gmail.com")
             .withPassword("Mario18GD")
@@ -139,15 +138,11 @@ object Utilities {
             .withBody("" +
                     "${message}\n\n" +
                     "------------------------------------------------------------------------------\n\n" +
-                    "user:\n + " +
-                    "${userData?.toString()}\n\n" +
-                    "property:\n" +
-                    "${propertyData?.toString()}\n\n" +
-                    "device:\n" +
-                    "deviceID = ${Settings.Secure.getString(context.contentResolver, getDeviceID(context))}\n" +
+                    "user:\n + " + "${userData?.toString()}\n\n" +
+                    "property:\n" + "${propertyData?.toString()}\n\n" +
+                    "device:\n" + "deviceID = ${Settings.Secure.getString(context.contentResolver, getDeviceID(context))}\n" +
                     "deviceType = ${getDeviceType()}\n\n" +
-                    "preferences:\n" +
-                    "userName = ${preferences?.getString("userName", "")}\n" +
+                    "preferences:\n" + "userName = ${preferences?.getString("userName", "")}\n" +
                     "appVersion = ${preferences?.getString("appVersion", "")}\n" +
                     "roomUID = ${preferences?.getLong("roomUID", 0L)}\n" +
                     "subscriberType = ${preferences?.getString("subscriberType", "")}\n" +
@@ -159,11 +154,13 @@ object Utilities {
                     responseSuccess()
                 }
             }
-            .withOnFailCallback {
-                if (responseFail != null) {
-                    responseFail()
+            .withOnFailCallback(object : BackgroundMail.OnFailCallback {
+                override fun onFail (failureReason: String) {
+                    if (responseFail != null) {
+                        responseFail()
+                    }
                 }
-            }
+            })
             .send()
     }
 

@@ -49,7 +49,7 @@ public class BackgroundMail {
     }
 
     public interface OnFailCallback {
-        void onFail();
+        void onFail(String sendingMessageError);
     }
 
     public BackgroundMail(Fragment fragment) {
@@ -341,7 +341,7 @@ public class BackgroundMail {
                     Toast.makeText(mContext, sendingMessageError, Toast.LENGTH_SHORT).show();
                 }
                 if (onFailCallback != null) {
-                    onFailCallback.onFail();
+                    onFailCallback.onFail(sendingMessageError);
                 }
             }
 

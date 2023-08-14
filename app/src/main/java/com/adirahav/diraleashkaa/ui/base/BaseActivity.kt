@@ -7,8 +7,13 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.view.*
-import android.view.View.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.View.GONE
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
+import android.view.Window
+import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.ActionBar
@@ -21,16 +26,28 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
 import androidx.viewbinding.ViewBinding
 import com.adirahav.diraleashkaa.R
-import com.adirahav.diraleashkaa.common.*
 import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
+import com.adirahav.diraleashkaa.common.AppPreferences
+import com.adirahav.diraleashkaa.common.Enums
+import com.adirahav.diraleashkaa.common.ExceptionHandler
+import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.data.network.entities.StringEntity
-import com.adirahav.diraleashkaa.databinding.*
+import com.adirahav.diraleashkaa.databinding.ActivityContactusBinding
+import com.adirahav.diraleashkaa.databinding.ActivityHomeBinding
+import com.adirahav.diraleashkaa.databinding.ActivityPropertyBinding
+import com.adirahav.diraleashkaa.databinding.ActivityRegistrationBinding
+import com.adirahav.diraleashkaa.databinding.ActivityUserBinding
+import com.adirahav.diraleashkaa.databinding.IncludeMenuBinding
 import com.adirahav.diraleashkaa.ui.contactus.ContactUsActivity
 import com.adirahav.diraleashkaa.ui.copyright.CopyrightActivity
 import com.adirahav.diraleashkaa.ui.registration.RegistrationActivity
 import com.adirahav.diraleashkaa.ui.user.UserActivity
 import com.google.android.material.navigation.NavigationView
-import java.util.*
+import com.mixpanel.android.mpmetrics.MixpanelAPI
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
+
 
 abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal constructor(): AppCompatActivity() {
 
@@ -83,6 +100,9 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
 
     private lateinit var layoutBase: VB
 
+    // mixpanel
+    private var mixpanel: MixpanelAPI? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         if (isFullScreen()) {
             this.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -100,9 +120,16 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
         initBaseObserver()
+
+        initMixpanel()
     }
 
     ////
+
+    private fun initMixpanel() {
+    //    mixpanel = MixpanelAPI.getInstance(applicationContext, "2b3a3e89207d8209a6da4dd03bb2f473")
+    }
+
     private fun getInflatedLayout(inflater: LayoutInflater): VB {
         val tempList = mutableListOf<VB>()
         attachBinding(tempList, inflater)
