@@ -805,7 +805,7 @@ object Utilities {
 
     //endregion == internet connection ===
 
-    //region == strings ============
+    //region == strings ===============
 
     var roomStrings: ArrayList<StringEntity>? = null
 
@@ -863,7 +863,7 @@ object Utilities {
     fun setPropertyPercentViewString(inputView: PropertyPercent?, textKey: String) {
         inputView?.setInputLabelText(getRoomString(textKey))
     }
-    //endregion == strings ============
+    //endregion == strings ===============
 
     data class BitmapSize(val width: Int, val height: Int)
 
@@ -1035,6 +1035,13 @@ object Utilities {
             .replace(", ", "\", ")
             .dropLast(3)
             .plus("\"}]\"")
+    }
+
+    fun getAppID(fixedParameters: FixedParameters?) : String {
+        val appURL = fixedParameters?.appVersionArray?.find { it.key == "url" }?.value ?: ""
+        val appURLArr = appURL.split("?id=")
+        val appID = if (appURLArr.size == 2) appURLArr[1] else ""
+        return appID
     }
 
     //region == model to entity ====
