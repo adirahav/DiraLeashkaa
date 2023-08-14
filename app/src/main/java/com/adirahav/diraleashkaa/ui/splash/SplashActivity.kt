@@ -380,9 +380,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     }
 
     private fun responseAfterNewVersionAvailableNotRequiredPositivePress() {
-        val appURL = fixedParameters?.appVersionArray?.find { it.key == "url" }?.value ?: ""
-        val appURLArr = appURL.split("?id=")
-        val appID = if (appURLArr.size == 2) appURLArr[1] else ""
+        val appID = Utilities.getAppID(fixedParameters)
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appID")))
         } catch (e: ActivityNotFoundException) {
