@@ -320,6 +320,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
                 val subscriberType = userData?.subscriberType
                 val expiredTime = userData?.registrationExpiredTime
                 val appURL = fixedParameters?.appVersionArray?.find { it.key == "url" }?.value ?: ""
+                val appID = Utilities.getAppID(fixedParameters)
                 val onErrorSendEmail = fixedParameters?.onErrorArray?.find { it.key == "send_email" }?.value?.toBoolean() ?: true
                 val onErrorMailTo = fixedParameters?.onErrorArray?.find { it.key == "mail_to" }?.value ?: ""
 
@@ -329,6 +330,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
                 preferences?.setString("userName", userData?.userName, false)
                 preferences?.setString("appVersion", userData?.appVersion, false)
                 preferences?.setString("appURL", appURL, false)
+                preferences?.setString("appID", appID, false)
                 preferences?.setBoolean("isNewVersionAvailable", isNewVersionAvailable == true, false)
                 preferences?.setBoolean("onErrorSendEmail", onErrorSendEmail, false)
                 preferences?.setString("onErrorMailTo", onErrorMailTo, false)
@@ -374,23 +376,16 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     }
 
     private fun responseAfterNewVersionAvailableRequiredPositivePress() {
-        val appURL = fixedParameters?.appVersionArray?.find { it.key == "url" }?.value ?: ""
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appURL")))
-        } catch (e: ActivityNotFoundException) {
-            Utilities.log(Enums.LogType.Error, TAG, "responseAfterNewVersionAvailableRequiredPositivePress(): ActivityNotFoundException = ${e.message}", userData)
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appURL")))
-        }
+        responseAfterNewVersionAvailableNotRequiredPositivePress()
     }
 
     private fun responseAfterNewVersionAvailableNotRequiredPositivePress() {
-        val appURL = fixedParameters?.appVersionArray?.find { it.key == "url" }?.value ?: ""
-
+        val appID = Utilities.getAppID(fixedParameters)
         try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appURL")))
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appID")))
         } catch (e: ActivityNotFoundException) {
             Utilities.log(Enums.LogType.Error, TAG, "responseAfterNewVersionAvailableNotRequiredPositivePress(): ActivityNotFoundException = ${e.message}", userData)
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appURL")))
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appID")))
         }
     }
 

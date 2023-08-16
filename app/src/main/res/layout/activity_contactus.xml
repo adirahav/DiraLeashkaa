@@ -35,7 +35,7 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="0dp"
                     android:id="@+id/formFragment" />
-Ba
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

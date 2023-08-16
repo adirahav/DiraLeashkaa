@@ -79,19 +79,7 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
                 }
 
                 override fun onFailure(call: Call<SplashModel?>, t: Throwable) {
-                    var result : SplashDataClass? = null
-                    if (t.message.equals("timeout")) {
-                        result = SplashDataClass(
-                            fixedParameters = null,
-                            strings = ArrayList(),
-                            user = null,
-                            restore = null,
-                            announcements = null,
-                            newVersionAvailable = null,
-                            serverDown = true
-                        )
-                    }
-                    setServerSplash(result)
+                    setServerSplash(null)
 
                     Utilities.log(Enums.LogType.Error, TAG, "getServerSplash(): onFailure = $t")
                     call.cancel()

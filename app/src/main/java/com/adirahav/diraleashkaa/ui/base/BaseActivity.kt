@@ -1,5 +1,6 @@
 package com.adirahav.diraleashkaa.ui.base
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -25,6 +26,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
 import androidx.viewbinding.ViewBinding
+import com.adirahav.diraleashkaa.BuildConfig
 import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
 import com.adirahav.diraleashkaa.common.AppPreferences
@@ -41,6 +43,7 @@ import com.adirahav.diraleashkaa.databinding.IncludeMenuBinding
 import com.adirahav.diraleashkaa.ui.contactus.ContactUsActivity
 import com.adirahav.diraleashkaa.ui.copyright.CopyrightActivity
 import com.adirahav.diraleashkaa.ui.registration.RegistrationActivity
+import com.adirahav.diraleashkaa.ui.splash.SplashActivity
 import com.adirahav.diraleashkaa.ui.user.UserActivity
 import com.google.android.material.navigation.NavigationView
 import com.mixpanel.android.mpmetrics.MixpanelAPI
@@ -621,14 +624,17 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
             drawerVersion?.text =
                 if (Utilities.getRoomString("drawer_version_update").isNotEmpty())
                     HtmlCompat.fromHtml(
-                        String.format(Utilities.getRoomString("drawer_version_update"), preferences?.getString("appVersion", "")), HtmlCompat.FROM_HTML_MODE_LEGACY)
+                        String.format(Utilities.getRoomString("drawer_version_update"), BuildConfig.VERSION_NAME), HtmlCompat.FROM_HTML_MODE_LEGACY)
                 else
                     ""
+
+            val appID = preferences?.getString("appID", "")
+
             drawerVersion?.setOnClickListener {
                 startActivity(
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse(preferences?.getString("appURL", ""))
+                            Uri.parse("market://details?id=$appID")
                     )
                 )
             }
@@ -636,7 +642,7 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
         else {
             drawerVersion?.text =
                 if (Utilities.getRoomString("drawer_version").isNotEmpty())
-                    String.format(Utilities.getRoomString("drawer_version"), preferences?.getString("appVersion", ""))
+                    String.format(Utilities.getRoomString("drawer_version"), BuildConfig.VERSION_NAME)
                 else
                     ""
         }

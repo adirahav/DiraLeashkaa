@@ -269,40 +269,54 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
 
     //region == user data ==========
 
-    fun updateUser(result: Map<String, Any?>?) =
+    fun updateUser(result: Map<String, Any?>?) {
+        if (getMapStringValue(result, "name").isNotEmpty()) {
+            preferences?.setString("userName", getMapStringValue(result, "name"), false)
+
+            drawerUserName?.text =
+                    if (Utilities.getRoomString("drawer_user_name").isNotEmpty())
+                        String.format(
+                                Utilities.getRoomString("drawer_user_name"),
+                                preferences?.getString("userName", ""))
+                    else
+                        ""
+        }
+
         GlobalScope.launch {
 
             val nowUTC = Calendar.getInstance()
             nowUTC.timeZone = TimeZone.getTimeZone("UTC")
 
             userData = UserEntity(
-                roomUID = roomUID,
-                uuid = userData?.uuid,
-                userName = if (getMapStringValue(result, "name").isEmpty()) userData?.userName else getMapStringValue(result, "name"),
-                email = if (getMapStringValue(result, "email").isEmpty()) userData?.email else getMapStringValue(result, "email"),
-                age = if (getMapIntValue(result, "age") == null) userData?.age else getMapIntValue(result, "age"),
-                phoneNumber = userData?.phoneNumber,
-                phoneNumberSMSVerified = userData?.phoneNumberSMSVerified,
-                deviceID = userData?.deviceID,
-                deviceType = userData?.deviceType,
-                equity = if (getMapIntValue(result, Const.EQUITY) == null) userData?.equity else getMapIntValue(result, Const.EQUITY),
-                incomes = if (getMapIntValue(result, Const.INCOMES) == null) userData?.incomes else getMapIntValue(result, Const.INCOMES),
-                commitments = if (getMapIntValue(result, Const.COMMITMENTS) == null) userData?.commitments else getMapIntValue(result, Const.COMMITMENTS),
-                termsOfUseAcceptTime = userData?.termsOfUseAcceptTime,
-                //insertTime = userData?.insertTime,
-                //updateTime = nowUTC.timeInMillis,
-                //serverUpdateTime = userData?.serverUpdateTime,
-                subscriberType = userData?.subscriberType.toString(),
-                //registrationStartTime = userData?.registrationStartTime,
-                registrationExpiredTime = userData?.registrationExpiredTime,
-                appVersion = userData?.appVersion,
-                isFirstLogin = userData?.isFirstLogin,
-                canTakeMortgage = userData?.canTakeMortgage
+                    roomUID = roomUID,
+                    uuid = userData?.uuid,
+                    userName = if (getMapStringValue(result, "name").isEmpty()) userData?.userName else getMapStringValue(result, "name"),
+                    email = if (getMapStringValue(result, "email").isEmpty()) userData?.email else getMapStringValue(result, "email"),
+                    age = if (getMapIntValue(result, "age") == null) userData?.age else getMapIntValue(result, "age"),
+                    phoneNumber = userData?.phoneNumber,
+                    phoneNumberSMSVerified = userData?.phoneNumberSMSVerified,
+                    deviceID = userData?.deviceID,
+                    deviceType = userData?.deviceType,
+                    equity = if (getMapIntValue(result, Const.EQUITY) == null) userData?.equity else getMapIntValue(result, Const.EQUITY),
+                    incomes = if (getMapIntValue(result, Const.INCOMES) == null) userData?.incomes else getMapIntValue(result, Const.INCOMES),
+                    commitments = if (getMapIntValue(result, Const.COMMITMENTS) == null) userData?.commitments else getMapIntValue(result, Const.COMMITMENTS),
+                    termsOfUseAcceptTime = userData?.termsOfUseAcceptTime,
+                    //insertTime = userData?.insertTime,
+                    //updateTime = nowUTC.timeInMillis,
+                    //serverUpdateTime = userData?.serverUpdateTime,
+                    subscriberType = userData?.subscriberType.toString(),
+                    //registrationStartTime = userData?.registrationStartTime,
+                    registrationExpiredTime = userData?.registrationExpiredTime,
+                    appVersion = userData?.appVersion,
+                    isFirstLogin = userData?.isFirstLogin,
+                    canTakeMortgage = userData?.canTakeMortgage
             )
 
             viewModel!!.updateServerUser(userData)
             //viewModel!!.updateRoomUser(applicationContext, userData, Enums.DBCaller.ROOM)
         }
+    }
+
 
     //endregion == user data ==========
 

@@ -28,6 +28,9 @@ class DataManager private constructor() {
     val announcementService: AnnouncementService
         get() = AnnouncementService.instance!!
 
+    val emailService: EmailService
+        get() = EmailService.instance!!
+
     companion object {
         @JvmStatic
         @get:Synchronized
