@@ -1,6 +1,8 @@
 package com.adirahav.diraleashkaa.ui.contactus
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -8,8 +10,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.GridLayoutManager
 import com.adirahav.diraleashkaa.common.*
 import com.adirahav.diraleashkaa.databinding.FragmentContactusMailFormBinding
+import com.jakewharton.rxbinding.widget.RxTextView
 import com.skydoves.powerspinner.IconSpinnerAdapter
 import com.skydoves.powerspinner.IconSpinnerItem
+import java.util.concurrent.TimeUnit
 
 
 class ContactUsMailFormFragment : Fragment() {
@@ -75,7 +79,28 @@ class ContactUsMailFormFragment : Fragment() {
 
     fun initEvents() {
 
-        // name
+        // message title
+        layout.messageType.setOnSpinnerItemSelectedListener<IconSpinnerItem> {
+            _, _, newIndex, _ ->
+            Utilities.setButtonEnable(_activity?.layout?.buttons?.send)
+        }
+
+
+        // message
+        layout?.message?.addTextChangedListener(object : TextWatcher {
+
+            override fun afterTextChanged(s: Editable) {}
+
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                if (layout?.message?.text.isNotEmpty()) {
+                    Utilities.setButtonEnable(_activity?.layout?.buttons?.send)
+                }
+            }
+        })
+
         layout.message.requestFocus()
     }
 

@@ -3,6 +3,7 @@ package com.adirahav.diraleashkaa.ui.contactus
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -14,9 +15,13 @@ import com.adirahav.diraleashkaa.ui.base.BaseActivity
 import com.adirahav.diraleashkaa.common.*
 import com.adirahav.diraleashkaa.common.Utilities.getMapStringValue
 import com.adirahav.diraleashkaa.common.Utilities.log
+import com.adirahav.diraleashkaa.data.DataManager
+import com.adirahav.diraleashkaa.data.network.dataClass.EmailDataClass
+import com.adirahav.diraleashkaa.data.network.dataClass.SplashDataClass
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.databinding.ActivityContactusBinding
+import com.adirahav.diraleashkaa.ui.splash.SplashActivity
 import kotlinx.coroutines.*
 import java.util.*
 
@@ -106,7 +111,7 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
     }
 
     override fun createViewModel(): ContactUsViewModel {
-        val factory = ContactUsViewModelFactory()
+        val factory = ContactUsViewModelFactory(this@ContactUsActivity, DataManager.instance!!.emailService)
         return ViewModelProvider(this, factory)[ContactUsViewModel::class.java]
     }
 
@@ -118,6 +123,7 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
         log(Enums.LogType.Debug, TAG, "initObserver()", showToast = false)
         if (!viewModel!!.roomFixedParametersGet.hasObservers()) viewModel!!.roomFixedParametersGet.observe(this@ContactUsActivity, RoomFixedParametersObserver(Enums.ObserverAction.GET_ROOM))
         if (!viewModel!!.roomUserGet.hasObservers()) viewModel!!.roomUserGet.observe(this@ContactUsActivity, RoomUserObserver(Enums.ObserverAction.GET_ROOM))
+        if (!viewModel!!.serverEmail.hasObservers()) viewModel!!.serverEmail.observe(this@ContactUsActivity, ServerEmailObserver())
 
         if (!isRoomFixedParametersLoaded && !isRoomUserLoaded && !isDataInit) {
             viewModel!!.getRoomFixedParameters(applicationContext)
@@ -235,8 +241,10 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
 
     //region == send message ========
 
-    private fun sendEmail(result: Map<String, Any?>?) =
-        GlobalScope.launch {
+    private fun sendEmail(result: Map<String, Any?>?) {
+        viewModel!!.serverSendEmail(userData?.uuid , getMapStringValue(result, "messageType"), getMapStringValue(result, "message"))
+
+        /*GlobalScope.launch {
             Utilities.composeEmail(
                 subject = "CONTACT US | ${getMapStringValue(result, "messageType")}",
                 message = getMapStringValue(result, "message"),
@@ -245,14 +253,17 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
                 responseSuccess = ::sendMessageSuccessCallback,
                 responseFail = ::sendMessageFailCallback
             )
-        }
+        }*/
+    }
 
     private fun sendMessageSuccessCallback() {
         runOnUiThread {
             contactUsMailFormFragment.layout.messageType.selectItemByIndex(0)
             contactUsMailFormFragment.layout.message.text?.clear()
-            layout.sendMessageSuccess.visibility = VISIBLE
+            //layout.sendMessageSuccess.visibility = VISIBLE
             layout.sendMessageError.visibility = GONE
+
+            Utilities.displayActionSnackbar(this@ContactUsActivity, Utilities.getRoomString("contactus_message_send_success"))
         }
     }
 
@@ -307,6 +318,19 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
                 }
             }
 
+        }
+    }
+
+    private inner class ServerEmailObserver : Observer<EmailDataClass?> {
+        override fun onChanged(emailData: EmailDataClass?) {
+            if (emailData == null) {
+                Log.d(TAG, "ServerEmailObserver(): emailData == null)")
+                sendMessageFailCallback()
+            }
+            else {
+                Log.d(TAG, "ServerEmailObserver(): emailData == null)")
+                sendMessageSuccessCallback()
+            }
         }
     }
 
