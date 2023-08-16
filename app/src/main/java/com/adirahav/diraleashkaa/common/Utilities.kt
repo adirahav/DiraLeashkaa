@@ -27,7 +27,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.text.HtmlCompat
 import androidx.databinding.ktx.BuildConfig
 import com.adirahav.diraleashkaa.R
@@ -37,9 +36,12 @@ import com.adirahav.diraleashkaa.common.Configuration.DECIMAL_PATTERN
 import com.adirahav.diraleashkaa.common.Configuration.EMAIL_PATTERN
 import com.adirahav.diraleashkaa.common.Configuration.PASSWORD_PATTERN
 import com.adirahav.diraleashkaa.common.Configuration.PHONE_PATTERN
+import com.adirahav.diraleashkaa.data.DataManager
+import com.adirahav.diraleashkaa.data.network.dataClass.EmailDataClass
 import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
 import com.adirahav.diraleashkaa.data.network.entities.StringEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
+import com.adirahav.diraleashkaa.data.network.models.EmailModel
 import com.adirahav.diraleashkaa.gmailbackgroundlibrary.BackgroundMail
 import com.adirahav.diraleashkaa.ui.dialog.FancyDialog
 import com.adirahav.diraleashkaa.ui.dialog.FancyDialogListener
@@ -51,6 +53,9 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.gson.GsonBuilder
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -86,7 +91,7 @@ object Utilities {
                     Toast.makeText(context, Html.fromHtml("${"<font color='#0000ff' ><b>" + tag + "</b>: " + message + "</font>"}"), Toast.LENGTH_SHORT).show()
                 }
 
-                composeEmail("NOTIFY | $tag", message, userData, propertyData, null, null)
+                composeEmail("NOTIFY","$tag", message, userData, propertyData, null, null)
             }
 
             Enums.LogType.Warning -> {
@@ -96,7 +101,7 @@ object Utilities {
                     Toast.makeText(context, Html.fromHtml("${"<font color='#ffcc00' ><b>" + tag + "</b>: " + message + "</font>"}"), Toast.LENGTH_SHORT).show()
                 }
 
-                composeEmail("WARNING | $tag", message, userData, propertyData, null, null)
+                composeEmail("WARNING","$tag", message, userData, propertyData, null, null)
             }
 
             Enums.LogType.Error -> {
@@ -106,7 +111,7 @@ object Utilities {
                     Toast.makeText(context, Html.fromHtml("${"<font color='#55eb4a7c' ><b>" + tag + "</b>: " + message + "</font>"}"), Toast.LENGTH_SHORT).show()
                 }
 
-                composeEmail("ERROR | $tag", message, userData, propertyData, null, null)
+                composeEmail("ERROR","$tag", message, userData, propertyData, null, null)
             }
 
             Enums.LogType.Crash -> {
@@ -116,15 +121,68 @@ object Utilities {
                     Toast.makeText(context, Html.fromHtml("${"<font color='#ff0000' ><b>" + tag + "</b>: " + message + "</font>"}"), Toast.LENGTH_SHORT).show()
                 }
 
-                composeEmail("CRASH | $tag", message, userData, propertyData, null, null)
+                composeEmail("CRASH","$tag", message, userData, propertyData, null, null)
             }
         }
     }
 
     //region == email ==============
 
-    fun composeEmail(subject: String?, message: String?, userData: UserEntity?, propertyData: PropertyEntity?, responseSuccess: (() -> Unit)?, responseFail: (() -> Unit)?) {
-        val preferences = AppPreferences.instance
+    fun composeEmail(type: String, subject: String, message: String?, userData: UserEntity?, propertyData: PropertyEntity?, responseSuccess: (() -> Unit)?, responseFail: (() -> Unit)?) {
+        CoroutineScope(Dispatchers.IO).launch {
+
+            val fullMessage = "${message}\n\n" +
+                    "------------------------------------------------------------------------------\n\n" +
+                    "userName: ${userData?.userName}\n" +
+                    "property:\n" + "${propertyData?.toString()}\n\n"
+
+
+            val call: Call<EmailModel?>? = DataManager.instance?.emailService?.emailAPI?.sendEmail(userData?.uuid, type, subject, fullMessage)
+
+            call?.enqueue(object : Callback<EmailModel?> {
+                override fun onResponse(call: Call<EmailModel?>, response: Response<EmailModel?>) {
+
+                    val result: EmailModel? = response.body()
+
+                    if (response.code() == 200 && response.body()?.success == true) {
+                        try {
+                            if (responseSuccess != null) {
+                                responseSuccess()
+                            }
+                        }
+                        catch (e: Exception) {
+                            if (responseFail != null) {
+                                responseFail()
+                            }
+                            log(Enums.LogType.Error, TAG, "serverSendEmail(): e = ${e.message} ; result.data = ${result?.data.toString()}")
+                        }
+                    }
+                    else {
+                        if (responseFail != null) {
+                            responseFail()
+                        }
+                        log(Enums.LogType.Error, TAG, "serverSendEmail(): response = $response")
+                    }
+                }
+
+                override fun onFailure(call: Call<EmailModel?>, t: Throwable) {
+                    var result : EmailDataClass? = null
+                    if (t.message.equals("timeout")) {
+                        result = EmailDataClass(
+                                email = null
+                        )
+                    }
+                    if (responseFail != null) {
+                        responseFail()
+                    }
+
+                    log(Enums.LogType.Error, TAG, "serverSendEmail(): onFailure = $t")
+                    call.cancel()
+                }
+            })
+        }
+
+        /*val preferences = AppPreferences.instance
 
         BackgroundMail.newBuilder(context)
             .withMailFrom("diraleashkaa@gmail.com")
@@ -161,7 +219,7 @@ object Utilities {
                     }
                 }
             })
-            .send()
+            .send()*/
     }
 
     //endregion == email ==============
