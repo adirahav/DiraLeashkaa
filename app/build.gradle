@@ -156,6 +156,9 @@ dependencies {
 
     // mixpanel
     implementation 'com.mixpanel.android:mixpanel-android:7.+'
+
+    // billing
+    implementation 'com.android.billingclient:billing:4.0.0'
 }
 
 repositories {
