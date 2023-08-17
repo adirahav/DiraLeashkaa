@@ -1,8 +1,6 @@
 package com.adirahav.diraleashkaa.ui.registration
 
-import android.content.Context
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -13,18 +11,12 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.AppApplication
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.CommonStatusCodes
-import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.wallet.PaymentData
-import org.json.JSONException
-import org.json.JSONObject
-import java.util.*
-import androidx.lifecycle.Observer
 import com.adirahav.diraleashkaa.data.network.entities.GooglePayProgramTypeEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.data.network.models.RegistrationModel
@@ -32,7 +24,23 @@ import com.adirahav.diraleashkaa.databinding.FragmentRegistrationGooglePayBindin
 import com.adirahav.diraleashkaa.ui.contactus.ContactUsActivity
 import com.adirahav.diraleashkaa.ui.signup.SignUpActivity
 import com.airbnb.paris.extensions.style
+import com.android.billingclient.api.BillingClient
+import com.android.billingclient.api.BillingClientStateListener
+import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.PurchasesUpdatedListener
+import com.android.billingclient.api.SkuDetails
+import com.android.billingclient.api.SkuDetailsParams
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.CommonStatusCodes
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.wallet.PaymentData
 import kotlinx.coroutines.runBlocking
+import org.json.JSONException
+import org.json.JSONObject
+import java.util.*
+
 
 class RegistrationGooglePayFragment : Fragment(),
     RegistrationGooglePayProgramsAdapter.OnProgramAdapter {
@@ -127,6 +135,52 @@ class RegistrationGooglePayFragment : Fragment(),
 
         // strings
         setRoomStrings()
+
+        // in-app products
+        var purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases -> // Handle purchase updates, acknowledge purchases, etc.
+            handlePurchaseUpdates(billingResult, purchases)
+        }
+
+        val billingClient = BillingClient.newBuilder(requireContext())
+                .setListener(purchasesUpdatedListener) // Implement this listener
+                .enablePendingPurchases()
+                .build()
+
+        billingClient.startConnection(object : BillingClientStateListener {
+            override fun onBillingSetupFinished(billingResult: BillingResult) {
+                Utilities.log(Enums.LogType.Debug, "ADITEST", "onBillingSetupFinished(): billingResult = ${billingResult}")
+            }
+
+            override fun onBillingServiceDisconnected() {
+                Utilities.log(Enums.LogType.Debug, "ADITEST", "onBillingServiceDisconnected()")
+            }
+        })
+
+        val skuList: List<String> = mutableListOf("product_id_1", "product_id_2")
+        val params = SkuDetailsParams.newBuilder()
+                .setSkusList(skuList)
+                .setType(BillingClient.SkuType.INAPP) // or SkuType.SUBS for subscriptions
+                .build()
+
+        billingClient.querySkuDetailsAsync(params) { billingResult, skuDetailsList ->
+            // Handle the response and display the available products
+        }
+
+        /*val flowParams = BillingFlowParams.newBuilder()
+                .setSkuDetails(skuDetails) // SkuDetails for the selected product
+                .build()
+
+
+        val responseCode: BillingResult = billingClient.launchBillingFlow(
+                if (isSignUpActivity!!) {
+                    _signupActivity!!
+                }
+                else {
+                    _registrationActivity!!
+                },
+                flowParams)
+
+        Utilities.log(Enums.LogType.Debug, "ADITEST", "responseCode = ${responseCode}")*/
     }
 
     fun initData() {
@@ -234,6 +288,26 @@ class RegistrationGooglePayFragment : Fragment(),
     }
 
     //endregion == initialize =========
+
+    //region == in-app products ====
+    private fun handlePurchaseUpdates(billingResult: BillingResult, purchases: MutableList<Purchase>?) {
+        val responseCode = billingResult.responseCode
+        when (responseCode) {
+            BillingClient.BillingResponseCode.OK ->             // Purchase was successful, process it
+                if (purchases != null) {
+                    for (purchase in purchases!!) {
+                        // Handle the purchase, possibly by acknowledging it
+                        //handlePurchase(purchase)
+                    }
+                }
+
+            BillingClient.BillingResponseCode.USER_CANCELED -> {}
+            BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {}
+            else -> {}
+        }
+    }
+
+    //endregion == in-app products ====
 
     //region == strings ============
 
