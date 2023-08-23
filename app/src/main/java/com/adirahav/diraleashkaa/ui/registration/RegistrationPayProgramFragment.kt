@@ -324,6 +324,8 @@ class RegistrationPayProgramFragment : Fragment(),
     fun makePurchase(programID: String) {
         val consoleProgram = _consolePrograms?.find { it.productId == programID }
 
+        Utilities.log(Enums.LogType.Notify, TAG, "makePurchase(): programID = ${programID}", userData)
+
         if (consoleProgram != null) {
             val billingFlowParams = BillingFlowParams.newBuilder()
                     .setProductDetailsParamsList(
@@ -371,6 +373,7 @@ class RegistrationPayProgramFragment : Fragment(),
     private fun completePurchase(item: Purchase) {
         purchase = item
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+            Utilities.log(Enums.LogType.Notify, TAG, "completePurchase()", userData)
             activity?.runOnUiThread {
                 if (isSignUpActivity!!) {
                     _signupActivity?.layout?.buttons?.pay?.isEnabled = false

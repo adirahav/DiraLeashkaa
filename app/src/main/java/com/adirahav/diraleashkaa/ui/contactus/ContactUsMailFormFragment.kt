@@ -84,7 +84,7 @@ class ContactUsMailFormFragment : Fragment() {
         // message type
         layout.messageType.setOnSpinnerItemSelectedListener<IconSpinnerItem> {
             _, _, newIndex, _ ->
-            if (layout?.messageType?.text.isNotEmpty() && layout?.message?.text.isNotEmpty()) {
+            if (layout.messageType.text.isNotEmpty() && layout.message.text.isNotEmpty()) {
                 Utilities.setButtonEnable(_activity?.layout?.buttons?.send)
             }
             else {
@@ -102,7 +102,7 @@ class ContactUsMailFormFragment : Fragment() {
             }
 
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                if (layout?.messageType?.text.isNotEmpty() && layout?.message?.text.isNotEmpty()) {
+                if (layout.messageType.text.isNotEmpty() && layout.message.text.isNotEmpty()) {
                     Utilities.setButtonEnable(_activity?.layout?.buttons?.send)
                 }
                 else {
