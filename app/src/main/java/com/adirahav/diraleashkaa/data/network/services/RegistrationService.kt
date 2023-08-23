@@ -51,6 +51,13 @@ class RegistrationService private constructor() {
         ): Call<RegistrationModel?>?
 
         @FormUrlEncoded
+        @POST("registration/payProgram")
+        fun payProgram(
+                @Field("pay_program_uuid") payUUID: String?,
+                @Field("user_uuid") userUUID: String?
+        ): Call<RegistrationModel?>?
+
+        @FormUrlEncoded
         @POST("registration/googlePay")
         fun googlePay(
             @Field("google_pay_uuid") googlePayUUID: String?,

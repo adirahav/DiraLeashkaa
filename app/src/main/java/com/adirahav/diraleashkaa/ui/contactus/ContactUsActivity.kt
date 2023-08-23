@@ -211,6 +211,8 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.formFragment, contactUsMailFormFragment)
                     .commitAllowingStateLoss()
+
+            else -> {}
         }
     }
 
@@ -297,6 +299,8 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
                         loadFragment()
                     }
                 }
+
+                else -> {}
             }
         }
     }
@@ -316,6 +320,8 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
                         loadFragment()
                     }
                 }
+
+                else -> {}
             }
 
         }

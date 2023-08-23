@@ -166,6 +166,8 @@ class PropertyViewModel internal constructor(private val propertyService: Proper
 				this.serverPropertyInsert.postValue(response?.property)
 			Enums.ObserverAction.UPDATE_SERVER ->
 				this.serverPropertyUpdate.postValue(response?.property)
+
+			else -> {}
 		}
 	}
 

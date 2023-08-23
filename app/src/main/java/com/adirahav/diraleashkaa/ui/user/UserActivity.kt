@@ -175,6 +175,7 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
         layout.buttons.next.text = Utilities.getRoomString("button_next")
         layout.buttons.save.text = Utilities.getRoomString("button_save")
         layout.buttons.send.text = Utilities.getRoomString("button_send")
+        layout.buttons.pay.text = Utilities.getRoomString("button_pay")
         layout.buttons.googlePayButton.container.contentDescription = Utilities.getRoomString("google_pay_button_subscribe_with")
         super.setRoomStrings()
     }
@@ -238,6 +239,7 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
                         GONE*/
             }
 
+            else -> {}
         }
     }
 
@@ -381,6 +383,8 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
 
                     Utilities.displayActionSnackbar(activity, Utilities.getRoomString("user_save_success"))
                 }
+
+                else -> {}
             }
 
         }
@@ -430,6 +434,8 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
                         )
                     }
                 }
+
+                else -> {}
             }
         }
     }

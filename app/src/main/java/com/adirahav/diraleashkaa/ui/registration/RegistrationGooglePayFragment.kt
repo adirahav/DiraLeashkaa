@@ -135,52 +135,6 @@ class RegistrationGooglePayFragment : Fragment(),
 
         // strings
         setRoomStrings()
-
-        // in-app products
-        var purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases -> // Handle purchase updates, acknowledge purchases, etc.
-            handlePurchaseUpdates(billingResult, purchases)
-        }
-
-        val billingClient = BillingClient.newBuilder(requireContext())
-                .setListener(purchasesUpdatedListener) // Implement this listener
-                .enablePendingPurchases()
-                .build()
-
-        billingClient.startConnection(object : BillingClientStateListener {
-            override fun onBillingSetupFinished(billingResult: BillingResult) {
-                Utilities.log(Enums.LogType.Debug, "ADITEST", "onBillingSetupFinished(): billingResult = ${billingResult}")
-            }
-
-            override fun onBillingServiceDisconnected() {
-                Utilities.log(Enums.LogType.Debug, "ADITEST", "onBillingServiceDisconnected()")
-            }
-        })
-
-        val skuList: List<String> = mutableListOf("product_id_1", "product_id_2")
-        val params = SkuDetailsParams.newBuilder()
-                .setSkusList(skuList)
-                .setType(BillingClient.SkuType.INAPP) // or SkuType.SUBS for subscriptions
-                .build()
-
-        billingClient.querySkuDetailsAsync(params) { billingResult, skuDetailsList ->
-            // Handle the response and display the available products
-        }
-
-        /*val flowParams = BillingFlowParams.newBuilder()
-                .setSkuDetails(skuDetails) // SkuDetails for the selected product
-                .build()
-
-
-        val responseCode: BillingResult = billingClient.launchBillingFlow(
-                if (isSignUpActivity!!) {
-                    _signupActivity!!
-                }
-                else {
-                    _registrationActivity!!
-                },
-                flowParams)
-
-        Utilities.log(Enums.LogType.Debug, "ADITEST", "responseCode = ${responseCode}")*/
     }
 
     fun initData() {
@@ -288,26 +242,6 @@ class RegistrationGooglePayFragment : Fragment(),
     }
 
     //endregion == initialize =========
-
-    //region == in-app products ====
-    private fun handlePurchaseUpdates(billingResult: BillingResult, purchases: MutableList<Purchase>?) {
-        val responseCode = billingResult.responseCode
-        when (responseCode) {
-            BillingClient.BillingResponseCode.OK ->             // Purchase was successful, process it
-                if (purchases != null) {
-                    for (purchase in purchases!!) {
-                        // Handle the purchase, possibly by acknowledging it
-                        //handlePurchase(purchase)
-                    }
-                }
-
-            BillingClient.BillingResponseCode.USER_CANCELED -> {}
-            BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {}
-            else -> {}
-        }
-    }
-
-    //endregion == in-app products ====
 
     //region == strings ============
 

@@ -243,6 +243,8 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
                     override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
                 })
             }
+
+            else -> {}
         }
 
         rollbackView?.setOnClickListener {
