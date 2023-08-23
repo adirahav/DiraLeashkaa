@@ -208,6 +208,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
         layout.buttons.next.visibility = View.VISIBLE
         layout.buttons.save.visibility = View.GONE
         layout.buttons.send.visibility = View.GONE
+        layout.buttons.pay.visibility = View.GONE
 
         // beta version
         isBetaVersion = preferences?.getBoolean("isBetaVersion") ?: false

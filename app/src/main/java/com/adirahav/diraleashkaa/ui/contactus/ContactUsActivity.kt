@@ -149,6 +149,7 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
         layout.buttons.back.visibility = GONE
         layout.buttons.next.visibility = GONE
         layout.buttons.save.visibility = GONE
+        layout.buttons.pay.visibility = GONE
         layout.buttons.send.visibility = VISIBLE
 
         // page type

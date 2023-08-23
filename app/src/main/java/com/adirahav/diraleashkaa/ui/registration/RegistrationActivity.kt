@@ -463,6 +463,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
                     activity.runOnUiThread {
                         layout.buttons.send.visibility = GONE
+                        layout.buttons.pay.visibility = GONE
                     }
                 }
         //}

@@ -106,7 +106,8 @@
     <EditText
         android:id="@+id/age"
         style="@style/formFieldDark"
-        android:inputType="numberDecimal"/>
+        android:inputType="numberDecimal"
+        android:maxLength="3" />
 
     <TextView
         android:id="@+id/ageError"
