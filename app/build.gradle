@@ -18,7 +18,7 @@ android {
         applicationId "com.adirahav.diraleashkaa"
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode 16
+        versionCode 17
         versionName "1.41"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.release
