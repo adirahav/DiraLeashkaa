@@ -34,6 +34,10 @@ class FixedParameters
     private val appVersionType: Type = object : TypeToken<List<SpinnerEntity>>() {}.type
     var appVersionArray: List<SpinnerEntity>? = null
 
+    // pay programs
+    private val payProgramsType: Type = PayProgramDataClass::class.java
+    var payProgramsObject: PayProgramDataClass? = null
+
     // google pay
     private val googlePayType: Type = GooglePayProgramDataClass::class.java
     var googlePayObject: GooglePayProgramDataClass? = null
@@ -106,6 +110,10 @@ class FixedParameters
         appVersionArray = Utilities.parseArray(
             json = fixedParameters?.appVersion,
             typeToken = appVersionType
+        )
+        payProgramsObject = Utilities.parseObject(
+                json = fixedParameters?.payPrograms,
+                typeToken = payProgramsType
         )
         googlePayObject = Utilities.parseObject(
             json = fixedParameters?.googlePay,

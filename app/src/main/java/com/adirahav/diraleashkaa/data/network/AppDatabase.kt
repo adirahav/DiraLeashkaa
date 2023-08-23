@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.adirahav.diraleashkaa.data.network.dao.*
 import com.adirahav.diraleashkaa.data.network.entities.*
 
-@Database(entities = [FixedParametersEntity::class, UserEntity::class, PropertyEntity::class, BestYieldEntity::class, StringEntity::class], version = 81)
+@Database(entities = [FixedParametersEntity::class, UserEntity::class, PropertyEntity::class, BestYieldEntity::class, StringEntity::class], version = 82)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun fixedParametersDao(): FixedParametersDao
     abstract fun userDao(): UsersDao

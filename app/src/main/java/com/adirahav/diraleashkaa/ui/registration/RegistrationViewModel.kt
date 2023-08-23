@@ -7,10 +7,8 @@ import com.adirahav.diraleashkaa.common.Configuration.ROOM_AWAIT_MILLISEC
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.data.network.DatabaseClient
-import com.adirahav.diraleashkaa.data.network.dataClass.GooglePayProgramDataClass
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
-import com.adirahav.diraleashkaa.data.network.models.APIResponseModel
 import com.adirahav.diraleashkaa.data.network.models.RegistrationModel
 import com.adirahav.diraleashkaa.data.network.models.UnsubscribeModel
 import com.adirahav.diraleashkaa.data.network.models.UserModel
@@ -19,7 +17,6 @@ import com.adirahav.diraleashkaa.data.network.services.UserService
 import com.adirahav.diraleashkaa.ui.base.BaseViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
@@ -40,6 +37,9 @@ class RegistrationViewModel internal constructor(
 
     // coupon registration
     val couponRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
+
+    // pay registration
+    val payProgramRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
 
     // google pay registration
     val googlePayRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
@@ -318,8 +318,44 @@ class RegistrationViewModel internal constructor(
 
     //endregion == beta registration =============
 
-    //region == google pay registration =======
+    //region == pay program registration ===
+    fun payProgramRegistration(applicationContext: Context, userData: UserEntity?, payUUID: String?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "payRegistration()")
 
+        CoroutineScope(Dispatchers.IO).launch {
+
+            val call: Call<RegistrationModel?>? = registrationService.registrationAPI.payProgram(payUUID, userData?.uuid)
+
+            call?.enqueue(object : Callback<RegistrationModel?> {
+                override fun onResponse(call: Call<RegistrationModel?>, response: Response<RegistrationModel?>) {
+                    Utilities.log(Enums.LogType.Debug, TAG, "payProgramRegistration(): response = ${response}")
+                    val result: RegistrationModel? = response.body()
+
+                    if (response.code() == 200) {
+                        setPayProgramRegistration(result)
+                        Utilities.log(Enums.LogType.Notify, TAG, "payProgramRegistration(): Success", userData)
+                    }
+                    else {
+                        setPayProgramRegistration(null)
+                        Utilities.log(Enums.LogType.Error, TAG, "payProgramRegistration(): Error = ${response}", userData)
+                    }
+                }
+
+                override fun onFailure(call: Call<RegistrationModel?>, t: Throwable) {
+                    setPayProgramRegistration(null)
+                    Utilities.log(Enums.LogType.Error, TAG, "payProgramRegistration(): onFailure = ${t}", userData)
+                    call.cancel()
+                }
+            })
+        }
+    }
+    private fun setPayProgramRegistration(registrationModel: RegistrationModel?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPayProgramRegistration()", showToast = false)
+        this.payProgramRegistration.postValue(registrationModel)
+    }
+    //endregion == pay program registration =======
+
+    //region == google pay registration =======
     fun googlePayRegistration(applicationContext: Context, userData: UserEntity?, googlePayUUID: String?) {
         Utilities.log(Enums.LogType.Debug, TAG, "googlePayRegistration()")
 

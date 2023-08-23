@@ -26,14 +26,10 @@ import com.adirahav.diraleashkaa.common.Utilities.getMapLongValue
 import com.adirahav.diraleashkaa.common.Utilities.getMapStringValue
 import com.adirahav.diraleashkaa.common.Utilities.log
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
-import com.adirahav.diraleashkaa.data.network.entities.GooglePayProgramTypeEntity
-import com.adirahav.diraleashkaa.data.network.entities.StringEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.data.network.models.*
 import com.adirahav.diraleashkaa.databinding.ActivitySignupBinding
-import com.adirahav.diraleashkaa.ui.home.HomeActivity
 import com.adirahav.diraleashkaa.ui.registration.*
-import com.adirahav.diraleashkaa.ui.user.UserActivity
 import com.kofigyan.stateprogressbar.StateProgressBar
 import kotlinx.coroutines.*
 import java.util.*
@@ -81,12 +77,13 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
     val personalInfoFragment = SignUpPersonalInfoFragment()
     private val financialInfoFragment = SignUpFinancialInfoFragment()
     private val termsOfUseFragment = RegistrationTermsOfUseFragment()
+    val payProgramFragment = RegistrationPayProgramFragment()
     val googlePayFragment = RegistrationGooglePayFragment()
     val couponCodeFragment = RegistrationCouponCodeFragment()
     val betaCodeFragment = RegistrationBetaCodeFragment()
     private val welcomeInfoFragment = SignUpWelcomeFragment()
 
-    private var paymentPageType = Enums.RegistrationPageType.GOOGLE_PAY
+    private var paymentPageType = Enums.RegistrationPageType.PAY_PROGRAM
 
     // lifecycle owner
     var lifecycleOwner: LifecycleOwner? = null
@@ -102,6 +99,9 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
 
     // fixed parameters data
     var fixedParametersData: FixedParameters? = null
+
+    // pay
+    internal val payViewModel: RegistrationPayProgramViewModel by viewModels()
 
     // google pay
     internal val googlePayViewModel: RegistrationGooglePayViewModel by viewModels()
@@ -160,6 +160,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
         if (!viewModel!!.roomFixedParametersGet.hasObservers()) viewModel!!.roomFixedParametersGet.observe(this@SignUpActivity, RoomFixedParametersObserver(Enums.ObserverAction.GET_ROOM))
         if (!viewModel!!.couponRegistration.hasObservers()) viewModel!!.couponRegistration.observe(this@SignUpActivity, CouponRegistrationObserver())
         if (!viewModel!!.betaRegistration.hasObservers()) viewModel!!.betaRegistration.observe(this@SignUpActivity, BetaRegistrationObserver())
+        if (!viewModel!!.payProgramRegistration.hasObservers()) viewModel!!.payProgramRegistration.observe(this@SignUpActivity, PayRegistrationObserver())
         if (!viewModel!!.googlePayRegistration.hasObservers()) viewModel!!.googlePayRegistration.observe(this@SignUpActivity, GooglePayRegistrationObserver())
         if (!viewModel!!.skipRegistration.hasObservers()) viewModel!!.skipRegistration.observe(this@SignUpActivity, SkipRegistrationObserver())
         if (!viewModel!!.smsCodeValidation.hasObservers()) viewModel!!.smsCodeValidation.observe(this@SignUpActivity, SMSCodeValidationObserver())
@@ -260,6 +261,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
         layout.buttons.next.text = Utilities.getRoomString("button_next")
         layout.buttons.save.text = Utilities.getRoomString("button_save")
         layout.buttons.send.text = Utilities.getRoomString("button_send")
+        layout.buttons.pay.text = Utilities.getRoomString("button_pay")
         layout.buttons.googlePayButton.container.contentDescription = Utilities.getRoomString("google_pay_button_subscribe_with")
 
         super.setRoomStrings()
@@ -285,11 +287,17 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
                 .commitAllowingStateLoss()
 
             currentStepProgressBar = 1
+
+            layout.buttons.pay.visibility = View.GONE
+            layout.buttons.googlePayButton.root.visibility = View.GONE
         }
         else if (userData?.equity == null || userData?.incomes == null || userData?.commitments == null) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.formFragment, financialInfoFragment)
                 .commitAllowingStateLoss()
+
+            layout.buttons.pay.visibility = View.GONE
+            layout.buttons.googlePayButton.root.visibility = View.GONE
 
             currentStepProgressBar = 2
         }
@@ -298,13 +306,16 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
                 .replace(R.id.formFragment, termsOfUseFragment)
                 .commitAllowingStateLoss()
 
+            layout.buttons.pay.visibility = View.GONE
+            layout.buttons.googlePayButton.root.visibility = View.GONE
+
             currentStepProgressBar = 3
         }
         else if (userData?.subscriberType == null) {
             supportFragmentManager.beginTransaction()
                 .replace(
                     R.id.formFragment,
-                    if (isBetaVersion) betaCodeFragment else googlePayFragment)
+                    if (isBetaVersion) betaCodeFragment else payProgramFragment)
                 .commitAllowingStateLoss()
 
             currentStepProgressBar = 4
@@ -316,11 +327,35 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
     internal fun forceLoadFragment(pageType: Enums.RegistrationPageType) {
 
         when (pageType) {
+            Enums.RegistrationPageType.PAY_PROGRAM -> {
+                if (fixedParametersData?.payProgramsObject?.isAvailable == true) {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.formFragment, payProgramFragment)
+                        .commitAllowingStateLoss()
+
+                    activity.runOnUiThread {
+                        layout.buttons.pay.visibility = View.VISIBLE
+                    }
+                }
+                else {
+                    activity.runOnUiThread {
+                        layout.buttons.pay.visibility = View.GONE
+                    }
+                }
+
+                activity.runOnUiThread {
+                    layout.buttons.back.visibility = View.GONE
+                    layout.buttons.next.visibility = View.GONE
+                }
+
+                paymentPageType = Enums.RegistrationPageType.PAY_PROGRAM
+            }
+
             Enums.RegistrationPageType.GOOGLE_PAY -> {
                 if (fixedParametersData?.googlePayObject?.isAvailable == true) {
                     supportFragmentManager.beginTransaction()
-                        .replace(R.id.formFragment, googlePayFragment)
-                        .commitAllowingStateLoss()
+                            .replace(R.id.formFragment, googlePayFragment)
+                            .commitAllowingStateLoss()
 
                     activity.runOnUiThread {
                         layout.buttons.googlePayButton.root.visibility = View.VISIBLE
@@ -348,6 +383,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
                 activity.runOnUiThread {
                     layout.buttons.back.visibility = View.GONE
                     layout.buttons.next.visibility = View.VISIBLE
+                    layout.buttons.pay.visibility = View.GONE
                     layout.buttons.googlePayButton.root.visibility = View.GONE
                 }
 
@@ -361,6 +397,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
 
                 activity.runOnUiThread {
                     layout.buttons.send.visibility = View.GONE
+                    layout.buttons.pay.visibility = View.GONE
                     layout.buttons.googlePayButton.root.visibility = View.GONE
                 }
 
@@ -380,6 +417,8 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
             when (paymentPageType) {
                 Enums.RegistrationPageType.COUPON_CODE ->
                     couponCodeFragment.submitForm(skip = (view == null))
+                Enums.RegistrationPageType.PAY_PROGRAM ->
+                    payProgramFragment.submitForm(skip = (view == null))
                 Enums.RegistrationPageType.GOOGLE_PAY ->
                     googlePayFragment.submitForm(skip = (view == null))
                 Enums.RegistrationPageType.BETA_CODE ->
@@ -439,6 +478,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
                 activity.runOnUiThread {
                     Utilities.setButtonDisable(layout.buttons.back)
                     Utilities.setButtonEnable(layout.buttons.next)
+                    layout.buttons.pay.visibility = View.GONE
                     layout.buttons.googlePayButton.root.visibility = View.GONE
                 }
             }
@@ -475,6 +515,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
                     activity.runOnUiThread {
                         layout.buttons.back.visibility = View.VISIBLE
                         layout.buttons.next.visibility = View.VISIBLE
+                        layout.buttons.pay.visibility = View.GONE
                         layout.buttons.googlePayButton.root.visibility = View.GONE
                     }
 
@@ -482,18 +523,28 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
                 }
                 else {
                     supportFragmentManager.beginTransaction()
-                        .replace(R.id.formFragment, googlePayFragment)
+                        .replace(R.id.formFragment, payProgramFragment)
                         .commitAllowingStateLoss()
 
                     activity.runOnUiThread {
                         layout.buttons.back.visibility = View.GONE
                         layout.buttons.next.visibility = View.GONE
-                        layout.buttons.googlePayButton.root.visibility =
-                            if (fixedParametersData?.googlePayObject?.isAvailable == true)
-                                View.VISIBLE
-                            else
-                                View.GONE
+                        layout.buttons.pay.visibility = View.VISIBLE
                     }
+
+                    /*supportFragmentManager.beginTransaction()
+                            .replace(R.id.formFragment, googlePayFragment)
+                            .commitAllowingStateLoss()
+
+                    activity.runOnUiThread {
+                        layout.buttons.back.visibility = View.GONE
+                        layout.buttons.next.visibility = View.GONE
+                        layout.buttons.googlePayButton.root.visibility =
+                                if (fixedParametersData?.googlePayObject?.isAvailable == true)
+                                    View.VISIBLE
+                                else
+                                    View.GONE
+                    }*/
                 }
 
             }
@@ -506,6 +557,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
                 activity.runOnUiThread {
                     Utilities.setButtonDisable(layout.buttons.back)
                     Utilities.setButtonDisable(layout.buttons.next)
+                    layout.buttons.pay.visibility = View.GONE
                     layout.buttons.googlePayButton.root.visibility = View.GONE
                 }
             }
@@ -654,6 +706,17 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
         }
     }
 
+    private inner class PayRegistrationObserver : Observer<RegistrationModel?> {
+        override fun onChanged(registrationModel: RegistrationModel?) {
+            if (registrationModel != null) {
+                payProgramFragment.payProgramCallback(registrationModel)
+            }
+            else {
+                payProgramFragment.payProgramCallback(registrationModel)
+            }
+        }
+    }
+
     private inner class GooglePayRegistrationObserver : Observer<RegistrationModel?> {
         override fun onChanged(registrationModel: RegistrationModel?) {
             if (registrationModel != null) {
@@ -664,7 +727,6 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
             }
         }
     }
-
 
     private inner class SMSCodeValidationObserver : Observer<SMSCodeValidationModel?> {
         override fun onChanged(smsCodeValidation: SMSCodeValidationModel?) {
@@ -703,6 +765,8 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
                         loadFragment()
                     }
                 }
+
+                else -> {}
             }
         }
     }
@@ -777,6 +841,8 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
                     }
 
                 }
+
+                else -> {}
             }
 
         }
@@ -805,6 +871,8 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
                         )
                     }
                 }
+
+                else -> {}
             }
         }
     }

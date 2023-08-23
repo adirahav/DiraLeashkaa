@@ -34,6 +34,12 @@
         style="@style/button"
         android:onClick="submitSend" />
 
+    <Button
+        android:id="@+id/pay"
+        android:layout_margin="@dimen/padding"
+        style="@style/button"
+        android:onClick="submitSend" />
+
     <include
         android:id="@+id/googlePayButton"
         layout="@layout/include_google_pay_button"

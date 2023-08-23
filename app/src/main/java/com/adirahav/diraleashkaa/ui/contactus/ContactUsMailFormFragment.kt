@@ -95,7 +95,7 @@ class ContactUsMailFormFragment : Fragment() {
             }
 
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                if (layout?.message?.text.isNotEmpty()) {
+                if (layout.message.text.isNotEmpty()) {
                     Utilities.setButtonEnable(_activity?.layout?.buttons?.send)
                 }
             }

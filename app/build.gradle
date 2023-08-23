@@ -158,7 +158,10 @@ dependencies {
     implementation 'com.mixpanel.android:mixpanel-android:7.+'
 
     // billing
-    implementation 'com.android.billingclient:billing:6.0.1'
+    implementation ("com.android.billingclient:billing:6.0.1")
+    implementation ("com.android.billingclient:billing-ktx:6.0.1")
+    implementation ("com.google.guava:guava:24.1-jre")
+    implementation ("com.google.guava:guava:27.0.1-android")
 }
 
 repositories {

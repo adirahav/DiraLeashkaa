@@ -1062,6 +1062,8 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
                         initData()
                     }
                 }
+
+                else -> {}
             }
         }
     }
@@ -1083,6 +1085,8 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
                         initData()
                     }
                 }
+
+                else -> {}
             }
         }
     }
@@ -1138,6 +1142,8 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
 
                     infoFragment?.activateActionsMenuIfNeeded()
                 }
+
+                else -> {}
             }
         }
     }

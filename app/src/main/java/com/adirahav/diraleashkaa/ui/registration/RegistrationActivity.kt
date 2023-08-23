@@ -3,13 +3,11 @@ package com.adirahav.diraleashkaa.ui.registration
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import androidx.activity.viewModels
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.*
 import androidx.lifecycle.Observer
 import com.adirahav.diraleashkaa.R
@@ -23,11 +21,9 @@ import com.adirahav.diraleashkaa.common.Configuration.timeFormatter
 import com.adirahav.diraleashkaa.common.Utilities.getMapStringValue
 import com.adirahav.diraleashkaa.common.Utilities.log
 import com.adirahav.diraleashkaa.common.Utilities.setButtonDisable
-import com.adirahav.diraleashkaa.data.network.dataClass.GooglePayProgramDataClass
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
 import com.adirahav.diraleashkaa.data.network.entities.StringEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
-import com.adirahav.diraleashkaa.data.network.models.APIResponseModel
 import com.adirahav.diraleashkaa.data.network.models.RegistrationModel
 import com.adirahav.diraleashkaa.data.network.models.UnsubscribeModel
 import com.adirahav.diraleashkaa.data.network.models.UserModel
@@ -35,7 +31,6 @@ import com.adirahav.diraleashkaa.databinding.ActivityRegistrationBinding
 import com.adirahav.diraleashkaa.ui.goodbye.GoodbyeActivity
 import com.adirahav.diraleashkaa.ui.home.HomeActivity
 import com.adirahav.diraleashkaa.ui.splash.SplashActivity
-import com.adirahav.diraleashkaa.ui.user.UserActivity
 import com.airbnb.paris.extensions.style
 import kotlinx.coroutines.*
 import java.util.*
@@ -79,6 +74,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
     var pageType : Enums.RegistrationPageType? = null
 
     // fragments
+    val payProgramFragment = RegistrationPayProgramFragment()
     val googlePayFragment = RegistrationGooglePayFragment()
     val couponCodeFragment = RegistrationCouponCodeFragment()
     val betaCodeFragment = RegistrationBetaCodeFragment()
@@ -104,6 +100,9 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
     // fixed parameters data
     var fixedParametersData: FixedParameters? = null
+
+    // pay
+    internal val payViewModel: RegistrationPayProgramViewModel by viewModels()
 
     // google pay
     internal val googlePayViewModel: RegistrationGooglePayViewModel by viewModels()
@@ -173,6 +172,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         if (!viewModel!!.roomFixedParameters_Get.hasObservers()) viewModel!!.roomFixedParameters_Get.observe(this@RegistrationActivity, RoomFixedParametersObserver(Enums.ObserverAction.GET_ROOM))
         if (!viewModel!!.couponRegistration.hasObservers()) viewModel!!.couponRegistration.observe(this@RegistrationActivity, CouponRegistrationObserver())
         if (!viewModel!!.betaRegistration.hasObservers()) viewModel!!.betaRegistration.observe(this@RegistrationActivity, BetaRegistrationObserver())
+        if (!viewModel!!.payProgramRegistration.hasObservers()) viewModel!!.payProgramRegistration.observe(this@RegistrationActivity, PayRegistrationObserver())
         if (!viewModel!!.googlePayRegistration.hasObservers()) viewModel!!.googlePayRegistration.observe(this@RegistrationActivity, GooglePayRegistrationObserver())
         if (!viewModel!!.serverUser_InsertUpdateServer.hasObservers()) viewModel!!.serverUser_InsertUpdateServer.observe(this@RegistrationActivity, ServerUserObserver(Enums.ObserverAction.INSERT_UPDATE_SERVER))
         if (!viewModel!!.roomUser_Get.hasObservers()) viewModel!!.roomUser_Get.observe(this@RegistrationActivity, RoomUserObserver(Enums.ObserverAction.GET_ROOM))
@@ -205,6 +205,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         layout.buttons.next.visibility = GONE
         layout.buttons.save.visibility = GONE
         layout.buttons.send.visibility = GONE
+        layout.buttons.pay.visibility = GONE
         layout.buttons.googlePayButton.root.visibility = GONE
 
         // page type
@@ -238,6 +239,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         layout.buttons.next.text = Utilities.getRoomString("button_next")
         layout.buttons.save.text = Utilities.getRoomString("button_save")
         layout.buttons.send.text = Utilities.getRoomString("button_send")
+        layout.buttons.pay.text = Utilities.getRoomString("button_pay")
         layout.buttons.googlePayButton.container.contentDescription = Utilities.getRoomString("google_pay_button_subscribe_with")
 
         layout.goHome.text = Utilities.getRoomString("button_home")
@@ -344,19 +346,27 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
     internal fun forceLoadFragment(pageType: Enums.RegistrationPageType) {
 
         when (pageType) {
+            Enums.RegistrationPageType.PAY_PROGRAM -> {
+                supportFragmentManager.beginTransaction()
+                        .replace(R.id.formFragment, payProgramFragment)
+                        .commitAllowingStateLoss()
+
+                    activity.runOnUiThread {
+                        layout.buttons.send.visibility = GONE
+                        layout.buttons.pay.visibility = if (fixedParametersData?.payProgramsObject?.isAvailable == false) GONE else VISIBLE
+                        layout.buttons.googlePayButton.root.visibility = GONE
+                    }
+            }
+
             Enums.RegistrationPageType.GOOGLE_PAY -> {
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.formFragment, googlePayFragment)
                     .commitAllowingStateLoss()
 
-                if (fixedParametersData?.googlePayObject?.isAvailable == false) {
-                    activity.runOnUiThread {
-                        layout.buttons.googlePayButton.root.visibility = GONE
-                    }
-                }
-
                 activity.runOnUiThread {
                     layout.buttons.send.visibility = GONE
+                    layout.buttons.pay.visibility = GONE
+                    layout.buttons.googlePayButton.root.visibility = if (fixedParametersData?.googlePayObject?.isAvailable == false) GONE else VISIBLE
                 }
             }
 
@@ -367,6 +377,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
                 activity.runOnUiThread {
                     layout.buttons.send.visibility = VISIBLE
+                    layout.buttons.pay.visibility = GONE
                     layout.buttons.googlePayButton.root.visibility = GONE
                 }
             }
@@ -378,6 +389,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
                 activity.runOnUiThread {
                     layout.buttons.send.visibility = VISIBLE
+                    layout.buttons.pay.visibility = GONE
                     layout.buttons.googlePayButton.root.visibility = GONE
                 }
             }
@@ -398,11 +410,23 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
                     activity.runOnUiThread {
                         layout.buttons.send.visibility = VISIBLE
+                        layout.buttons.pay.visibility = GONE
                         layout.buttons.googlePayButton.root.visibility = GONE
                     }
                 }
                 else if (isExpired) {
-                    if (fixedParametersData?.googlePayObject?.isAvailable == true) {
+                    if (fixedParametersData?.payProgramsObject?.isAvailable == true) {
+                        supportFragmentManager.beginTransaction()
+                                .replace(R.id.formFragment, payProgramFragment)
+                                .commitAllowingStateLoss()
+
+                        activity.runOnUiThread {
+                            layout.buttons.send.visibility = GONE
+                            layout.buttons.pay.visibility = VISIBLE
+                            layout.buttons.googlePayButton.root.visibility = GONE
+                        }
+                    }
+                    else if (fixedParametersData?.googlePayObject?.isAvailable == true) {
                         supportFragmentManager.beginTransaction()
                             .replace(R.id.formFragment, googlePayFragment)
                             .commitAllowingStateLoss()
@@ -419,11 +443,16 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
                         activity.runOnUiThread {
                             setButtonDisable(layout.buttons.send)
                             layout.buttons.send.visibility = VISIBLE
+                            layout.buttons.pay.visibility = GONE
                             layout.buttons.googlePayButton.root.visibility = GONE
                         }
                     }
                 }
                 else {
+                    supportFragmentManager.beginTransaction()
+                            .remove(payProgramFragment)
+                            .commitAllowingStateLoss()
+
                     supportFragmentManager.beginTransaction()
                         .remove(googlePayFragment)
                         .commitAllowingStateLoss()
@@ -547,6 +576,8 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
                         loadFragment()
                     }
                 }
+
+                else -> {}
             }
         }
     }
@@ -568,6 +599,12 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         }
     }
 
+
+    private inner class PayRegistrationObserver : Observer<RegistrationModel?> {
+        override fun onChanged(registrationModel: RegistrationModel?) {
+            payProgramFragment.payProgramCallback(registrationModel)
+        }
+    }
 
     private inner class GooglePayRegistrationObserver : Observer<RegistrationModel?> {
         override fun onChanged(registrationModel: RegistrationModel?) {
@@ -623,6 +660,8 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
                     userData = user
                 }
+
+                else -> {}
             }
 
         }
@@ -681,6 +720,8 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
                         //displayActionSnackbar(activity, resources.getString(R.string.registration_save_success))
                     }
                 }
+
+                else -> {}
             }
         }
     }

@@ -114,8 +114,7 @@ class RegistrationCouponCodeFragment : Fragment() {
         // error code
 
         // register with google pay
-
-        Utilities.setTextViewHtml(layout?.registerWithGooglePay, "signup_register_with_google_pay")
+        Utilities.setTextViewHtml(layout?.registerWithPayProgram, "signup_register_with_pay_program")
 
         // contact us
         if (isSignUpActivity!!) {
@@ -145,12 +144,12 @@ class RegistrationCouponCodeFragment : Fragment() {
 
     fun initEvents() {
 
-        // register with google pay
-        layout?.registerWithGooglePay?.setOnClickListener {
+        // register with pay
+        layout?.registerWithPayProgram?.setOnClickListener {
             if (isSignUpActivity!!) {
-                _signupActivity?.forceLoadFragment(Enums.RegistrationPageType.GOOGLE_PAY)
+                _signupActivity?.forceLoadFragment(Enums.RegistrationPageType.PAY_PROGRAM)
             } else {
-                _registrationActivity?.forceLoadFragment(Enums.RegistrationPageType.GOOGLE_PAY)
+                _registrationActivity?.forceLoadFragment(Enums.RegistrationPageType.PAY_PROGRAM)
             }
         }
 
@@ -174,7 +173,7 @@ class RegistrationCouponCodeFragment : Fragment() {
         Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
 
         Utilities.setTextViewString(layout?.title, "signup_code_label")
-        Utilities.setTextViewString(layout?.registerWithGooglePay, "signup_register_with_google_pay")
+        Utilities.setTextViewString(layout?.registerWithPayProgram, "signup_register_with_pay_program")
         Utilities.setTextViewString(layout?.contactUs, "signup_contact_us")
         Utilities.setTextViewString(layout?.skip, "signup_code_skip")
     }
