@@ -157,7 +157,7 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
         else
             VISIBLE
         layout.buttons.send.visibility = GONE
-
+        layout.buttons.pay.visibility = GONE
     }
 
     private fun initData() {
