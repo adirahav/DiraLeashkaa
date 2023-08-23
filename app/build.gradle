@@ -143,12 +143,12 @@ dependencies {
     implementation "androidx.activity:activity-ktx:1.4.0"
 
     // firebase
-    implementation 'com.google.firebase:firebase-auth:21.0.5'
+    /*implementation 'com.google.firebase:firebase-auth:21.0.5'
     implementation platform('com.google.firebase:firebase-bom:30.1.0')
     implementation 'com.google.firebase:firebase-analytics-ktx'
 
     implementation 'com.google.firebase:firebase-dynamic-links'
-    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-analytics'*/
 
     // mixpanel
     implementation 'com.mixpanel.android:mixpanel-android:7.+'
