@@ -75,7 +75,6 @@ object Enums {
 
     enum class RegistrationPageType {
         PAY_PROGRAM,
-        GOOGLE_PAY,
         COUPON_CODE,
         BETA_CODE
     }

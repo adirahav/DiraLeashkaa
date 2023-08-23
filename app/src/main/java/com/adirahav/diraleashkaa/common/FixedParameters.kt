@@ -38,10 +38,6 @@ class FixedParameters
     private val payProgramsType: Type = PayProgramDataClass::class.java
     var payProgramsObject: PayProgramDataClass? = null
 
-    // google pay
-    private val googlePayType: Type = GooglePayProgramDataClass::class.java
-    var googlePayObject: GooglePayProgramDataClass? = null
-
     // best yield
     private val bestYieldType: Type = object : TypeToken<List<SpinnerEntity>>() {}.type
     var bestYieldArray: List<SpinnerEntity>? = null
@@ -114,10 +110,6 @@ class FixedParameters
         payProgramsObject = Utilities.parseObject(
                 json = fixedParameters?.payPrograms,
                 typeToken = payProgramsType
-        )
-        googlePayObject = Utilities.parseObject(
-            json = fixedParameters?.googlePay,
-            typeToken = googlePayType
         )
         bestYieldArray = Utilities.parseArray(
             json = fixedParameters?.bestYield,

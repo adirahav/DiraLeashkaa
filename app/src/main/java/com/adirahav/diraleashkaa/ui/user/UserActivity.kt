@@ -176,7 +176,6 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
         layout.buttons.save.text = Utilities.getRoomString("button_save")
         layout.buttons.send.text = Utilities.getRoomString("button_send")
         layout.buttons.pay.text = Utilities.getRoomString("button_pay")
-        layout.buttons.googlePayButton.container.contentDescription = Utilities.getRoomString("google_pay_button_subscribe_with")
         super.setRoomStrings()
     }
 

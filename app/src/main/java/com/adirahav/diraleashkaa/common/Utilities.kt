@@ -1108,7 +1108,6 @@ object Utilities {
             trialPeriod = fixedParametersModel?.trialPeriod,
             expirationAlert = fixedParametersModel?.expirationAlert,
             appVersion = fixedParametersModel?.appVersion,
-            googlePay = fixedParametersModel?.googlePay,
             propertyInputs = fixedParametersModel?.propertyInputs,
             propertyValues = fixedParametersModel?.propertyValues,
             indexesAndInterests = fixedParametersModel?.indexesAndInterests,

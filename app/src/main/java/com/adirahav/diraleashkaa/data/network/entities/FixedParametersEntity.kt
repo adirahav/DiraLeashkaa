@@ -13,7 +13,6 @@ data class FixedParametersEntity(
 	@SerializedName("expiration_alert") val expirationAlert: String,                // התראת פג תוקף
 	@SerializedName("app_version") val appVersion: String,                          // גירסה
 	@SerializedName("pay_programs") val payPrograms: String,                        // תוכניות בתשלום
-	@SerializedName("google_pay") val googlePay: String,                            // GOOGLE PAY
 	@SerializedName("best_yield") val bestYield: String,                            // התשואה הטובה ביותר
 	@SerializedName("property_inputs") val propertyInputs: String,                  // נתוני שדות בעלי עריכת אחוזים
 	@SerializedName("property_values") val propertyValues: String,                  // נתוני שדות ללא עריכת אחוזים

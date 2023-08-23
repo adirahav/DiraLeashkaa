@@ -12,7 +12,6 @@ buildscript {
         classpath 'com.jakewharton:butterknife-gradle-plugin:9.0.0-rc2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0"
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
-        //classpath 'com.google.gms:google-services:4.3.10'
     }
 }
 

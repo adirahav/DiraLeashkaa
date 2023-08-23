@@ -41,9 +41,6 @@ class RegistrationViewModel internal constructor(
     // pay registration
     val payProgramRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
 
-    // google pay registration
-    val googlePayRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
-
     // trial registration
     val trialRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
 
@@ -354,44 +351,6 @@ class RegistrationViewModel internal constructor(
         this.payProgramRegistration.postValue(registrationModel)
     }
     //endregion == pay program registration =======
-
-    //region == google pay registration =======
-    fun googlePayRegistration(applicationContext: Context, userData: UserEntity?, googlePayUUID: String?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "googlePayRegistration()")
-
-        CoroutineScope(Dispatchers.IO).launch {
-
-            val call: Call<RegistrationModel?>? = registrationService.registrationAPI.googlePay(googlePayUUID, userData?.uuid)
-
-            call?.enqueue(object : Callback<RegistrationModel?> {
-                override fun onResponse(call: Call<RegistrationModel?>, response: Response<RegistrationModel?>) {
-                    Utilities.log(Enums.LogType.Debug, TAG, "googlePayRegistration(): response = ${response}")
-                    val result: RegistrationModel? = response.body()
-
-                    if (response.code() == 200) {
-                        setGooglePayRegistration(result)
-                        Utilities.log(Enums.LogType.Notify, TAG, "googlePayRegistration(): Success", userData)
-                    }
-                    else {
-                        setGooglePayRegistration(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "googlePayRegistration(): Error = ${response}", userData)
-                    }
-                }
-
-                override fun onFailure(call: Call<RegistrationModel?>, t: Throwable) {
-                    setGooglePayRegistration(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "googlePayRegistration(): onFailure = ${t}", userData)
-                    call.cancel()
-                }
-            })
-        }
-    }
-
-    private fun setGooglePayRegistration(registrationModel: RegistrationModel?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setGooglePayRegistration()", showToast = false)
-        this.googlePayRegistration.postValue(registrationModel)
-    }
-    //endregion == google pay registration ========
 
     //region == unsubscribe ===================
     fun getUnsubscribe(applicationContext: Context, userData: UserEntity?) {

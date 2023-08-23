@@ -178,7 +178,6 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
         layout.buttons.next.text = Utilities.getRoomString("button_next")
         layout.buttons.save.text = Utilities.getRoomString("button_save")
         layout.buttons.send.text = Utilities.getRoomString("button_send")
-        layout.buttons.googlePayButton.container.contentDescription = Utilities.getRoomString("google_pay_button_subscribe_with")
 
         super.setRoomStrings()
     }

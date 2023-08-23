@@ -1,7 +1,6 @@
 package com.adirahav.diraleashkaa.data.network.services
 
 import com.adirahav.diraleashkaa.common.Configuration.API_BASE_URL
-import com.adirahav.diraleashkaa.data.network.dataClass.GooglePayProgramDataClass
 import com.adirahav.diraleashkaa.data.network.models.RegistrationModel
 import retrofit2.Call
 import retrofit2.Retrofit
@@ -55,13 +54,6 @@ class RegistrationService private constructor() {
         fun payProgram(
                 @Field("pay_program_uuid") payUUID: String?,
                 @Field("user_uuid") userUUID: String?
-        ): Call<RegistrationModel?>?
-
-        @FormUrlEncoded
-        @POST("registration/googlePay")
-        fun googlePay(
-            @Field("google_pay_uuid") googlePayUUID: String?,
-            @Field("user_uuid") userUUID: String?
         ): Call<RegistrationModel?>?
     }
 }

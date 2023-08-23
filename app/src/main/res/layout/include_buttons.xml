@@ -40,12 +40,4 @@
         style="@style/button"
         android:onClick="submitSend" />
 
-    <include
-        android:id="@+id/googlePayButton"
-        layout="@layout/include_google_pay_button"
-        android:layout_width="@dimen/google_pay_button_width"
-        android:layout_height="@dimen/google_pay_button_height"
-        android:layout_margin="@dimen/padding"
-        android:visibility="gone" />
-
 </LinearLayout>
