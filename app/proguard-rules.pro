@@ -22,3 +22,4 @@
 -keep class androidx.appcompat.widget.** { *; }
 -keepattributes LineNumberTable,SourceFile
 -renamesourcefileattribute SourceFile
+-printmapping obfuscation/mapping.txt
