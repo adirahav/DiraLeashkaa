@@ -423,7 +423,7 @@ class RegistrationPayProgramFragment : Fragment(),
     private fun setRoomStrings() {
         Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
 
-        Utilities.setTextViewString(layout.title, "signup_google_pay_label")
+        Utilities.setTextViewString(layout.title, "signup_pay_program_label")
         Utilities.setTextViewString(layout.registerWithCoupon, "signup_register_with_coupon")
         Utilities.setTextViewString(layout.contactUs, "signup_contact_us")
         Utilities.setTextViewString(layout.skip, "signup_code_skip")

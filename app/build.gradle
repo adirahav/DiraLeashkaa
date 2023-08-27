@@ -18,14 +18,14 @@ android {
         applicationId "com.adirahav.diraleashkaa"
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode 18
-        versionName "1.42"
+        versionCode 19
+        versionName "1.43"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        signingConfig signingConfigs.release
+        signingConfig signingConfigs.releasev
     }
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

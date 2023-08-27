@@ -129,6 +129,7 @@ object Utilities {
     //region == email ==============
 
     fun composeEmail(type: String, subject: String, message: String?, userData: UserEntity?, propertyData: PropertyEntity?, responseSuccess: (() -> Unit)?, responseFail: (() -> Unit)?) {
+        return
         CoroutineScope(Dispatchers.IO).launch {
 
             val fullMessage = "${message}\n\n" +

@@ -176,7 +176,7 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
             val snackType = when {
                 subscriberType.equals(Enums.SubscriberType.TRIAL.toString(), true) -> Enums.SnackType.EXPIRED_TRIAL
                 subscriberType.equals(Enums.SubscriberType.COUPON_PAID.toString(), true) -> Enums.SnackType.EXPIRED_PAID_COUPON
-                subscriberType.equals(Enums.SubscriberType.GOOGLE_PAY_PAID.toString(), true) -> Enums.SnackType.EXPIRED_PAID_GOOGLE_PAY
+                subscriberType.equals(Enums.SubscriberType.PAY_PROGRAM_PAID.toString(), true) -> Enums.SnackType.EXPIRED_PAID_PAID_PROGRAM
                 else -> Enums.SnackType.UNKNOWN
             }
 

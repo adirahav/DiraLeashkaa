@@ -13,6 +13,7 @@ import android.view.View
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.adirahav.diraleashkaa.BuildConfig
 import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.*
 import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
@@ -172,7 +173,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
         Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
 
         layout?.loaderText?.text =
-            if (Utilities.roomStrings.isNullOrEmpty())
+            if (Utilities.roomStrings.isNullOrEmpty() == false)
                 Utilities.getRoomString("splash_loading")
             else
                 resources.getString(R.string.splash_loading)
@@ -408,6 +409,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     //region observers
     private inner class ServerSplashObserver : Observer<SplashDataClass?> {
         override fun onChanged(splashData: SplashDataClass?) {
+
             if (splashData == null) {
                 Log.d(TAG, "ServerSplashObserver(): splashData == null)")
                 endLoadData()

@@ -61,14 +61,13 @@ object Enums {
         PERSONAL_DETAILS,
         FINANCIAL_DETAILS,
         TERMS_OF_USE,
-        COUPON_CODE,
-        GOOGLE_PAY
+        COUPON_CODE
     }
 
     enum class SnackType {
         EXPIRED_PAID,
         EXPIRED_PAID_COUPON,
-        EXPIRED_PAID_GOOGLE_PAY,
+        EXPIRED_PAID_PAID_PROGRAM,
         EXPIRED_TRIAL,
         UNKNOWN
     }
@@ -86,7 +85,7 @@ object Enums {
     enum class SubscriberType {
         TRIAL,
         COUPON_PAID,
-        GOOGLE_PAY_PAID,
+        PAY_PROGRAM_PAID,
         BETA_TESTER,
         BLOCKED
     }

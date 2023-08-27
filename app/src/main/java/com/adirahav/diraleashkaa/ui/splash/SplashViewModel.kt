@@ -52,7 +52,7 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            //Log.d("ADITEST10","splashAPI.get userUUID = ${userUUID} ; deviceID ${deviceID} ; VERSION_NAME ${BuildConfig.VERSION_NAME} ; trackUser ${trackUser ?: false}")
+            //Log.d("ADITEST","splashAPI.get userUUID = ${userUUID} ; deviceID ${deviceID} ; VERSION_NAME ${BuildConfig.VERSION_NAME} ; trackUser ${trackUser ?: false}")
             val call: Call<SplashModel?>? = splashService.splashAPI.get(userUUID, deviceID, BuildConfig.VERSION_NAME, trackUser ?: false)
 
             call?.enqueue(object : Callback<SplashModel?> {
@@ -65,16 +65,18 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
                     if (response.code() == 200 && response.body()?.success == true) {
                         try {
                             setServerSplash(result?.data)
-                            //Log.d("ADITEST11","user.userName ${result?.data?.user?.userName} ; restore.userName ${result?.data?.restore?.user?.userName}")
+                            //Log.d("ADITEST","user.userName ${result?.data?.user?.userName} ; restore.userName ${result?.data?.restore?.user?.userName}")
                         }
                         catch (e: Exception) {
                             setServerSplash(null)
                             Utilities.log(Enums.LogType.Error, TAG, "getServerSplash(): e = ${e.message} ; result.data = ${result?.data.toString()}")
+                           // Utilities.log(Enums.LogType.Error, "ADITEST", "getServerSplash(): e = ${e.message} ; result.data = ${result?.data.toString()}")
                         }
                     }
                     else {
                         setServerSplash(null)
                         Utilities.log(Enums.LogType.Error, TAG, "getServerSplash(): response = $response")
+                        //Utilities.log(Enums.LogType.Error, "ADITEST", "getServerSplash(): response = $response")
                     }
                 }
 
