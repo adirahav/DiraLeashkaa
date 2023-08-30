@@ -17,8 +17,6 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.core.content.ContextCompat
 import com.adirahav.diraleashkaa.R
-import com.adirahav.diraleashkaa.common.Calculations.calcMortgageMonthlyRepayment
-import com.adirahav.diraleashkaa.common.Calculations.calcMortgageMonthlyYield
 import com.adirahav.diraleashkaa.common.Utilities.toFormatNumber
 import com.adirahav.diraleashkaa.common.Utilities.toNumber
 import com.jakewharton.rxbinding.widget.RxTextView
@@ -1973,11 +1971,6 @@ class PropertyInfoFragment : Fragment() {
         }
 
         activity?.runOnUiThread {
-            _activity?.propertyData?.calcMortgageMonthlyRepayment = calcMortgageMonthlyRepayment(
-                _activity?.propertyData?.calcMortgagePeriod,
-                _activity?.propertyData?.calcMortgageRequired
-            )
-
             if (_activity?.propertyData?.calcMortgageMonthlyRepayment != null) {
                 mortgageMonthlyRepaymentInputView?.setText(
                     Utilities.getDecimalNumber(_activity?.propertyData?.calcMortgageMonthlyRepayment)
@@ -1997,11 +1990,6 @@ class PropertyInfoFragment : Fragment() {
         if (_activity?.propertyData?.showMortgagePrepayment == false || _activity?.userData?.canTakeMortgage == false) {
             return
         }
-
-        _activity?.propertyData?.calcMortgageMonthlyYield = calcMortgageMonthlyYield(
-            _activity?.propertyData?.calcRentCleaningExpenses,
-            _activity?.propertyData?.calcMortgageMonthlyRepayment
-        )
 
         var hasWarning = false
 

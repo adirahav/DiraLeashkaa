@@ -15,7 +15,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.*
 import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
-import com.adirahav.diraleashkaa.common.Calculations.calcInterestPercent
 import com.adirahav.diraleashkaa.common.Utilities.floatFormat
 import com.adirahav.diraleashkaa.data.DataManager
 import com.adirahav.diraleashkaa.data.network.entities.*
@@ -512,7 +511,7 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         }
 
         // interest ריבית
-        fixedParametersData?.indexesAndInterestsArray?.find { it.name == Const.INTEREST_PERCENT }?.default = calcInterestPercent(propertyData?.calcMortgagePeriod, propertyData?.calcActualPercentOfFinancing, fixedParametersData)
+        fixedParametersData?.indexesAndInterestsArray?.find { it.name == Const.INTEREST_PERCENT }?.default = propertyData?.calcInterestPercent ?: 0F
 
         if (roomPID == 0L || propertyData?.calcInterestPercent == null) {
             propertyData?.calcInterestPercent = (fixedParametersData?.indexesAndInterestsArray?.find { it.name == Const.INTEREST_PERCENT })?.default
