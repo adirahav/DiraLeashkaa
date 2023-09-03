@@ -89,12 +89,12 @@ class PropertyChartFragment(
         Utilities.log(Enums.LogType.Debug, TAG, "onCreateView()", showToast = false)
 
         // orientation
-        if (_activity!!.localClassName.equals("ui.property.PropertyActivity")) {
+        if (_activity!!.localClassName.endsWith("ui.property.PropertyActivity")) {
             _activity!!.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         }
 
          val layout =
-             if (_activity?.localClassName.equals("ui.home.HomeActivity"))
+             if (_activity?.localClassName?.endsWith("ui.home.HomeActivity") == true)
                  R.layout.fragment_home_chart
              else
                  R.layout.fragment_property_chart
@@ -106,7 +106,7 @@ class PropertyChartFragment(
         initViews(view)
         initData()
         initEvents()
-        if (_activity!!.localClassName.equals("ui.property.PropertyActivity")) {
+        if (_activity!!.localClassName.endsWith("ui.property.PropertyActivity")) {
             (_activity!! as PropertyActivity).initIndexesAndInterests()
         }
         initObserver()
@@ -122,13 +122,13 @@ class PropertyChartFragment(
         viewModel = createViewModel()
 
         // indexes and interests
-        if (_activity?.localClassName.equals("ui.property.PropertyActivity")) {
-            (_activity!! as PropertyActivity)?.displayIndexesAndInterests()
+        if (_activity?.localClassName?.endsWith("ui.property.PropertyActivity") == true) {
+            (_activity!! as PropertyActivity).displayIndexesAndInterests()
         }
 
         // actions menu
-        if (_activity?.localClassName.equals("ui.property.PropertyActivity")) {
-            (_activity!! as PropertyActivity)?.updateActionsMenuVisibility(PropertyActivity.ActionsMenuButtonType.CHART)
+        if (_activity?.localClassName?.endsWith("ui.property.PropertyActivity") == true) {
+            (_activity!! as PropertyActivity).updateActionsMenuVisibility(PropertyActivity.ActionsMenuButtonType.CHART)
         }
     }
 
@@ -473,7 +473,7 @@ class PropertyChartFragment(
 
     override fun createViewModel(): BaseViewModel? {
         val factory =
-            if (_activity?.localClassName.equals("ui.home.HomeActivity"))
+            if (_activity?.localClassName?.endsWith("ui.home.HomeActivity") == true)
                 HomeViewModelFactory(DataManager.instance!!.propertyService, DataManager.instance!!.homeService)
             else
                 PropertyViewModelFactory(DataManager.instance!!.propertyService)
