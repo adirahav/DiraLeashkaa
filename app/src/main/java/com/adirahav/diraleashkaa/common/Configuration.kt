@@ -7,7 +7,6 @@ import java.util.regex.Pattern
 object Configuration {
     const val DB_NAME = "database-diraleashkaa"
 
-    const val API_BASE_URL = "https://api.diraleashkaa.com/main/"
 
     const val TYPING_RESPONSE_DELAY = 800L   // millisecond
 

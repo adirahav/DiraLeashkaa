@@ -41,6 +41,46 @@ android {
         viewBinding true
         dataBinding true
     }
+
+    flavorDimensions "default"
+    productFlavors {
+
+        develop {
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+        }
+
+        production {
+            applicationIdSuffix ""
+            versionNameSuffix ""
+        }
+    }
+
+    applicationVariants.all { variant ->
+
+        def BASE_URL = ""
+
+        if (variant.getName().contains("developDebug")) {
+            BASE_URL = "http://100.115.5.138:3428/"
+
+            /* 1. On windows:
+              - select taskbar wifi icon
+              - selecte the properties of connected network
+              - Under Network profile set the network as private
+               2. On terminal:
+              - cd C:\Users\user\AppData\Local\Android\Sdk\platform-tools
+              - .\adb reverse tcp:3428 tcp:3428
+
+              onError:
+              - find in log: 'failed to connect to'
+            */
+        }
+        else {
+            BASE_URL = "https://api.diraleashkaa.com/main/"
+        }
+
+        variant.buildConfigField "String", "BASE_URL", "\"${BASE_URL}\""
+    }
 }
 
 dependencies {

@@ -10,6 +10,7 @@ import com.adirahav.diraleashkaa.BuildConfig
 import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
+import com.adirahav.diraleashkaa.common.Utilities.getVersionName
 import com.adirahav.diraleashkaa.data.network.DatabaseClient
 import com.adirahav.diraleashkaa.data.network.dataClass.DeviceDataClass
 import com.adirahav.diraleashkaa.data.network.models.SplashModel
@@ -53,7 +54,7 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
         CoroutineScope(Dispatchers.IO).launch {
 
             //Log.d("ADITEST","splashAPI.get userUUID = ${userUUID} ; deviceID ${deviceID} ; VERSION_NAME ${BuildConfig.VERSION_NAME} ; trackUser ${trackUser ?: false}")
-            val call: Call<SplashModel?>? = splashService.splashAPI.get(userUUID, deviceID, BuildConfig.VERSION_NAME, trackUser ?: false)
+            val call: Call<SplashModel?>? = splashService.splashAPI.get(userUUID, deviceID, getVersionName(), trackUser ?: false)
 
             call?.enqueue(object : Callback<SplashModel?> {
                 override fun onResponse(call: Call<SplashModel?>, response: Response<SplashModel?>) {

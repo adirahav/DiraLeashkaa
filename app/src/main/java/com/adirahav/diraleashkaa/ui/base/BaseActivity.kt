@@ -33,6 +33,7 @@ import com.adirahav.diraleashkaa.common.AppPreferences
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.ExceptionHandler
 import com.adirahav.diraleashkaa.common.Utilities
+import com.adirahav.diraleashkaa.common.Utilities.showEnvironmentSnackMessageIfNeeded
 import com.adirahav.diraleashkaa.data.network.entities.StringEntity
 import com.adirahav.diraleashkaa.databinding.ActivityContactusBinding
 import com.adirahav.diraleashkaa.databinding.ActivityHomeBinding
@@ -182,6 +183,9 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
 
             Utilities.showSnackMessageIfNeeded(this@BaseActivity, snackType, expiredTime!!)
         }
+
+        // environment
+        showEnvironmentSnackMessageIfNeeded(this@BaseActivity)
     }
 
     fun initBaseObserver() {

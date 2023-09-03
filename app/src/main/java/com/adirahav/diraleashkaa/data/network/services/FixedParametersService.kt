@@ -1,6 +1,6 @@
 package com.adirahav.diraleashkaa.data.network.services
 
-import com.adirahav.diraleashkaa.common.Configuration.API_BASE_URL
+import com.adirahav.diraleashkaa.BuildConfig.BASE_URL
 import com.adirahav.diraleashkaa.data.network.models.FixedParametersModel
 import retrofit2.Call
 import retrofit2.Retrofit
@@ -22,7 +22,7 @@ class FixedParametersService private constructor() {
     }
 
     init {
-        val retrofit: Retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create()).baseUrl(API_BASE_URL).build()
+        val retrofit: Retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create()).baseUrl(BASE_URL).build()
         fixedParametersAPI = retrofit.create(FixedParametersAPI::class.java)
     }
 

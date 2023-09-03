@@ -7,6 +7,7 @@ import android.content.res.Resources
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -29,6 +30,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.databinding.ktx.BuildConfig
+import com.adirahav.diraleashkaa.BuildConfig.BASE_URL
+import com.adirahav.diraleashkaa.BuildConfig.BUILD_TYPE
+import com.adirahav.diraleashkaa.BuildConfig.FLAVOR
 import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
 import com.adirahav.diraleashkaa.common.Configuration.AGE_PATTERN
@@ -309,6 +313,38 @@ object Utilities {
 
     //endregion == find by name =======
 
+    //region == environment ========
+
+    fun showEnvironmentSnackMessageIfNeeded(activity: Activity) {
+        if (FLAVOR.equals("develop")) {
+            var message = AppPreferences.instance?.getString("userName", "") + "\n" + FLAVOR + " " + BUILD_TYPE + "\n" + BASE_URL
+
+            val viewGroup: ViewGroup = (activity.findViewById(android.R.id.content) as ViewGroup).getChildAt(0) as ViewGroup
+            val snackbar = Snackbar.make(viewGroup, message, Snackbar.LENGTH_LONG).setAction("Action", null)
+            snackbar.setActionTextColor(ContextCompat.getColor(context, R.color.formText))
+
+            val snackbarView = snackbar.view
+            snackbarView.setBackgroundColor(ContextCompat.getColor(context, R.color.snackBackgroundSuccess))
+
+            val textView = snackbarView.findViewById(com.google.android.material.R.id.snackbar_text) as TextView
+            textView.setTextColor(ContextCompat.getColor(context, R.color.snackText))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                textView.textAlignment = View.TEXT_ALIGNMENT_CENTER
+            }
+            else {
+                textView.gravity = Gravity.CENTER_HORIZONTAL
+            }
+            textView.textSize = 16f
+
+            snackbar.show()
+        }
+
+    }
+
+    //endregion == environment ========
+
+    //region == numbers parser =====
+
     fun Float.percentToFraction(): Float {
         return  if (this != null)
             return this.div(100)
@@ -415,16 +451,6 @@ object Utilities {
        return number.toString()
     }
 
-    fun setButtonEnable(button: Button?) {
-        button?.style(R.style.button)
-        button?.isEnabled = true
-    }
-
-    fun setButtonDisable(button: Button?) {
-        button?.style(R.style.buttonDisable)
-        button?.isEnabled = false
-    }
-
     fun Editable.toNumber(): Int? {
         return  if (this != null && this.isNotEmpty()) {
             try {
@@ -451,7 +477,33 @@ object Utilities {
     fun Int.toNIS(): String {
         return getDecimalNumber(this) + " ש\"ח"
     }
+
+    //endregion == numbers parser =====
+
+    //region == buttons ============
+
+    fun setButtonEnable(button: Button?) {
+        button?.style(R.style.button)
+        button?.isEnabled = true
+    }
+
+    fun setButtonDisable(button: Button?) {
+        button?.style(R.style.buttonDisable)
+        button?.isEnabled = false
+    }
+
+    //endregion == buttons ============
+
+
     /////
+
+    fun getVersionName() : String {
+        var versionName = com.adirahav.diraleashkaa.BuildConfig.VERSION_NAME
+        if (versionName.contains("-")) {
+            versionName = versionName.split("-").get(0)
+        }
+        return versionName
+    }
 
     fun typeSimulate(views: MutableMap<EditText?, String>) {
         for (view in views) {
