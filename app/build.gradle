@@ -18,8 +18,8 @@ android {
         applicationId "com.adirahav.diraleashkaa"
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode 19
-        versionName "1.43"
+        versionCode 20
+        versionName "1.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.release
     }
@@ -62,7 +62,6 @@ android {
 
         if (variant.getName().contains("developDebug")) {
             BASE_URL = "http://100.115.5.138:3428/"
-
             /* 1. On windows:
               - select taskbar wifi icon
               - selecte the properties of connected network
