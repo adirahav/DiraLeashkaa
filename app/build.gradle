@@ -27,6 +27,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            ndk {
+                debugSymbolLevel 'FULL'
+                // Use SYMBOL_TABLE to get function names in the Play Console's symbolicated stack traces. This level supports
+                // Use FULL to get function names, files, and line numbers in the Play Console's symbolicated stack traces.
+            }
         }
     }
 
@@ -67,7 +73,7 @@ android {
               - selecte the properties of connected network
               - Under Network profile set the network as private
                2. On terminal:
-              - cd C:\Users\user\AppData\Local\Android\Sdk\platform-tools
+              - cd C:\\Users\\user\\AppData\\Local\\Android\\Sdk\\platform-tools
               - .\adb reverse tcp:3428 tcp:3428
 
               onError:
