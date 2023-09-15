@@ -58,8 +58,8 @@
     <color name="formHint">@color/palette5</color>
     <color name="formText">@color/palette5</color>
     <color name="formLabel">@color/palette4</color>
-    <color name="formSpinnerdivider">@color/palette3</color>
-    <color name="formSpinnerdividerDark">@color/palette4</color>
+    <color name="formSpinnerDivider">@color/palette3</color>
+    <color name="formSpinnerDividerDark">@color/palette4</color>
     <color name="formBackground">@color/palette2</color>
     <color name="formBackgroundWizard">@color/palette3</color>
     <color name="formBackgroundDisable">@color/palette3</color>

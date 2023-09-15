@@ -113,12 +113,27 @@
         android:textColor="@color/formText"
         android:textColorHint="@color/formHint"
         android:textSize="18sp"
-        app:spinner_divider_color="@color/formSpinnerdivider"
+        app:spinner_divider_color="@color/formSpinnerDivider"
         app:spinner_divider_show="true"
         app:spinner_divider_size="0.4dp"
         app:spinner_popup_animation="dropdown"
         app:spinner_popup_elevation="14dp"
         app:spinner_popup_background="@color/formBackground"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/searchableSpinner"
+        android:layout_width="0dp"
+        android:layout_weight="8"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/padding"
+        android:paddingEnd="@dimen/padding"
+        android:paddingTop="@dimen/padding_small"
+        android:paddingBottom="@dimen/padding_small"
+        android:textColor="@color/formText"
+        android:textColorHint="@color/formHint"
+        android:textSize="18sp"
+        android:background="@color/formBackground"
         android:visibility="gone" />
 
     <LinearLayout

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/padding"
+    android:background="@color/formBackground">
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/edit_text"
+        style="@style/formField"
+        android:hint="חפש..."
+        android:singleLine="true"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:textColor="@color/formText"
+        android:textColorHint="@color/formHint"
+        android:background="@android:drawable/editbox_background" />
+
+    <ListView
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/list_view"
+        android:divider="@color/formSpinnerDivider"
+        android:dividerHeight="1dip" />
+
+</LinearLayout>

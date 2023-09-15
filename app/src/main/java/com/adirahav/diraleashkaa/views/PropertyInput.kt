@@ -3,24 +3,48 @@ package com.adirahav.diraleashkaa.views
 import android.app.Activity
 import android.app.Dialog
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.AttributeSet
-import android.view.*
-import android.widget.*
+import android.util.Log
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.View.OnClickListener
+import android.view.ViewGroup
+import android.view.Window
+import android.view.WindowManager
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Filter
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ListView
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
+import androidx.recyclerview.widget.GridLayoutManager
 import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.NumberWithComma
 import com.adirahav.diraleashkaa.common.Utilities.getDecimalNumber
 import com.adirahav.diraleashkaa.common.Utilities.toNumber
-import androidx.recyclerview.widget.GridLayoutManager
-import com.adirahav.diraleashkaa.common.Utilities
+import com.adirahav.diraleashkaa.data.network.DatabaseClient
+import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
+import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.ui.property.PropertyActivity
+import com.airbnb.paris.extensions.style
+import com.google.gson.annotations.SerializedName
 import com.skydoves.powerspinner.IconSpinnerAdapter
 import com.skydoves.powerspinner.IconSpinnerItem
 import com.skydoves.powerspinner.PowerSpinnerView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class PropertyInput @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
@@ -42,6 +66,7 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
     var rollbackView: ImageView? = null
     var inputView: EditText? = null
     var spinnerView: PowerSpinnerView? = null
+    var searchableSpinnerView: TextView? = null
     private var numberPickerContainerView: LinearLayout? = null
     var numberPickerView: com.adirahav.diraleashkaa.numberpickerlibrary.NumberPicker? = null
     var numberPickerAcceptView: ImageView? = null
@@ -202,13 +227,11 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
             InputType.DROP_DOWN -> {
                 inputView?.visibility = GONE
                 spinnerView?.visibility = VISIBLE
+                searchableSpinnerView?.visibility = GONE
 
                 var spinnerItems: List<IconSpinnerItem?>? = null
 
                 when (dropDownOptions) {
-                    "cities" -> {
-                        spinnerItems = _activity?.fixedParametersData?.citiesArray?.map { IconSpinnerItem(text = it.value.toString()) }
-                    }
                     "apartment_type" -> {
                         spinnerItems = _activity?.fixedParametersData?.apartmentTypesArray?.map { IconSpinnerItem(text = it.value.toString()) }
                     }
@@ -227,6 +250,72 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
                 spinnerView?.setOnSpinnerItemSelectedListener<IconSpinnerItem?> {
                         _, _, _, _ -> setDropDown(spinnerView)
                 }
+            }
+
+            InputType.SEARCHABLE_DROP_DOWN -> {
+                inputView?.visibility = GONE
+                spinnerView?.visibility = GONE
+                searchableSpinnerView?.visibility = VISIBLE
+
+                var searchableSpinnerSuggestionItems: List<String?>? = null
+                var searchableSpinnerItems: List<String?>? = null
+
+                when (dropDownOptions) {
+                    "cities" -> {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val roomPropertiesList = DatabaseClient.getInstance(context)?.appDatabase?.propertyDao()?.getAll()
+
+                            searchableSpinnerSuggestionItems = _activity?.fixedParametersData?.citiesArray?.filter { cityEntity ->
+                                roomPropertiesList!!.any { propertyEntity ->
+                                    propertyEntity.city == cityEntity.key
+                                }
+                            }?.mapNotNull { it.value }
+
+                            searchableSpinnerItems = _activity?.fixedParametersData?.citiesArray?.filter {
+                                it.key != "choose" && it.value !in searchableSpinnerSuggestionItems!!
+                            }?.map { it.value.toString() }
+                        }
+                    }
+                }
+
+                searchableSpinnerView?.setOnClickListener(OnClickListener {
+                    val dialog = Dialog(context)
+                    dialog.setContentView(R.layout.view_searchable_spinner_dialog)
+                    dialog.getWindow()?.setLayout(650, 800)
+                    dialog.getWindow()?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                    dialog.show()
+
+                    val editText: EditText = dialog.findViewById(R.id.edit_text)
+                    val listView: ListView = dialog.findViewById(R.id.list_view)
+
+                    var itemsData: MutableList<ItemDataClass> = ArrayList()
+
+                    for (i in 0 until searchableSpinnerSuggestionItems!!.size) {
+                        itemsData.add(itemsData.size, ItemDataClass(searchableSpinnerSuggestionItems!![i] .toString(), R.layout.item_searchable_spinner_suggestion_dialog))
+                    }
+
+                    for (i in 0 until searchableSpinnerItems!!.size) {
+                        itemsData.add(itemsData.size, ItemDataClass(searchableSpinnerItems!![i].toString(), R.layout.item_searchable_spinner_dialog))
+                    }
+
+                    val mergedAdapter = SuggestionArrayAdapter(_activity!!.applicationContext, itemsData)
+
+                    listView.adapter = mergedAdapter
+
+                    editText.addTextChangedListener(object : TextWatcher {
+                        override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+                        override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                            mergedAdapter.filter.filter(s)
+                        }
+
+                        override fun afterTextChanged(s: Editable) {}
+                    })
+
+                    listView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
+                        searchableSpinnerView?.setText((view as TextView).text)
+                        dialog.dismiss()
+                    }
+                })
             }
 
             InputType.STRING -> {
@@ -250,8 +339,6 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
         rollbackView?.setOnClickListener {
             onRollbackClick()
         }
-
-
     }
 
     enum class InputType {
@@ -262,6 +349,7 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
         CALC_TOTAL,
         AUTO_FILL,
         DROP_DOWN,
+        SEARCHABLE_DROP_DOWN,
         STRING
     }
 
@@ -272,6 +360,7 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
         inputView = findViewById(R.id.input)
         rollbackView = findViewById(R.id.rollback)
         spinnerView = findViewById(R.id.spinner)
+        searchableSpinnerView = findViewById(R.id.searchableSpinner)
         //powerSpinnerView = findViewById(R.id.powerSpinner)
         numberPickerContainerView = findViewById(R.id.numberPickerContainer)
         numberPickerView = findViewById(R.id.numberPicker)
@@ -596,3 +685,59 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
         dialog.hide()
     }
 }
+
+data class ItemDataClass(
+        @SerializedName("name") val name: String,
+        @SerializedName("resource") val resource: Int,
+)
+class SuggestionArrayAdapter(
+        context: Context,
+        private val allItems: List<ItemDataClass>,
+) : ArrayAdapter<ItemDataClass>(context, 0, ArrayList(allItems)) {
+
+    private var items: List<ItemDataClass> = allItems
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        val inflater = LayoutInflater.from(context)
+
+        val itemView: View = convertView ?: inflater.inflate(items[position].resource, parent, false)
+        val textView: TextView = itemView.findViewById<TextView>(R.id.text)
+        textView.text = items[position].name
+
+        textView.setTypeface(null,
+                if (items[position].resource == R.layout.item_searchable_spinner_suggestion_dialog)
+                    Typeface.BOLD
+                else
+                    Typeface.NORMAL
+        )
+
+        itemView.style(items[position].resource)
+
+        return itemView
+    }
+
+    override fun getCount(): Int {
+        return items.size
+    }
+    override fun getFilter(): Filter {
+        return object : Filter() {
+            override fun publishResults(charSequence: CharSequence?, filterResults: Filter.FilterResults) {
+                items = filterResults.values as List<ItemDataClass>
+                notifyDataSetChanged()
+            }
+
+            override fun performFiltering(charSequence: CharSequence?): Filter.FilterResults {
+                val queryString = charSequence?.toString()
+
+                val filterResults = Filter.FilterResults()
+                filterResults.values = if (queryString==null || queryString.isEmpty())
+                    allItems
+                else
+                    allItems.filter {
+                        it.name.contains(queryString)
+                    }
+                return filterResults
+            }
+        }
+    }
+}
+

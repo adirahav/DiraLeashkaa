@@ -80,7 +80,7 @@ class PropertyInfoFragment : Fragment() {
     //region == views variables ====
 
     // city
-    private var citySpinnerView: PowerSpinnerView? = null
+    private var citySearchableSpinnerView: TextView? = null
 
     // city else
     var cityElseInputView: EditText? = null
@@ -260,7 +260,7 @@ class PropertyInfoFragment : Fragment() {
         }
 
         // city
-        citySpinnerView = layout?.city?.findViewById(R.id.spinner)
+        citySearchableSpinnerView = layout?.city?.findViewById(R.id.searchableSpinner)
 
         // city else
         cityElseInputView = layout?.cityElse?.findViewById(R.id.input)
@@ -372,19 +372,16 @@ class PropertyInfoFragment : Fragment() {
         }
 
         // city
-        //activity?.runOnUiThread {
-            if (!_activity?.argPropertyCity.isNullOrEmpty() && _activity?.roomPID == 0L && _activity?.isCityUpdatedFromArgs != true) {
-                val cityObject = _activity?.fixedParametersData?.citiesArray?.find { it.key == _activity?.argPropertyCity }
-                val cityIndex = _activity?.fixedParametersData?.citiesArray?.indexOf(cityObject ?: _activity?.fixedParametersData?.citiesArray!!.last())
+        if (!_activity?.argPropertyCity.isNullOrEmpty() && _activity?.roomPID == 0L && _activity?.isCityUpdatedFromArgs != true) {
+            val cityObject = _activity?.fixedParametersData?.citiesArray?.find { it.key == _activity?.argPropertyCity }
 
-                _activity?.isCityUpdatedFromArgs = true
+            _activity?.isCityUpdatedFromArgs = true
 
-                onCityChanged(cityIndex ?: 0)
-            }
-            else {
-                updateCity()
-            }
-        //}
+            onCityChanged(cityObject?.key)
+        }
+        else {
+            updateCity()
+        }
 
         // city else
         updateCityElse()
@@ -494,20 +491,31 @@ class PropertyInfoFragment : Fragment() {
         }
 
         // city
-        citySpinnerView?.setOnSpinnerItemSelectedListener<IconSpinnerItem> {
-                _, _, newIndex, _ ->
-            if (whichFieldChangedByUser?.equals(Const.CITY) == true) {
-                onCityChanged(newIndex)
-                whichFieldChangedByUser = null
-            }
-        }
+        RxTextView.textChanges(citySearchableSpinnerView!!)
+                .debounce(Configuration.TYPING_RESPONSE_DELAY, TimeUnit.MILLISECONDS)
+                .subscribe {
+                    if (whichFieldChangedByUser?.equals(Const.CITY) == true) {
+                        var cityObject =
+                                if (_activity?.fixedParametersData?.citiesArray?.find { it.value == citySearchableSpinnerView?.text.toString() } == null)
+                                    _activity?.fixedParametersData?.citiesArray?.find { it.key == "choose" }
+                                else
+                                    _activity?.fixedParametersData?.citiesArray?.find { it.value == citySearchableSpinnerView?.text.toString() }
 
-        citySpinnerView!!.addTextChangedListener(object : TextWatcher {
+                        onCityChanged(cityObject?.key)
+                        whichFieldChangedByUser = null
+                    }
+                }
+
+        citySearchableSpinnerView!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) { }
 
             override fun onTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {
                 if (isFieldFieldChangedByUser == true) {
-                    whichFieldChangedByUser = Const.CITY
+                    var cityObject = _activity?.fixedParametersData?.citiesArray?.find { it.value == citySearchableSpinnerView?.text.toString() }
+
+                    if(!cityObject?.key.equals(_activity?.propertyData?.city)) {
+                        whichFieldChangedByUser = Const.CITY
+                    }
                 }
             }
 
@@ -633,8 +641,6 @@ class PropertyInfoFragment : Fragment() {
                 }
             }
 
-        //layout.equityCleaningExpenses.viewTreeObserver?.addOnGlobalLayoutListener { updateEquityCleaningExpenses() }
-
         equityCleaningExpensesInputView!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) { }
 
@@ -656,8 +662,6 @@ class PropertyInfoFragment : Fragment() {
                     whichFieldChangedByUser = null
                 }
             }
-
-        //layout.mortgageRequired.viewTreeObserver?.addOnGlobalLayoutListener { updateMortgageRequired() }
 
         mortgageRequiredInputView!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) { }
@@ -725,8 +729,6 @@ class PropertyInfoFragment : Fragment() {
                 }
             }
 
-        //layout.disposableIncome.viewTreeObserver?.addOnGlobalLayoutListener { updateDisposableIncome() }
-
         disposableIncomeInputView!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) { }
 
@@ -749,8 +751,6 @@ class PropertyInfoFragment : Fragment() {
                 }
             }
 
-        //layout.possibleMonthlyRepayment.viewTreeObserver?.addOnGlobalLayoutListener { updatePossibleMonthlyRepayment() }
-
         layout?.possibleMonthlyRepayment?.numberPickerAcceptView?.setOnClickListener {
             layout?.possibleMonthlyRepayment?.numberPickerActualValue = layout?.possibleMonthlyRepayment?.numberPickerView?.progress
             _activity?.propertyData?.possibleMonthlyRepaymentPercent = layout?.possibleMonthlyRepayment?.numberPickerActualValue
@@ -768,8 +768,6 @@ class PropertyInfoFragment : Fragment() {
 
             _activity?.insertUpdateProperty(Const.POSSIBLE_MONTHLY_REPAYMENT_PERCENT, _activity?.propertyData?.possibleMonthlyRepaymentPercent)
         }
-
-        //layout.possibleMonthlyRepayment.viewTreeObserver?.addOnGlobalLayoutListener { updatePossibleMonthlyRepayment() }
 
         possibleMonthlyRepaymentInputView!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) { }
@@ -792,8 +790,6 @@ class PropertyInfoFragment : Fragment() {
                     whichFieldChangedByUser = null
                 }
             }
-
-        //layout.maxPercentOfFinancing.viewTreeObserver?.addOnGlobalLayoutListener { updateMaxPercentOfFinancing() }
 
         maxPercentOfFinancingInputView!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) { }
@@ -838,8 +834,6 @@ class PropertyInfoFragment : Fragment() {
                     whichFieldChangedByUser = null
                 }
             }
-
-        //layout.transferTax.viewTreeObserver?.addOnGlobalLayoutListener { updateTransferTax() }
 
         transferTaxInputView!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) { }
@@ -985,8 +979,6 @@ class PropertyInfoFragment : Fragment() {
                 }
             }
 
-        //layout.incidentalsTotal.viewTreeObserver?.addOnGlobalLayoutListener { updateIncidentalsTotal() }
-
         incidentalsTotalInputView!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) { }
 
@@ -1092,8 +1084,6 @@ class PropertyInfoFragment : Fragment() {
                 }
             }
 
-        //layout.rentCleaningExpenses.viewTreeObserver?.addOnGlobalLayoutListener { updateRentCleaningExpenses() }
-
         rentCleaningExpensesInputView!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) { }
 
@@ -1136,12 +1126,6 @@ class PropertyInfoFragment : Fragment() {
                     whichFieldChangedByUser = null
                 }
             }
-
-        /*layout.mortgageMonthlyRepayment.viewTreeObserver?.addOnGlobalLayoutListener(object: ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                updateMortgageMonthlyRepayment()
-            }
-        })*/
 
         mortgageMonthlyRepaymentInputView!!.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) { }
@@ -1225,16 +1209,16 @@ class PropertyInfoFragment : Fragment() {
     //endregion == strings ============
 
     //region == change events ======
-    private fun onCityChanged(position: Int) {
+    private fun onCityChanged(key: String?) {
         Utilities.log(Enums.LogType.Debug, TAG, "onCityChanged()")
 
-        val city =  if (position == 0)
+        val city =  if (key == "choose")
                         null
                     else
-                        _activity?.fixedParametersData?.citiesArray?.get(position)
+                        key
 
         activity?.runOnUiThread {
-            _activity?.propertyData?.city = city?.key
+            _activity?.propertyData?.city = city
             _activity?.insertUpdateProperty(Const.CITY, _activity?.propertyData?.city)
             updateCity()
         }
@@ -1562,36 +1546,21 @@ class PropertyInfoFragment : Fragment() {
             }
 
             val cityObject = _activity?.fixedParametersData?.citiesArray?.find { it.key == _activity?.propertyData?.city ?: "choose" }
-            val cityIndex = _activity?.fixedParametersData?.citiesArray?.indexOf(cityObject ?: _activity?.fixedParametersData?.citiesArray!!.last())
 
             activity?.runOnUiThread {
-                if (citySpinnerView?.selectedIndex != (cityIndex ?: 0)) {
-                    citySpinnerView?.selectItemByIndex(cityIndex ?: 0)
-                }
+                citySearchableSpinnerView?.text = cityObject?.value
             }
-
-            layout?.city?.setDropDown(citySpinnerView)
-
         }
     }
 
     private fun updateCityElse() {
 
         activity?.runOnUiThread {
-            if (citySpinnerView?.selectedIndex == _activity?.fixedParametersData?.citiesArray?.size?.minus(1)) {
-
-                cityElseInputView?.setText(
-                    if (_activity?.propertyData?.city.equals("else"))
-                        _activity?.propertyData?.cityElse
-                    else
-                        _activity?.propertyData?.city ?: "")
-
-            }
-
             val cityObject = _activity?.fixedParametersData?.citiesArray?.find { it.key == _activity?.propertyData?.city }
 
-            if ((cityObject != null && _activity?.propertyData?.city.equals("else")) ||
-                (cityObject == null && !_activity?.propertyData?.city.isNullOrEmpty())) {
+            if (_activity?.propertyData?.city.equals("else")) {
+                cityElseInputView?.setText(_activity?.propertyData?.cityElse)
+
                 layout?.cityElse?.visibility = VISIBLE
 
                 if (cityElseInputView?.hasFocus() == false) {
