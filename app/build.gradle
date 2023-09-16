@@ -18,8 +18,8 @@ android {
         applicationId "com.adirahav.diraleashkaa"
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode 20
-        versionName "1.5"
+        versionCode 21
+        versionName "1.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.release
     }
@@ -40,8 +40,8 @@ android {
         enabled = true
     }
     compileOptions {
-        sourceCompatibility "1.8"
-        targetCompatibility "1.8"
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     buildFeatures {
         viewBinding true
@@ -61,6 +61,7 @@ android {
             versionNameSuffix ""
         }
     }
+    namespace 'com.adirahav.diraleashkaa'
 
     applicationVariants.all { variant ->
 

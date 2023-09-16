@@ -550,7 +550,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
     }
 
     private inner class ServerDeletePropertyObserver : Observer<Int> {
-        override fun onChanged(deletedItemsCount: Int?) {
+        override fun onChanged(deletedItemsCount: Int) {
             Utilities.log(Enums.LogType.Debug, TAG, "ServerDeletePropertyObserver(): onChanged")
 
             isServerHomeLoaded = false
@@ -559,11 +559,11 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
     }
 
     private inner class ServerHomeObserver : Observer<HomeDataClass> {
-        override fun onChanged(home: HomeDataClass?) {
+        override fun onChanged(home: HomeDataClass) {
             Utilities.log(Enums.LogType.Debug, TAG, "ServerHomeObserver(): onChanged")
             isServerHomeLoaded = true
-            isPropertiesNeedToRefresh = home?.isPropertiesNeedToRefresh == true
-            isBestYieldNeedToRefresh = home?.isBestYieldNeedToRefresh == true
+            isPropertiesNeedToRefresh = home.isPropertiesNeedToRefresh == true
+            isBestYieldNeedToRefresh = home.isBestYieldNeedToRefresh == true
 
             if (!isPropertiesNeedToRefresh && !isBestYieldNeedToRefresh) {
                 unfreezeScreen()

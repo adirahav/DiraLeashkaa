@@ -29,7 +29,7 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
-import androidx.databinding.ktx.BuildConfig
+import com.adirahav.diraleashkaa.BuildConfig
 import com.adirahav.diraleashkaa.BuildConfig.BASE_URL
 import com.adirahav.diraleashkaa.BuildConfig.BUILD_TYPE
 import com.adirahav.diraleashkaa.BuildConfig.FLAVOR

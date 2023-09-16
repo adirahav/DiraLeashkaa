@@ -27,6 +27,7 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true // this prevents "not mocked" error
     }
+    namespace 'com.adirahav.diraleashkaa.chartlibrary'
 }
 
 dependencies {
@@ -37,7 +38,7 @@ dependencies {
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
+    archiveClassifier = 'sources'
 }
 
 task javadoc(type: Javadoc) {
@@ -48,7 +49,7 @@ task javadoc(type: Javadoc) {
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
