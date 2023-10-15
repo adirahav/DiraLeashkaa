@@ -11,7 +11,10 @@ data class PropertyEntity (
 
 	@SerializedName("uuid")											var uuid: String? = null,
 
-	// תמונות
+	// סוג פריט (דירה פוטנציאלית, דירה במחשבון)
+	@SerializedName("type")											var type: String? = null,
+
+		// תמונות
 	@SerializedName("pictures")										var pictures: String? = null,
 
 	// עיר

@@ -118,8 +118,8 @@
     <color name="medalIconFill">@color/palette1</color>
     <color name="missingDataIcon">@color/palette4</color>
     <color name="missingDataIconFill">@color/palette1</color>
-    <color name="lockIcon">@color/palette1</color>
-    <color name="lockIconFill">@color/palette7</color>
+    <color name="lockIcon">@color/palette4</color>
+    <color name="lockIconFill">@color/palette1</color>
 
     <color name="statePastPresentBackground">@color/palette7</color>
     <color name="statePastPresentText">@color/palette1</color>

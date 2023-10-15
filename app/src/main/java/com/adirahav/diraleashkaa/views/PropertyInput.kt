@@ -30,12 +30,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import com.adirahav.diraleashkaa.R
+import com.adirahav.diraleashkaa.common.FixedParameters
 import com.adirahav.diraleashkaa.common.NumberWithComma
 import com.adirahav.diraleashkaa.common.Utilities.getDecimalNumber
 import com.adirahav.diraleashkaa.common.Utilities.toNumber
 import com.adirahav.diraleashkaa.data.network.DatabaseClient
 import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
+import com.adirahav.diraleashkaa.ui.calculators.CalculatorActivity
 import com.adirahav.diraleashkaa.ui.property.PropertyActivity
 import com.airbnb.paris.extensions.style
 import com.google.gson.annotations.SerializedName
@@ -54,7 +56,12 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
     private val TAG = "PropertyInput"
 
     // activity
-    var _activity: PropertyActivity? = null
+    var _activityProperty: PropertyActivity? = null
+    var _activityCalculator: CalculatorActivity? = null
+    internal var isPropertyActivity: Boolean? = null
+
+    // fixed parameters data
+    var fixedParametersData: FixedParameters? = null
 
     // type
     var type: InputType? = null
@@ -87,8 +94,20 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
     var warningTooltipText: String? = null
 
     init {
+        isPropertyActivity = context.javaClass.simpleName.equals("PropertyActivity")
+
         // activity
-        _activity = ((context as? PropertyActivity))
+        if (isPropertyActivity!!)
+            _activityProperty = ((context as? PropertyActivity))
+        else
+            _activityCalculator = ((context as? CalculatorActivity))
+
+        // fixed parameters data
+        fixedParametersData =
+                if (isPropertyActivity!!)
+                    _activityProperty?.fixedParametersData
+                else
+                    _activityCalculator?.fixedParametersData
 
         // attributes
         val attributes = context.obtainStyledAttributes(attrs, R.styleable.PropertyInput, 0, 0)
@@ -233,10 +252,10 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
 
                 when (dropDownOptions) {
                     "apartment_type" -> {
-                        spinnerItems = _activity?.fixedParametersData?.apartmentTypesArray?.map { IconSpinnerItem(text = it.value.toString()) }
+                        spinnerItems = fixedParametersData?.apartmentTypesArray?.map { IconSpinnerItem(text = it.value.toString()) }
                     }
                     "mortgage_period" -> {
-                        spinnerItems = _activity?.fixedParametersData?.mortgagePeriodArray?.map { IconSpinnerItem(text = it.value.toString()) }
+                        spinnerItems = fixedParametersData?.mortgagePeriodArray?.map { IconSpinnerItem(text = it.value.toString()) }
                     }
                 }
 
@@ -265,13 +284,13 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
                         CoroutineScope(Dispatchers.IO).launch {
                             val roomPropertiesList = DatabaseClient.getInstance(context)?.appDatabase?.propertyDao()?.getAll()
 
-                            searchableSpinnerSuggestionItems = _activity?.fixedParametersData?.citiesArray?.filter { cityEntity ->
+                            searchableSpinnerSuggestionItems = fixedParametersData?.citiesArray?.filter { cityEntity ->
                                 roomPropertiesList!!.any { propertyEntity ->
                                     propertyEntity.city == cityEntity.key
                                 }
                             }?.mapNotNull { it.value }
 
-                            searchableSpinnerItems = _activity?.fixedParametersData?.citiesArray?.filter {
+                            searchableSpinnerItems = fixedParametersData?.citiesArray?.filter {
                                 it.key != "choose" && it.value !in searchableSpinnerSuggestionItems!!
                             }?.map { it.value.toString() }
                         }
@@ -288,7 +307,7 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
                     val editText: EditText = dialog.findViewById(R.id.edit_text)
                     val listView: ListView = dialog.findViewById(R.id.list_view)
 
-                    var itemsData: MutableList<ItemDataClass> = ArrayList()
+                    val itemsData: MutableList<ItemDataClass> = ArrayList()
 
                     for (i in 0 until searchableSpinnerSuggestionItems!!.size) {
                         itemsData.add(itemsData.size, ItemDataClass(searchableSpinnerSuggestionItems!![i] .toString(), R.layout.item_searchable_spinner_suggestion_dialog))
@@ -298,7 +317,13 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
                         itemsData.add(itemsData.size, ItemDataClass(searchableSpinnerItems!![i].toString(), R.layout.item_searchable_spinner_dialog))
                     }
 
-                    val mergedAdapter = SuggestionArrayAdapter(_activity!!.applicationContext, itemsData)
+                    val mergedAdapter = SuggestionArrayAdapter(
+                            if (isPropertyActivity!!)
+                                _activityProperty!!.applicationContext
+                            else
+                                _activityCalculator!!.applicationContext
+                            ,
+                            itemsData)
 
                     listView.adapter = mergedAdapter
 

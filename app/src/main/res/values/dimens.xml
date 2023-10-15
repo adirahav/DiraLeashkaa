@@ -27,9 +27,11 @@
     <dimen name="chart_small_height">200dp</dimen>
     <dimen name="home_property_width">115dp</dimen>
     <dimen name="home_property_height">150dp</dimen>
+    <dimen name="calculator_width">163dp</dimen>
+    <dimen name="calculator_height">230dp</dimen>
 
     <dimen name="card_small_icon_size">24dp</dimen>
-    <dimen name="card_best_yield_icon_size">60dp</dimen>
+    <dimen name="cardicon_size">60dp</dimen>
 
     <dimen name="table_header_height">50dp</dimen>
     <dimen name="table_margin_start">80dp</dimen>

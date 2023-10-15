@@ -1,6 +1,5 @@
 package com.adirahav.diraleashkaa.ui.base
 
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -35,16 +34,18 @@ import com.adirahav.diraleashkaa.common.ExceptionHandler
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.common.Utilities.showEnvironmentSnackMessageIfNeeded
 import com.adirahav.diraleashkaa.data.network.entities.StringEntity
+import com.adirahav.diraleashkaa.databinding.ActivityCalculatorBinding
+import com.adirahav.diraleashkaa.databinding.ActivityCalculatorsBinding
 import com.adirahav.diraleashkaa.databinding.ActivityContactusBinding
 import com.adirahav.diraleashkaa.databinding.ActivityHomeBinding
 import com.adirahav.diraleashkaa.databinding.ActivityPropertyBinding
 import com.adirahav.diraleashkaa.databinding.ActivityRegistrationBinding
 import com.adirahav.diraleashkaa.databinding.ActivityUserBinding
 import com.adirahav.diraleashkaa.databinding.IncludeMenuBinding
+import com.adirahav.diraleashkaa.ui.calculators.CalculatorsActivity
 import com.adirahav.diraleashkaa.ui.contactus.ContactUsActivity
 import com.adirahav.diraleashkaa.ui.copyright.CopyrightActivity
 import com.adirahav.diraleashkaa.ui.registration.RegistrationActivity
-import com.adirahav.diraleashkaa.ui.splash.SplashActivity
 import com.adirahav.diraleashkaa.ui.user.UserActivity
 import com.google.android.material.navigation.NavigationView
 import com.mixpanel.android.mpmetrics.MixpanelAPI
@@ -84,6 +85,7 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
 
     // drawer views
     var drawerUserName: TextView? = null
+    var drawerCalculators: TextView? = null
     var drawerPersonalDetails: TextView? = null
     var drawerFinancialDetails: TextView? = null
     var drawerRegistrationDetails: TextView? = null
@@ -321,6 +323,14 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
         // drawer - user name
         drawerUserName = menu?.drawerUserName
 
+        // drawer - calculators
+        drawerCalculators = menu?.drawerCalculators
+
+        drawerCalculators?.setOnClickListener {
+            drawer?.closeDrawer(GravityCompat.START)
+            CalculatorsActivity.start(context)
+        }
+
         // drawer - personal details
         drawerPersonalDetails = menu?.drawerPersonalDetails
 
@@ -431,6 +441,8 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
                 return Utilities.getRoomString("actionbar_title_contact_us")
             "CopyrightActivity" ->
                 return Utilities.getRoomString("actionbar_title_copyright")
+            "CalculatorsActivity" ->
+                return Utilities.getRoomString("actionbar_title_calculators")
         }
         return Utilities.getRoomString("actionbar_title_home")
     }
@@ -498,6 +510,8 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
 
     private fun getDrawerPersonalDetailsView() : TextView? {
         when (this::class.java.simpleName) {
+            "CalculatorsActivity" -> return (layoutBase as ActivityCalculatorsBinding).menu.drawerPersonalDetails
+            "CalculatorActivity" -> return (layoutBase as ActivityCalculatorBinding).menu.drawerPersonalDetails
             "HomeActivity" -> return (layoutBase as ActivityHomeBinding).menu.drawerPersonalDetails
             "UserActivity" -> return (layoutBase as ActivityUserBinding).menu.drawerPersonalDetails
             "RegistrationActivity" -> return (layoutBase as ActivityRegistrationBinding).menu.drawerPersonalDetails
@@ -509,6 +523,8 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
 
     private fun getDrawerFinancialDetailsView() : TextView? {
         when (this::class.java.simpleName) {
+            "CalculatorsActivity" -> return (layoutBase as ActivityCalculatorsBinding).menu.drawerFinancialDetails
+            "CalculatorActivity" -> return (layoutBase as ActivityCalculatorBinding).menu.drawerFinancialDetails
             "HomeActivity" -> return (layoutBase as ActivityHomeBinding).menu.drawerFinancialDetails
             "UserActivity" -> return (layoutBase as ActivityUserBinding).menu.drawerFinancialDetails
             "RegistrationActivity" -> return (layoutBase as ActivityRegistrationBinding).menu.drawerFinancialDetails
@@ -520,6 +536,8 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
 
     private fun getDrawerContactUsView() : TextView? {
         when (this::class.java.simpleName) {
+            "CalculatorsActivity" -> return (layoutBase as ActivityCalculatorsBinding).menu.drawerContactUs
+            "CalculatorActivity" -> return (layoutBase as ActivityCalculatorBinding).menu.drawerContactUs
             "HomeActivity" -> return (layoutBase as ActivityHomeBinding).menu.drawerContactUs
             "UserActivity" -> return (layoutBase as ActivityUserBinding).menu.drawerContactUs
             "RegistrationActivity" -> return (layoutBase as ActivityRegistrationBinding).menu.drawerContactUs
@@ -531,6 +549,8 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
 
     private fun getDrawerRegistrationDetailsView() : TextView? {
         when (this::class.java.simpleName) {
+            "CalculatorsActivity" -> return (layoutBase as ActivityCalculatorsBinding).menu.drawerRegistrationDetails
+            "CalculatorActivity" -> return (layoutBase as ActivityCalculatorBinding).menu.drawerRegistrationDetails
             "HomeActivity" -> return (layoutBase as ActivityHomeBinding).menu.drawerRegistrationDetails
             "UserActivity" -> return (layoutBase as ActivityUserBinding).menu.drawerRegistrationDetails
             "RegistrationActivity" -> return (layoutBase as ActivityRegistrationBinding).menu.drawerRegistrationDetails
@@ -542,6 +562,8 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
 
     private fun getDrawerVersionView() : TextView? {
         when (this::class.java.simpleName) {
+            "CalculatorsActivity" -> return (layoutBase as ActivityCalculatorsBinding).menu.drawerVersion
+            "CalculatorActivity" -> return (layoutBase as ActivityCalculatorBinding).menu.drawerVersion
             "HomeActivity" -> return (layoutBase as ActivityHomeBinding).menu.drawerVersion
             "UserActivity" -> return (layoutBase as ActivityUserBinding).menu.drawerVersion
             "RegistrationActivity" -> return (layoutBase as ActivityRegistrationBinding).menu.drawerVersion
@@ -553,6 +575,8 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
 
     private fun getNavigationView() : NavigationView? {
         when (this::class.java.simpleName) {
+            "CalculatorsActivity" -> return (layoutBase as ActivityCalculatorsBinding).navigation
+            "CalculatorActivity" -> return (layoutBase as ActivityCalculatorBinding).navigation
             "HomeActivity" -> return (layoutBase as ActivityHomeBinding).navigation
             "UserActivity" -> return (layoutBase as ActivityUserBinding).navigation
             "RegistrationActivity" -> return (layoutBase as ActivityRegistrationBinding).navigation
@@ -595,7 +619,10 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
         Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
 
         // title text
-        titleText?.text = getActionBarTitle()
+        if (!this::class.java.simpleName.equals("CalculatorActivity")) {
+            titleText?.text = getActionBarTitle()
+        }
+
 
         // drawer - user name
         drawerUserName?.text =
@@ -605,6 +632,10 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
                     preferences?.getString("userName", ""))
             else
                 ""
+
+        // drawer - calculators
+        drawerCalculators?.text = Utilities.getRoomString("drawer_calculators")
+
         // drawer - personal details
         drawerPersonalDetails?.text = Utilities.getRoomString("drawer_personal_details")
 

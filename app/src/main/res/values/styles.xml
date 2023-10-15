@@ -141,8 +141,8 @@
 
     <style name="card_icon">
         <item name="android:layout_gravity">center</item>
-        <item name="android:layout_width">@dimen/card_best_yield_icon_size</item>
-        <item name="android:layout_height">@dimen/card_best_yield_icon_size</item>
+        <item name="android:layout_width">@dimen/cardicon_size</item>
+        <item name="android:layout_height">@dimen/cardicon_size</item>
         <item name="android:layout_margin">0dp</item>
         <item name="android:background">#0000ff00</item>
     </style>
@@ -548,4 +548,29 @@
         <item name="android:paddingBottom">0dp</item>
     </style>
 
+    <style name="calculator_card_value" parent="card_header">
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <!-- coming soon -->
+    <style name="calculator_coming_soon" parent="actionbarTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:gravity">center</item>
+        <item name="android:fontFamily">@font/gveret_levin_regular</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/actionbarTitle</item>
+    </style>
+
+    <!-- coming soon -->
+    <style name="max_price_nis" parent="actionbarTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:gravity">center</item>
+        <item name="android:fontFamily">@font/gveret_levin_regular</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/actionbarTitle</item>
+    </style>
 </resources>

@@ -31,6 +31,9 @@ class DataManager private constructor() {
     val emailService: EmailService
         get() = EmailService.instance!!
 
+    val calculatorsService: CalculatorsService
+        get() = CalculatorsService.instance!!
+
     companion object {
         @JvmStatic
         @get:Synchronized

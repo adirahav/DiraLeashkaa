@@ -79,7 +79,6 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
     var argPropertyCity: String? = null
     var isCityUpdatedFromArgs: Boolean = false
 
-
     // fixed parameters data
     var fixedParametersData: FixedParameters? = null
 

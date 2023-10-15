@@ -78,6 +78,9 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     // device data
     var deviceData: DeviceDataClass? = null
 
+    // calculators data
+    var calculatorsData: List<CalculatorEntity>? = null
+
     // announcements data
     var announcementsData: List<AnnouncementEntity>? = null
     var announcementIndex: Int = 0
@@ -268,6 +271,13 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
             return
         }
 
+        if (userData == null && calculatorsData != null) {
+            startTime = Date()
+            Utilities.openFancyDialog(this@SplashActivity, Enums.DialogType.RESTORE, null, null, emptyArray())
+            restoreData(deviceData)
+            return
+        }
+
         if (isNewVersionAvailable == true) {
             if (!isNewVersionRequired) {
                 Utilities.openFancyDialog(this@SplashActivity, Enums.DialogType.NEW_VERSION_AVAILABLE_NOT_REQUIRED, ::responseAfterNewVersionAvailableNotRequiredPositivePress, ::responseAfterNewVersionAvailableNotRequiredNegativePress, emptyArray())
@@ -419,6 +429,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
             fixedParametersData = splashData.fixedParameters
             userData = splashData.user
             deviceData = splashData.restore
+            calculatorsData = splashData.calculators
             announcementsData = splashData.announcements
             isNewVersionAvailable = splashData.newVersionAvailable
             isServerDown = splashData.serverDown
@@ -456,11 +467,11 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     fun restoreData(deviceData: DeviceDataClass?) {
         val restoreUser = deviceData?.user
         val restoreProperties = deviceData?.properties
+        val restoreCalculators = deviceData?.calculators
 
-        if (restoreUser != null || restoreProperties != null) {
-            viewModel!!.restoreRoomData(applicationContext, restoreUser, restoreProperties)
+        if (restoreUser != null || restoreProperties != null || restoreCalculators != null) {
+            viewModel!!.restoreRoomData(applicationContext, restoreUser, restoreProperties, restoreCalculators)
         }
-
     }
 
     private inner class RoomRestoreDataObserver : Observer<UserEntity?> {

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layoutDirection="rtl"
+    tools:context=".ui.calculators.CalculatorMaxPriceFragment">
+
+    <LinearLayout
+        android:id="@+id/formContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/cardBackground"
+            android:paddingTop="@dimen/padding_big"
+            android:paddingBottom="@dimen/padding"
+            android:paddingStart="@dimen/padding"
+            android:paddingEnd="@dimen/padding"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_gravity="center">
+
+                <TextView
+                    android:id="@+id/propertyPriceLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/header3" />
+
+                <TextView
+                    android:id="@+id/propertyPrice"
+                    style="@style/max_price_nis" />
+
+            </LinearLayout>
+
+            <View style="@style/divider" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/apartmentType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="drop_down"
+                custom:dropDownOptions="apartment_type"
+                custom:iconExist="false" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/equity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="auto_fill"
+                custom:iconExist="false" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/equityCleaningExpenses"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="calc"
+                custom:iconExist="false"
+                custom:warningExist="true"
+                custom:warningShow="false" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/mortgageRequired"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="calc"
+                custom:iconExist="false"
+                custom:warningExist="true"
+                custom:warningShow="false" />
+
+            <View style="@style/divider" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/incomes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="auto_fill"
+                custom:iconExist="false" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/commitments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="auto_fill"
+                custom:iconExist="false" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/disposableIncome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="calc"
+                custom:iconExist="false" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/possibleMonthlyRepayment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="calc"
+                custom:numberPickerExist="true"
+                custom:iconExist="false" />
+
+            <View style="@style/divider" android:id="@+id/percentOfFinancingDivider" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/maxPercentOfFinancing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="calc"
+                custom:iconExist="false" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/actualPercentOfFinancing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="calc"
+                custom:iconExist="false"
+                custom:warningExist="true"
+                custom:warningShow="false" />
+
+            <View style="@style/divider" />
+
+            <TextView
+                android:id="@+id/incidentalsTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/header3" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/transferTax"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="calc"
+                custom:iconExist="false" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/lawyer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="calc_editable"
+                custom:iconExist="false"
+                custom:numberPickerExist="true" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/realEstateAgent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="calc_editable"
+                custom:iconExist="false"
+                custom:numberPickerExist="true" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/brokerMortgage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="default"
+                custom:iconExist="false" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/repairing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="default"
+                custom:iconExist="false" />
+
+            <com.adirahav.diraleashkaa.views.PropertyInput
+                android:id="@+id/incidentalsTotal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                custom:inputType="calc_total"
+                custom:iconExist="false" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

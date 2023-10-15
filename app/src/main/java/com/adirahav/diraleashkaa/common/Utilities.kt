@@ -922,7 +922,7 @@ object Utilities {
             return roomStrings?.find { it.key == key }?.value.toString()
         }
 
-        return ""
+        return key
     }
 
     fun setTextViewString(textView: TextView?, key: String) {

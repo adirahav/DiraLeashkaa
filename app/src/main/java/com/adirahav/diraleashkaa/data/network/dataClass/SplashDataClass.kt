@@ -9,6 +9,7 @@ data class SplashDataClass(
     @SerializedName("user") var user: UserEntity? = null,
     @SerializedName("restore") val restore: DeviceDataClass? = null,
     @SerializedName("announcements") val announcements: List<AnnouncementEntity>? = null,
+    @SerializedName("calculators") val calculators: List<CalculatorEntity>? = null,
     @SerializedName("new_version_available") val newVersionAvailable: Boolean? = null,
     @SerializedName("server_down") val serverDown: Boolean? = null,
     @SerializedName("track_user") val trackUser: TrackUserEntity? = null,

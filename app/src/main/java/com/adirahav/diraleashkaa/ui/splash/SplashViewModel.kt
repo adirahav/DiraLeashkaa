@@ -193,8 +193,8 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
 
     //region == restore ============
 
-    fun restoreRoomData(applicationContext: Context, userEntity: UserEntity?, propertyEntities: List<PropertyEntity>?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "restoreRoomData(): userModel = $userEntity, propertiesModel = $propertyEntities")
+    fun restoreRoomData(applicationContext: Context, userEntity: UserEntity?, propertyEntities: List<PropertyEntity>?, calculatorEntities: List<CalculatorEntity>?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "restoreRoomData(): userEntity = $userEntity, propertyEntities = $propertyEntities, calculatorEntities = $calculatorEntities")
 
         GlobalScope.launch {
             if (userEntity != null) {
