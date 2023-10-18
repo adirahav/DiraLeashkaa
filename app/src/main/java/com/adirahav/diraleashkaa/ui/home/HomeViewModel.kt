@@ -134,22 +134,22 @@ class HomeViewModel internal constructor(
 
                     if (response.code() == 200 && response.body()?.success == true) {
                         try {
-                            Utilities.log(Enums.LogType.Debug, TAG, "getServerHome(): response = $response")
+                            Utilities.log(Enums.LogType.Debug, TAG, "deleteServerProperty(): response = $response")
                             saveServerHomeToRoom(applicationContext, result?.data)
                         }
                         catch (e: Exception) {
-                            Utilities.log(Enums.LogType.Error, TAG, "getServerHome(): e = ${e.message} ; result.data = ${result?.data.toString()}")
+                            Utilities.log(Enums.LogType.Error, TAG, "deleteServerProperty(): e = ${e.message} ; result.data = ${result?.data.toString()}")
                             setServerHome(null)
                         }
                     }
                     else {
-                        Utilities.log(Enums.LogType.Error, TAG, "getServerHome(): response = $response")
+                        Utilities.log(Enums.LogType.Error, TAG, "deleteServerProperty(): response = $response")
                         setServerHome(null)
                     }
                 }
 
                 override fun onFailure(call: Call<HomeModel?>, t: Throwable) {
-                    Utilities.log(Enums.LogType.Error, TAG, "getServerHome(): onFailure = $t")
+                    Utilities.log(Enums.LogType.Error, TAG, "deleteServerProperty(): onFailure = $t")
                     setServerHome(null)
                     call.cancel()
                 }

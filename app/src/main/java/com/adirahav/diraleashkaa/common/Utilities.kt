@@ -256,8 +256,14 @@ object Utilities {
         return !TextUtils.isEmpty(password) && PASSWORD_PATTERN.matcher(password).matches()
     }
 
-    fun isAgeValid(age: String): Boolean {
-        return !TextUtils.isEmpty(age) && AGE_PATTERN.matcher(age).matches()
+    fun isYearOfBirthValid(yearOfBirth: String): Boolean {
+
+        if (TextUtils.isEmpty(yearOfBirth)) {
+            return false
+        }
+
+        val age = Calendar.getInstance().get(Calendar.YEAR).minus(yearOfBirth.toInt())
+        return AGE_PATTERN.matcher(age.toString()).matches()
     }
 
     //endregion == form validation ====

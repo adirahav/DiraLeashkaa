@@ -300,6 +300,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
         else {
             layout.cityPropertiesTitle.visibility = GONE
             layout.cityPropertiesList.visibility = GONE
+            unfreezeScreen()
         }
     }
 
@@ -633,8 +634,6 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
 
     fun unfreezeScreen() {
         this.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-        //layout.containerMask.visibility = GONE
-
         layout.drawer.removeView(layout.containerMask)
     }
 

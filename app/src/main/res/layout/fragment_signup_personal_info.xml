@@ -98,19 +98,19 @@
 
     <!-- age -->
     <com.adirahav.diraleashkaa.views.LabelWithIcon
-        android:id="@+id/ageLabel"
+        android:id="@+id/yearOfBirthLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         custom:iconExist="false"/>
 
     <EditText
-        android:id="@+id/age"
+        android:id="@+id/yearOfBirth"
         style="@style/formFieldDark"
         android:inputType="numberDecimal"
-        android:maxLength="3" />
+        android:maxLength="4" />
 
     <TextView
-        android:id="@+id/ageError"
+        android:id="@+id/yearOfBirthError"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/formError"

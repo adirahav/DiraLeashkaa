@@ -25,6 +25,7 @@ import com.adirahav.diraleashkaa.data.network.models.SMSCodeValidationModel
 import com.adirahav.diraleashkaa.databinding.FragmentSignupPersonalInfoBinding
 import com.adirahav.diraleashkaa.ui.user.UserActivity
 import kotlinx.coroutines.runBlocking
+import java.util.Calendar
 
 
 class SignUpPersonalInfoFragment : Fragment() {
@@ -121,15 +122,15 @@ class SignUpPersonalInfoFragment : Fragment() {
         layout?.email?.setText(userData?.email)
         layout?.email?.contentDescription = Utilities.getRoomString("signup_email_label")
 
-        // age
-        layout?.age?.setText((userData?.age ?: "").toString())
-        layout?.age?.contentDescription = Utilities.getRoomString("signup_age_hint")
+        // year of birth
+        layout?.yearOfBirth?.setText((userData?.yearOfBirth ?: "").toString())
+        layout?.yearOfBirth?.contentDescription = Utilities.getRoomString("signup_year_of_birth_hint")
 
         // TO DELETE
         /*layout.name.setText("adi")
         layout.phone.setText("054-6789966")
         layout.email.setText("adi_rahav@yahoo.com")
-        layout.age.setText("70")*/
+        layout.yearOfBirth.setText("1976")*/
         // TO DELETE
     }
 
@@ -157,8 +158,8 @@ class SignUpPersonalInfoFragment : Fragment() {
         Utilities.setLabelViewString(layout?.emailLabel, "signup_email_label")
         Utilities.setTextViewString(layout?.emailError, "signup_email_error")
 
-        Utilities.setLabelViewString(layout?.ageLabel, "signup_age_hint")
-        Utilities.setTextViewString(layout?.ageError, "signup_age_error")
+        Utilities.setLabelViewString(layout?.yearOfBirthLabel, "signup_year_of_birth_hint")
+        Utilities.setTextViewString(layout?.yearOfBirthError, "signup_year_of_birth_error")
 
     }
 
@@ -206,17 +207,17 @@ class SignUpPersonalInfoFragment : Fragment() {
             layout?.emailError?.visibility = View.GONE
         }
 
-        // age
-        if (!Utilities.isAgeValid(layout?.age?.text.toString())) {
-            layout?.ageError?.visibility = View.VISIBLE
+        // year of birth
+        if (!Utilities.isYearOfBirthValid(layout?.yearOfBirth?.text.toString())) {
+            layout?.yearOfBirthError?.visibility = View.VISIBLE
 
             if (isValid) {
-                layout?.age?.requestFocus()
+                layout?.yearOfBirth?.requestFocus()
                 isValid = false
             }
         }
         else {
-            layout?.ageError?.visibility = View.GONE
+            layout?.yearOfBirthError?.visibility = View.GONE
         }
 
         // results
@@ -227,7 +228,7 @@ class SignUpPersonalInfoFragment : Fragment() {
             entities["name"] = layout?.name?.text.toString().trim()
             entities["email"] = layout?.email?.text.toString().trim()
             entities["phone_number"] = layout?.phone?.text.toString().replace("-", "")
-            entities["age"] = layout?.age?.text.toString().trim()
+            entities["year_of_birth"] = layout?.yearOfBirth?.text.toString().trim()
 
             if (isSignUpActivity!! && _signupActivity?.showSMSNotification == false) {
                 entities["phone_number_sms_verified"] = false

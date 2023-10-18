@@ -1923,8 +1923,8 @@ class PropertyInfoFragment : Fragment() {
 
                 var hasWarning = false
 
-                if (_activity?.propertyData?.calcMortgagePeriod != null && _activity?.userData?.age != null && _activity?.fixedParametersData?.mortgageMaxAge != null) {
-                    if (_activity!!.propertyData!!.calcMortgagePeriod!!.plus(_activity!!.userData!!.age!!) > _activity!!.fixedParametersData!!.mortgageMaxAge!!) {
+                if (_activity?.propertyData?.calcMortgagePeriod != null && _activity?.userData?.calcAge != null && _activity?.fixedParametersData?.mortgageMaxAge != null) {
+                    if (_activity!!.propertyData!!.calcMortgagePeriod!!.plus(_activity!!.userData!!.calcAge!!) > _activity!!.fixedParametersData!!.mortgageMaxAge!!) {
                         hasWarning = true
                     }
                 }

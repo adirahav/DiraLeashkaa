@@ -12,7 +12,8 @@ data class UserEntity(
     @SerializedName("uuid") var uuid: String?,
     @SerializedName("user_name") var userName: String?,
     @SerializedName("email") var email: String?,
-    @SerializedName("age") var age: Int?,
+    @SerializedName("calc_age") var calcAge: Int?,
+    @SerializedName("year_of_birth") var yearOfBirth: Int?,
     @SerializedName("phone_number") var phoneNumber: String?,
     @SerializedName("phone_number_sms_verified") var phoneNumberSMSVerified: Boolean?,
     @SerializedName("device_id") var deviceID: String?,
@@ -35,11 +36,12 @@ data class UserEntity(
             "null"
         else
             "roomUID = ${roomUID}${newLine}" +
-            "serverUUID = ${uuid}${newLine}" +
+            "uuid = ${uuid}${newLine}" +
             "userName = ${userName}${newLine}" +
             "appVersion = ${appVersion}${newLine}" +
             "email = ${email}${newLine}" +
-            "age = ${age}${newLine}" +
+            "calcAge = ${calcAge}${newLine}" +
+            "yearOfBirth = ${yearOfBirth}${newLine}" +
             "phoneNumber = ${phoneNumber}${newLine}" +
             "phoneNumberSMSVerified = ${phoneNumberSMSVerified}${newLine}" +
             "deviceID = ${deviceID}${newLine}" +

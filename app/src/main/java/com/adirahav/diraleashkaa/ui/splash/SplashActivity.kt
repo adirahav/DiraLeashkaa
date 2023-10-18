@@ -315,7 +315,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
             SignUpActivity.start(context)
         }
         else {
-            if (userData?.userName.isNullOrEmpty() || userData?.email.isNullOrEmpty() || userData?.age == null ||
+            if (userData?.userName.isNullOrEmpty() || userData?.email.isNullOrEmpty() || userData?.yearOfBirth == null ||
                 userData?.equity == null || userData?.incomes == null || userData?.commitments == null ||
                 userData?.termsOfUseAcceptTime == null ||
                 userData?.subscriberType == null) {

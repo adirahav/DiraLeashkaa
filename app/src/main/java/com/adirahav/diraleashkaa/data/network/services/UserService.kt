@@ -38,7 +38,7 @@ class UserService private constructor() {
         fun insertUser(
             @Field("user_name") userName: String?,
             @Field("email") email: String?,
-            @Field("age") age: Int?,
+            @Field("year_of_birth") yearOfBirth: Int?,
             @Field("phone_number") phoneNumber: String?,
             @Field("phone_number_sms_verified") phoneNumberSMSVerified: Boolean?,
             @Field("device_id") deviceID: String?,
@@ -62,7 +62,7 @@ class UserService private constructor() {
             @Field("uuid") uuid: String?,
             @Field("user_name") userName: String?,
             @Field("email") email: String?,
-            @Field("age") age: Int?,
+            @Field("year_of_birth") yearOfBirth: Int?,
             @Field("phone_number") phoneNumber: String?,
             @Field("phone_number_sms_verified") phoneNumberSMSVerified: Boolean?,
             @Field("device_id") deviceID: String?,

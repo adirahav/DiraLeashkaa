@@ -85,7 +85,7 @@ class RegistrationViewModel internal constructor(
             val call: Call<UserModel?>? = userService.userAPI.insertUser(
                 userData?.userName,
                 userData?.email,
-                userData?.age,
+                userData?.calcAge,
                 userData?.phoneNumber,
                 userData?.phoneNumberSMSVerified,
                 userData?.deviceID,
@@ -135,7 +135,7 @@ class RegistrationViewModel internal constructor(
                 userData?.uuid,
                 userData?.userName,
                 userData?.email,
-                userData?.age,
+                userData?.calcAge,
                 userData?.phoneNumber,
                 userData?.phoneNumberSMSVerified,
                 userData?.deviceID,

@@ -272,7 +272,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
             userData?.phoneNumber.isNullOrEmpty() ||
             userData?.email.isNullOrEmpty() ||
             (showSMSNotification && userData?.phoneNumberSMSVerified ?: false == false) ||
-            userData?.age == null) {
+            userData?.yearOfBirth == null) {
 
             supportFragmentManager.beginTransaction()
                 .replace(R.id.formFragment, personalInfoFragment)
@@ -531,7 +531,8 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
                 uuid = userData?.uuid,
                 userName = if (getMapStringValue(result, "name").isEmpty()) userData?.userName else getMapStringValue(result, "name"),
                 email = if (getMapStringValue(result, "email").isEmpty()) userData?.email else getMapStringValue(result, "email"),
-                age = if (getMapIntValue(result, "age") == null) userData?.age else getMapIntValue(result, "age"),
+                calcAge = null,
+                yearOfBirth = if (getMapIntValue(result, "year_of_birth") == null) userData?.yearOfBirth else getMapIntValue(result, "year_of_birth"),
                 phoneNumber = if (getMapStringValue(result, "phone_number").isEmpty()) userData?.phoneNumber else getMapStringValue(result, "phone_number"),
                 phoneNumberSMSVerified =
                     if (getMapBooleanValue(result, "phone_number_sms_verified") == null)

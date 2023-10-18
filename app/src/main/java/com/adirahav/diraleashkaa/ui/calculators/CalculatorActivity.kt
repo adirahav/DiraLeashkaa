@@ -304,17 +304,13 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
     //region == freeze screen ============
 
     fun freezeScreen() {
-        runOnUiThread {
-            this.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-            //layout?.containerMask?.visibility = VISIBLE
-        }
+        this.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        layout?.containerMask?.visibility = VISIBLE
     }
 
     fun unfreezeScreen() {
-        runOnUiThread {
-            //layout?.containerMask?.visibility = GONE  // TODO this line destroy the NavigationView
-            this.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-        }
+        this.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        layout?.drawer?.removeView(layout?.containerMask)
     }
 
     //endregion == freeze screen ============
