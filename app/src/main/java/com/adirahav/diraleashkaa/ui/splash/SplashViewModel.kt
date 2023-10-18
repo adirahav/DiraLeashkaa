@@ -144,6 +144,24 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
                 activity.preferences?.setLong("roomUID", roomUID, false)
             }
 
+            // ----------------
+            // calculators
+            // ----------------
+            val calculatorsList = DatabaseClient.getInstance(applicationContext)?.appDatabase?.calculatorDao()?.getAll()
+
+            if (calculatorsList != null) {
+                if (calculatorsList.isNotEmpty()) {
+                    DatabaseClient.getInstance(applicationContext)?.appDatabase?.calculatorDao()?.deleteAll()!!
+                }
+            }
+
+            val roomCalculators = splash?.calculators
+            if (roomCalculators != null) {
+                for (item in roomCalculators) {
+                    DatabaseClient.getInstance(applicationContext)?.appDatabase?.calculatorDao()?.insert(item as CalculatorEntity)!!
+                }
+            }
+
             setRoomSplash(roomUser, roomFixedParameters)
         }
     }
