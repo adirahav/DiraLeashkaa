@@ -4,6 +4,6 @@ import com.google.gson.annotations.SerializedName
 
 
 data class PayProgramDataClass(
-        @SerializedName("is_available") var isAvailable: Boolean? = null,
-        @SerializedName("program_types") val programTypes: List<PayProgramTypeEntity>,
+        @SerializedName("isAvailable") var isAvailable: Boolean? = null,
+        @SerializedName("programTypes") val programTypes: List<PayProgramTypeEntity>,
 )

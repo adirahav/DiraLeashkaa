@@ -6,14 +6,15 @@ import com.adirahav.diraleashkaa.common.Configuration
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.data.network.DatabaseClient
-import com.adirahav.diraleashkaa.data.network.dataClass.HomeDataClass
 import com.adirahav.diraleashkaa.data.network.entities.BestYieldEntity
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
 import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
 import com.adirahav.diraleashkaa.data.network.models.*
-import com.adirahav.diraleashkaa.data.network.services.HomeService
+import com.adirahav.diraleashkaa.data.network.requests.PropertyArchiveRequest
 import com.adirahav.diraleashkaa.data.network.services.PropertyService
+import com.adirahav.diraleashkaa.data.network.services.UserService
 import com.adirahav.diraleashkaa.ui.base.BaseViewModel
+import com.adirahav.diraleashkaa.ui.signup.SignUpActivity
 import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -23,8 +24,9 @@ import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 
 class HomeViewModel internal constructor(
+        private val activity: HomeActivity,
         private val propertyService: PropertyService,
-        private val homeService: HomeService
+        private val userService: UserService
 
         ) : BaseViewModel() {
 
@@ -47,7 +49,7 @@ class HomeViewModel internal constructor(
     val roomBestYield: MutableLiveData<List<BestYieldEntity>>
 
     // home
-    val serverHome: MutableLiveData<HomeDataClass>
+    val serverHome: MutableLiveData<HomeModel>
 
     init {
         // fixed parameters
@@ -119,26 +121,29 @@ class HomeViewModel internal constructor(
 
     //region delete property
     // == SERER =====
-    fun deleteServerProperty(applicationContext: Context, propertyData: PropertyEntity?, userUUID: String?) {
+    fun deleteServerProperty(applicationContext: Context, propertyData: PropertyEntity?) {
         Utilities.log(Enums.LogType.Debug, TAG, "deleteServerProperty()")
 
         CoroutineScope(Dispatchers.IO).launch {
 
             /**/
-            val call: Call<HomeModel?>? = propertyService.propertyAPI.deleteFromHome(propertyData?.uuid!!, userUUID)
+            val call: Call<HomeModel?>? = propertyService.propertyAPI.deleteFromHome(
+                    "Bearer ${activity.userToken}",
+                    PropertyArchiveRequest(_id = propertyData!!._id!!, dataToReturn = "home"),
+                    propertyData._id!!)
             call?.enqueue(object : Callback<HomeModel?> {
                 override fun onResponse(call: Call<HomeModel?>, response: Response<HomeModel?>) {
 
                     Utilities.log(Enums.LogType.Debug, TAG, "deleteServerProperty(): response = $response")
                     val result: HomeModel? = response.body()
 
-                    if (response.code() == 200 && response.body()?.success == true) {
+                    if (response.code() == 200) {
                         try {
                             Utilities.log(Enums.LogType.Debug, TAG, "deleteServerProperty(): response = $response")
-                            saveServerHomeToRoom(applicationContext, result?.data)
+                            saveServerHomeToRoom(applicationContext, result)
                         }
                         catch (e: Exception) {
-                            Utilities.log(Enums.LogType.Error, TAG, "deleteServerProperty(): e = ${e.message} ; result.data = ${result?.data.toString()}")
+                            Utilities.log(Enums.LogType.Error, TAG, "deleteServerProperty(): e = ${e.message} ; result.data = ${response.message()}")
                             setServerHome(null)
                         }
                     }
@@ -206,12 +211,12 @@ class HomeViewModel internal constructor(
     //endregion best yield
 
     //region home
-    fun getServerHome(applicationContext: Context, userUUID: String?) {
+    fun getServerHome(applicationContext: Context) {
         Utilities.log(Enums.LogType.Debug, TAG, "getServerHome()")
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val call: Call<HomeModel?>? = homeService.homeAPI.get(userUUID)
+            val call: Call<HomeModel?>? = userService.userAPI.getHomeData("Bearer ${activity.userToken}")
             call?.enqueue(object : Callback<HomeModel?> {
                 override fun onResponse(call: Call<HomeModel?>, response: Response<HomeModel?>) {
 
@@ -219,13 +224,13 @@ class HomeViewModel internal constructor(
 
                     val result: HomeModel? = response.body()
 
-                    if (response.code() == 200 && response.body()?.success == true) {
+                    if (response.code() == 200) {
                         try {
                             Utilities.log(Enums.LogType.Debug, TAG, "getServerHome(): response = $response")
-                            saveServerHomeToRoom(applicationContext, result?.data)
+                            saveServerHomeToRoom(applicationContext, result)
                         }
                         catch (e: Exception) {
-                            Utilities.log(Enums.LogType.Error, TAG, "getServerHome(): e = ${e.message} ; result.data = ${result?.data.toString()}")
+                            Utilities.log(Enums.LogType.Error, TAG, "getServerHome(): e = ${e.message} ; result.data = ${response.message()}")
                             setServerHome(null)
                         }
                     }
@@ -244,12 +249,12 @@ class HomeViewModel internal constructor(
         }
     }
 
-    private fun setServerHome(home: HomeDataClass?) {
+    private fun setServerHome(home: HomeModel?) {
         Utilities.log(Enums.LogType.Debug, TAG, "setServerHome()", showToast = false)
         this.serverHome.postValue(home)
     }
 
-    fun saveServerHomeToRoom(applicationContext: Context, home: HomeDataClass?) {
+    fun saveServerHomeToRoom(applicationContext: Context, home: HomeModel?) {
         Utilities.log(Enums.LogType.Debug, TAG, "saveServerHomeToRoom(): home = ${home.toString()}")
         CoroutineScope(Dispatchers.IO).launch {
 
@@ -259,7 +264,7 @@ class HomeViewModel internal constructor(
             val roomPropertiesList = DatabaseClient.getInstance(applicationContext)?.appDatabase?.propertyDao()?.getAll()
 
             var oldProperties = if (roomPropertiesList != null)
-                                    ArrayList(roomPropertiesList.map { it.copy() }).filter { item -> item.uuid != "" }
+                                    ArrayList(roomPropertiesList.map { it.copy() }).filter { item -> item._id != "" }
                                 else
                                     null
 
@@ -331,7 +336,7 @@ class HomeViewModel internal constructor(
         isPropertiesNeedToRefresh: Boolean,
         isBestYieldNeedToRefresh: Boolean) {
         Utilities.log(Enums.LogType.Debug, TAG, "setServerHome()", showToast = false)
-        val roomHomeData = HomeDataClass(
+        val roomHomeData = HomeModel(
             properties = properties,
             bestYields = bestYields,
             isPropertiesNeedToRefresh = isPropertiesNeedToRefresh,

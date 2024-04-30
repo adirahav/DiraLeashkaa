@@ -1,17 +1,20 @@
 package com.adirahav.diraleashkaa.ui.user
 
 import android.content.Context
+import android.provider.Settings
 import androidx.lifecycle.MutableLiveData
+import com.adirahav.diraleashkaa.BuildConfig
+import com.adirahav.diraleashkaa.common.AppApplication
 import com.adirahav.diraleashkaa.common.Configuration
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.data.network.DatabaseClient
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
+import com.adirahav.diraleashkaa.data.network.entities.PhraseEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
-import com.adirahav.diraleashkaa.data.network.models.APIResponseModel
-import com.adirahav.diraleashkaa.data.network.models.StringModel
-import com.adirahav.diraleashkaa.data.network.models.UserModel
-import com.adirahav.diraleashkaa.data.network.services.StringsService
+import com.adirahav.diraleashkaa.data.network.requests.SignUpRequest
+import com.adirahav.diraleashkaa.data.network.response.UserResponse
+import com.adirahav.diraleashkaa.data.network.services.PhraseService
 import com.adirahav.diraleashkaa.data.network.services.UserService
 import com.adirahav.diraleashkaa.ui.base.BaseViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -24,23 +27,24 @@ import java.util.*
 import kotlin.concurrent.schedule
 
 class UserViewModel internal constructor(
-    private val userService: UserService,
-    private val stringsService: StringsService,
+        private val activity: UserActivity,
+        private val userService: UserService,
+        private val phraseService: PhraseService,
 ) : BaseViewModel() {
 
     private val TAG = "UserViewModel"
 
     // fixed parameters
-    private val roomFixedParametersGet: MutableLiveData<FixedParametersEntity> = MutableLiveData()
+    private val fixedParametersCallback: MutableLiveData<FixedParametersEntity> = MutableLiveData()
 
     // user
-    val serverUserInsertUpdateServer: MutableLiveData<UserModel> = MutableLiveData()
-    val roomUserGet: MutableLiveData<UserEntity> = MutableLiveData()
+    val setUserCallback: MutableLiveData<UserEntity> = MutableLiveData()
+    val getLocalUserCallback: MutableLiveData<UserEntity> = MutableLiveData()
     val roomUserUpdateRoom: MutableLiveData<UserEntity> = MutableLiveData()
     val roomUserUpdateServer: MutableLiveData<UserEntity> = MutableLiveData()
 
     // terms of use
-    val termsOfUse: MutableLiveData<StringModel> = MutableLiveData()
+    val termsOfUse: MutableLiveData<PhraseEntity> = MutableLiveData()
 
     //region == fixed parameters ==============
     fun getRoomFixedParameters(applicationContext: Context) {
@@ -56,57 +60,31 @@ class UserViewModel internal constructor(
 
     private fun setRoomFixedParameters(fixedParameters: FixedParametersEntity?) {
         Utilities.log(Enums.LogType.Debug, TAG, "setRoomFixedParameters()", showToast = false)
-        this.roomFixedParametersGet.postValue(fixedParameters)
+        this.fixedParametersCallback.postValue(fixedParameters)
     }
     //endregion == fixed parameters ==============
 
     //region == user ==========================
 
     // == SERER =====
-    fun insertServerUser(userData: UserEntity?) {
+    fun insertServerUser(userData: UserEntity?, password: String?) {
         Utilities.log(Enums.LogType.Debug, TAG, "insertServerUser()")
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val call: Call<UserModel?>? = userService.userAPI.insertUser(
-                userData?.userName,
+            /*val call: Call<UserModel?>? = userService.userAPI.signup(
+                userData?.platform,
                 userData?.email,
-                userData?.calcAge,
-                userData?.phoneNumber,
-                userData?.phoneNumberSMSVerified,
-                userData?.deviceID,
-                userData?.deviceType,
+                password,
+                userData?.fullname,
+                userData?.yearOfBirth,
                 userData?.equity,
                 userData?.incomes,
                 userData?.commitments,
-                userData?.termsOfUseAcceptTime,
-                //userData?.insertTime,
-                //userData?.updateTime,
-                userData?.subscriberType,
-                //userData?.registrationStartTime,
-                userData?.registrationExpiredTime,
-                userData?.appVersion,
-                userData?.isFirstLogin)
-
-            /*val call: Call<UserAPIResponse?>? = userService.userAPI.insertUser(
-                userData?.userName,
-                userData?.email,
-                userData?.age,
-                userData?.phoneNumber,
-                userData?.phoneNumberSMSVerified,
-                userData?.deviceID,
-                userData?.deviceType,
-                userData?.equity,
-                userData?.incomes,
-                userData?.commitments,
-                userData?.termsOfUseAcceptTime,
-                userData?.insertTime,
-                userData?.updateTime,
-                userData?.subscriberType,
-                userData?.registrationStartTime,
-                userData?.registrationExpiredTime,
-                userData?.appVersion,
-                userData?.isFirstLogin)*/
+                userData?.termsOfUseAccept,
+                userData?.appDeviceType,
+                userData?.appVersion
+            )
 
             call?.enqueue(object : Callback<UserModel?> {
                 override fun onResponse(call: Call<UserModel?>, response: Response<UserModel?>) {
@@ -114,12 +92,12 @@ class UserViewModel internal constructor(
 
                     val result: UserModel? = response.body()
 
-                    if (response.code() == 200 && response.body()?.success == true) {
+                    if (response.code() == 200) {
                         setServerUser(result)
                     }
                     else {
                         setServerUser(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "insertServerUser(): Error = $response ; errorCode = ${result?.error?.errorCode} ; errorMessage = ${result?.error?.errorMessage}", userData)
+                        Utilities.log(Enums.LogType.Error, TAG, "insertServerUser(): Error = $response ; errorCode = ${response.code()} ; errorMessage = ${response.message()}", userData)
                     }
                 }
 
@@ -128,69 +106,82 @@ class UserViewModel internal constructor(
                     Utilities.log(Enums.LogType.Error, TAG, "insertServerUser(): onFailure = $t", userData)
                     call.cancel()
                 }
-            })
+            })*/
         }
     }
 
-    fun updateServerUser(userData: UserEntity?) {
+    fun updateUser(userData: Map<String, Any?>?) {
         Utilities.log(Enums.LogType.Debug, TAG, "updateServerUser()")
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val call: Call<UserModel?>? = userService.userAPI.updateUser(
-                userData?.uuid,
-                userData?.userName,
-                userData?.email,
-                userData?.calcAge,
-                userData?.phoneNumber,
-                userData?.phoneNumberSMSVerified,
-                userData?.deviceID,
-                userData?.deviceType,
-                userData?.equity,
-                userData?.incomes,
-                userData?.commitments,
-                userData?.termsOfUseAcceptTime,
-                //userData?.insertTime,
-                //userData?.updateTime,
-                userData?.subscriberType,
-                //userData?.registrationStartTime,
-                userData?.registrationExpiredTime,
-                userData?.appVersion,
-                userData?.isFirstLogin)
+            val call: Call<UserResponse?>? = userService.userAPI.update("Bearer ${activity.userToken}", buildUserRequest(userData))
 
-            call?.enqueue(object : Callback<UserModel?> {
-                override fun onResponse(call: Call<UserModel?>, response: Response<UserModel?>) {
-                    Utilities.log(Enums.LogType.Debug, TAG, "updateServerUser(): response = $response")
+            call?.enqueue(object : Callback<UserResponse?> {
+                override fun onResponse(call: Call<UserResponse?>, response: Response<UserResponse?>) {
+                    Utilities.log(Enums.LogType.Debug, TAG, "updateUser(): response = $response")
 
-                    val result: UserModel? = response.body()
+                    val result: UserResponse? = response.body()
 
-                    if (response.code() == 200 && response.body()?.success == true) {
-                        setServerUser(result)
+                    if (response.code() == 200) {
+                        val localUser = UserEntity(
+                                email = result?.email,
+                                fullname = result?.fullname,
+                                yearOfBirth = result?.yearOfBirth,
+                                equity = result?.equity,
+                                incomes = result?.incomes,
+                                commitments = result?.commitments,
+                                termsOfUseAccept = result?.termsOfUseAccept,
+                                registrationExpiredTime = result?.registrationExpiredTime,
+                                subscriberType = result?.subscriberType,
+                                calcCanTakeMortgage = result?.calcCanTakeMortgage,
+                                calcAge = result?.calcAge
+                        )
+
+                        setUser(localUser)
                     }
                     else {
-                        setServerUser(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "updateServerUser(): Error = $response ; errorCode = ${result?.error?.errorCode} ; errorMessage = ${result?.error?.errorMessage}")
+                        setUser(null)
+                        Utilities.log(Enums.LogType.Error, TAG, "updateUser(): Error = $response ; errorCode = ${response.code()} ; errorMessage = ${response.message()}")
                     }
                 }
 
-                override fun onFailure(call: Call<UserModel?>, t: Throwable) {
-                    setServerUser(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "updateServerUser(): onFailure = $t")
+                override fun onFailure(call: Call<UserResponse?>, t: Throwable) {
+                    setUser(null)
+                    Utilities.log(Enums.LogType.Error, TAG, "updateUser(): onFailure = $t")
                     call.cancel()
                 }
             })
         }
     }
 
-    private fun setServerUser(response: UserModel?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setServerUser()", showToast = false)
-        this.serverUserInsertUpdateServer.postValue(response)
+    fun buildUserRequest(userData: Map<String, Any?>?) : SignUpRequest {
+
+        return SignUpRequest(
+                platform = "android",
+                email = null,
+                password = null,
+                fullname = Utilities.getMapStringValue(userData, "fullname"),
+                yearOfBirth = Utilities.getMapIntValue(userData, "yearOfBirth"),
+                equity = Utilities.getMapIntValue(userData, "equity"),
+                incomes = Utilities.getMapIntValue(userData, "incomes"),
+                commitments = Utilities.getMapIntValue(userData, "commitments"),
+                termsOfUseAccept = null,
+                appDeviceId = Settings.Secure.getString(AppApplication.context.contentResolver, Utilities.getDeviceID(AppApplication.context)),
+                appDeviceType = Utilities.getDeviceType(),
+                appVersion = BuildConfig.VERSION_NAME
+        )
+    }
+
+    private fun setUser(response: UserEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setUser()", showToast = false)
+        this.setUserCallback.postValue(response)
     }
 
     // == ROOM =====
 
     // update room user
-    fun updateRoomUser(applicationContext: Context, userData: UserEntity?, caller: Enums.DBCaller) {
+    fun updateLocalUser(applicationContext: Context, userData: UserEntity?, caller: Enums.DBCaller) {
         Utilities.log(Enums.LogType.Debug, TAG, "updateRoomUser()")
         DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.update(userData!!)!!
         setRoomUserUpdate(userData, caller)
@@ -199,7 +190,7 @@ class UserViewModel internal constructor(
     private fun setRoomUserUpdate(user: UserEntity?, caller: Enums.DBCaller) {
         Utilities.log(Enums.LogType.Debug, TAG, "setRoomUserUpdate()", showToast = false)
         Utilities.log(Enums.LogType.Debug, TAG, "setRoomUserUpdate(): caller = ${caller}", showToast = false)
-        if (caller == Enums.DBCaller.ROOM) {
+        if (caller == Enums.DBCaller.LOCAL) {
             this.roomUserUpdateRoom.postValue(user)
         }
         else {
@@ -223,7 +214,7 @@ class UserViewModel internal constructor(
 
     private fun setRoomUserGet(user: UserEntity?) {
         Utilities.log(Enums.LogType.Debug, TAG, "setRoomUserGet()", showToast = false)
-        this.roomUserGet.postValue(user)
+        this.getLocalUserCallback.postValue(user)
     }
 
     //endregion == user ==========================
@@ -235,23 +226,23 @@ class UserViewModel internal constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val call: Call<StringModel?>? = stringsService.stringsAPI.getString("user_terms_of_use_text")
+            val call: Call<PhraseEntity?>? = phraseService.phraseAPI.getPhrase("user_terms_of_use_text")
 
-            call?.enqueue(object : Callback<StringModel?> {
-                override fun onResponse(call: Call<StringModel?>, response: Response<StringModel?>) {
+            call?.enqueue(object : Callback<PhraseEntity?> {
+                override fun onResponse(call: Call<PhraseEntity?>, response: Response<PhraseEntity?>) {
                     Utilities.log(Enums.LogType.Debug, TAG, "getTermsOfUse(): response = $response")
-                    val result: StringModel? = response.body()
+                    val result: PhraseEntity? = response.body()
 
-                    if (response.code() == 200 && response.body()?.success == true) {
+                    if (response.code() == 200) {
                         setTermsOfUse(result)
                     }
                     else {
                         setTermsOfUse(result)
-                        Utilities.log(Enums.LogType.Error, TAG, "getTermsOfUse(): Error = $response ; errorCode = ${result?.error?.errorCode} ; errorMessage = ${result?.error?.errorMessage}")
+                        Utilities.log(Enums.LogType.Error, TAG, "getTermsOfUse(): Error = $response ; errorCode = ${response.code()} ; errorMessage = ${response.message()}")
                     }
                 }
 
-                override fun onFailure(call: Call<StringModel?>, t: Throwable) {
+                override fun onFailure(call: Call<PhraseEntity?>, t: Throwable) {
                     setTermsOfUse(null)
                     Utilities.log(Enums.LogType.Error, TAG, "getTermsOfUse(): onFailure = $t")
                     call.cancel()
@@ -260,9 +251,9 @@ class UserViewModel internal constructor(
         }
     }
 
-    private fun setTermsOfUse(strings: StringModel?) {
+    private fun setTermsOfUse(phrase: PhraseEntity?) {
         Utilities.log(Enums.LogType.Debug, TAG, "setTermsOfUse()", showToast = false)
-        this.termsOfUse.postValue(strings)
+        this.termsOfUse.postValue(phrase)
     }
 
     //endregion == terms of use ===================

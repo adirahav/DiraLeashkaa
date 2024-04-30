@@ -50,7 +50,7 @@ class ContactUsMailFormFragment : Fragment() {
         Utilities.hideKeyboard(requireContext())
 
         // strings
-        setRoomStrings()
+        setPhrases()
     }
 
     fun initData() {
@@ -116,8 +116,8 @@ class ContactUsMailFormFragment : Fragment() {
 
     //region == strings ============
 
-    private fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    private fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         Utilities.setLabelViewString(layout.messageTypeTitle, "contactus_message_type_hint")
         Utilities.setTextViewString(layout.messageTypeError, "contactus_message_type_error")

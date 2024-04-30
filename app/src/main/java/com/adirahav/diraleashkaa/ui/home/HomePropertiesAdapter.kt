@@ -211,7 +211,7 @@ class HomePropertiesAdapter(
                 .into(holder.picture)
         }*/
 
-        val showPicture = _activity.fixedParametersData?.pictureArray?.find { it.key == "allow_upload" }?.value?.toBoolean() ?: true
+        val showPicture = _activity.fixedParametersData?.pictureArray?.find { it.key == "allowUpload" }?.value?.toBoolean() ?: true
 
         if (showPicture) {
             if (!property.cityElse.equals("addProperty")) {
@@ -236,14 +236,14 @@ class HomePropertiesAdapter(
 
         // data container - medal icon
         holder.medalIcon?.visibility =
-            if (bestYield != null && property.uuid != null && property.uuid!!.equals(bestYield.uuid))
+            if (bestYield != null && property._id != null && property._id!!.equals(bestYield._id))
                 VISIBLE
             else
                 GONE
 
         // data container - missing icon
         holder.missingIcon?.visibility =
-            if (property.calcYieldForecastList == null)
+            if (property.calcYieldForecast == null)
                 VISIBLE
             else
                 GONE
@@ -253,7 +253,7 @@ class HomePropertiesAdapter(
             if (property.city.equals("else"))
                 if (property.address != null && property.cityElse != null)
                     String.format(
-                        Utilities.getRoomString("home_properties_city_else"),
+                        Utilities.getLocalPhrase("home_properties_city_else"),
                         property.address, property.cityElse)
                 else if (property.address != null && property.cityElse == null)
                     property.address
@@ -269,7 +269,7 @@ class HomePropertiesAdapter(
             val priceFormat = getDecimalNumber(property.price)
 
             holder.price!!.text = String.format(
-                Utilities.getRoomString("home_properties_price"),
+                Utilities.getLocalPhrase("home_properties_price"),
                 priceFormat)
         }
 

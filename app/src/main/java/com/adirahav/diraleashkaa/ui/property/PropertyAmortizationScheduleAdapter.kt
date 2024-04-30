@@ -111,7 +111,7 @@ class PropertyAmortizationScheduleAdapter(
         // year number
         if (item?.monthNo?.rem(12) == 1) {
             holder.yearNo!!.text =  HtmlCompat.fromHtml(String.format(
-                Utilities.getRoomString("amortization_schedule_year_value"),
+                Utilities.getLocalPhrase("amortization_schedule_year_value"),
                 item.monthNo?.div(12).toString()
             ), HtmlCompat.FROM_HTML_MODE_LEGACY)
 

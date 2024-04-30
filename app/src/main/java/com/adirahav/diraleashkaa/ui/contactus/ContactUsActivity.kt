@@ -17,11 +17,9 @@ import com.adirahav.diraleashkaa.common.Utilities.getMapStringValue
 import com.adirahav.diraleashkaa.common.Utilities.log
 import com.adirahav.diraleashkaa.data.DataManager
 import com.adirahav.diraleashkaa.data.network.dataClass.EmailDataClass
-import com.adirahav.diraleashkaa.data.network.dataClass.SplashDataClass
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.databinding.ActivityContactusBinding
-import com.adirahav.diraleashkaa.ui.splash.SplashActivity
 import kotlinx.coroutines.*
 import java.util.*
 
@@ -98,7 +96,7 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
         setDrawer(layout.drawer, layout.menu)
 
         // title text
-        titleText?.text = Utilities.getRoomString("actionbar_title_contact_us")
+        titleText?.text = Utilities.getLocalPhrase("actionbar_title_contact_us")
 
         // track user
         //Log.d("ADITEST5", "GET ${preferences?.getBoolean("isTrackUser", false).toString()} [contact us]")
@@ -121,8 +119,8 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
 
     fun initObserver() {
         log(Enums.LogType.Debug, TAG, "initObserver()", showToast = false)
-        if (!viewModel!!.roomFixedParametersGet.hasObservers()) viewModel!!.roomFixedParametersGet.observe(this@ContactUsActivity, RoomFixedParametersObserver(Enums.ObserverAction.GET_ROOM))
-        if (!viewModel!!.roomUserGet.hasObservers()) viewModel!!.roomUserGet.observe(this@ContactUsActivity, RoomUserObserver(Enums.ObserverAction.GET_ROOM))
+        if (!viewModel!!.fixedParametersCallback.hasObservers()) viewModel!!.fixedParametersCallback.observe(this@ContactUsActivity, RoomFixedParametersObserver(Enums.ObserverAction.GET_LOCAL))
+        if (!viewModel!!.roomUserGet.hasObservers()) viewModel!!.roomUserGet.observe(this@ContactUsActivity, RoomUserObserver(Enums.ObserverAction.GET_LOCAL))
         if (!viewModel!!.serverEmail.hasObservers()) viewModel!!.serverEmail.observe(this@ContactUsActivity, ServerEmailObserver())
 
         if (!isRoomFixedParametersLoaded && !isRoomUserLoaded && !isDataInit) {
@@ -168,18 +166,18 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
 
     //region == strings ============
 
-    override fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    override fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         Utilities.setTextViewString(layout.sendMessageSuccess, "contactus_message_send_success")
         Utilities.setTextViewString(layout.sendMessageError, "contactus_message_send_error")
 
-        layout.buttons.back.text = Utilities.getRoomString("button_back")
-        layout.buttons.next.text = Utilities.getRoomString("button_next")
-        layout.buttons.save.text = Utilities.getRoomString("button_save")
-        layout.buttons.send.text = Utilities.getRoomString("button_send")
+        layout.buttons.back.text = Utilities.getLocalPhrase("button_back")
+        layout.buttons.next.text = Utilities.getLocalPhrase("button_next")
+        layout.buttons.save.text = Utilities.getLocalPhrase("button_save")
+        layout.buttons.send.text = Utilities.getLocalPhrase("button_send")
 
-        super.setRoomStrings()
+        super.setPhrases()
     }
 
     //endregion == strings ============
@@ -244,7 +242,7 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
     //region == send message ========
 
     private fun sendEmail(result: Map<String, Any?>?) {
-        viewModel!!.serverSendEmail(userData?.uuid , getMapStringValue(result, "messageType"), getMapStringValue(result, "message"))
+        viewModel!!.serverSendEmail(userData?.email , getMapStringValue(result, "messageType").toString(), getMapStringValue(result, "message"))
 
         /*GlobalScope.launch {
             Utilities.composeEmail(
@@ -265,7 +263,7 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
             //layout.sendMessageSuccess.visibility = VISIBLE
             layout.sendMessageError.visibility = GONE
 
-            Utilities.displayActionSnackbar(this@ContactUsActivity, Utilities.getRoomString("contactus_message_send_success"))
+            Utilities.displayActionSnackbar(this@ContactUsActivity, Utilities.getLocalPhrase("contactus_message_send_success"))
         }
     }
 
@@ -284,7 +282,7 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
         val _action = action
         override fun onChanged(fixedParameters: FixedParametersEntity?) {
             when (_action) {
-                Enums.ObserverAction.GET_ROOM -> {
+                Enums.ObserverAction.GET_LOCAL -> {
                     log(Enums.LogType.Debug, TAG, "RoomFixedParametersObserver(): GET_ROOM")
                     isRoomFixedParametersLoaded = true
 
@@ -309,7 +307,7 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
         val _action = action
         override fun onChanged(user: UserEntity?) {
             when (_action) {
-                Enums.ObserverAction.GET_ROOM -> {
+                Enums.ObserverAction.GET_LOCAL -> {
                     log(Enums.LogType.Debug, TAG, "RoomUserObserver(): GET_ROOM. user = $user")
 
                     isRoomUserLoaded = true

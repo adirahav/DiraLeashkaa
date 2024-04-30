@@ -53,13 +53,13 @@ class CopyrightActivity : BaseActivity<CopyrightViewModel?, ActivityCopyrightBin
         initData()
 
         // title text
-        titleText?.text = Utilities.getRoomString("actionbar_title_copyright")
+        titleText?.text = Utilities.getLocalPhrase("actionbar_title_copyright")
     }
 
     private fun initData() {
         layout.content.text =
             HtmlCompat.fromHtml(
-                Utilities.getRoomString("copyright_text"), HtmlCompat.FROM_HTML_MODE_LEGACY)
+                Utilities.getLocalPhrase("copyright_text"), HtmlCompat.FROM_HTML_MODE_LEGACY)
     }
 
     override fun createViewModel(): CopyrightViewModel {

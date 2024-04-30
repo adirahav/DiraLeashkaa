@@ -1,33 +1,27 @@
 package com.adirahav.diraleashkaa.ui.splash
 
-import android.app.ActivityManager
 import android.content.Context
-import android.os.Build
-import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
-import com.adirahav.diraleashkaa.BuildConfig
-import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
+import com.adirahav.diraleashkaa.common.AppApplication
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.common.Utilities.getVersionName
 import com.adirahav.diraleashkaa.data.network.DatabaseClient
-import com.adirahav.diraleashkaa.data.network.dataClass.DeviceDataClass
 import com.adirahav.diraleashkaa.data.network.models.SplashModel
-import com.adirahav.diraleashkaa.data.network.dataClass.SplashDataClass
 import com.adirahav.diraleashkaa.data.network.entities.*
 import com.adirahav.diraleashkaa.data.network.models.AnnouncementModel
 import com.adirahav.diraleashkaa.data.network.services.AnnouncementService
-import com.adirahav.diraleashkaa.data.network.services.SplashService
+import com.adirahav.diraleashkaa.data.network.services.UserService
 import com.adirahav.diraleashkaa.ui.base.BaseViewModel
-import com.google.gson.annotations.SerializedName
+import com.adirahav.diraleashkaa.ui.login.LoginActivity
 import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class SplashViewModel internal constructor(private val activity: SplashActivity,
-                                           private val splashService: SplashService,
+                                           private val userService: UserService,
                                            private val announcementService: AnnouncementService) : BaseViewModel() {
 
     companion object {
@@ -35,85 +29,98 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
     }
 
     // splash
-    val serverSplash: MutableLiveData<SplashDataClass> = MutableLiveData()
-    val roomSplash: MutableLiveData<MutableList<Any?>> = MutableLiveData()
+    val splashCallback: MutableLiveData<SplashModel> = MutableLiveData()
+    val localSplashCallback: MutableLiveData<MutableList<Any?>> = MutableLiveData()
 
     // user
-    val roomUser: MutableLiveData<UserEntity> = MutableLiveData()
+    val localUserCallback: MutableLiveData<UserEntity> = MutableLiveData()
 
     // restore
-    val roomRestoreData: MutableLiveData<UserEntity> = MutableLiveData()
+    val localRestoreData: MutableLiveData<UserEntity> = MutableLiveData()
 
     // announcement
-    val serverAnnouncement: MutableLiveData<AnnouncementEntity> = MutableLiveData()
+    val announcement: MutableLiveData<AnnouncementEntity> = MutableLiveData()
 
     //region == splash =============
 
-    fun getServerSplash(userUUID: String?, deviceID: String, trackUser: Boolean? = false) {
+    fun getSplash() {
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            //Log.d("ADITEST","splashAPI.get userUUID = ${userUUID} ; deviceID ${deviceID} ; VERSION_NAME ${BuildConfig.VERSION_NAME} ; trackUser ${trackUser ?: false}")
-            val call: Call<SplashModel?>? = splashService.splashAPI.get(userUUID, deviceID, getVersionName(), trackUser ?: false)
+            var gotoLogin = false
+            val existLocalUser = DatabaseClient.getInstance(activity.applicationContext)?.appDatabase?.userDao()?.getFirst()
+            val existLocalFixedParameters = DatabaseClient.getInstance(activity.applicationContext)?.appDatabase?.fixedParametersDao()?.getFirst()
+            val existLocalStrings = DatabaseClient.getInstance(activity.applicationContext)?.appDatabase?.stringsDao()?.getFirst()
+            if (existLocalUser != null && existLocalFixedParameters != null && existLocalStrings != null) {
+                if (activity.preferences!!.getString("token", "").isNullOrEmpty()) {
+                    gotoLogin = true
+                    LoginActivity.start(AppApplication.context, existLocalUser.email)
+                }
+            }
 
-            call?.enqueue(object : Callback<SplashModel?> {
-                override fun onResponse(call: Call<SplashModel?>, response: Response<SplashModel?>) {
+            if (!gotoLogin) {
+                val call: Call<SplashModel?>? = userService.userAPI.getSplashData(
+                        "android",
+                        getVersionName(),
+                        if (existLocalUser != null) existLocalUser.email else null
+                )
 
-                    val result: SplashModel? = response.body()
+                call?.enqueue(object : Callback<SplashModel?> {
+                    override fun onResponse(call: Call<SplashModel?>, response: Response<SplashModel?>) {
 
-                    Utilities.log(Enums.LogType.Debug, TAG, "getServerSplash(): response = $response")
+                        val result: SplashModel? = response.body()
 
-                    if (response.code() == 200 && response.body()?.success == true) {
-                        try {
-                            setServerSplash(result?.data)
-                            //Log.d("ADITEST","user.userName ${result?.data?.user?.userName} ; restore.userName ${result?.data?.restore?.user?.userName}")
+                        Utilities.log(Enums.LogType.Debug, TAG, "getSplash(): response = $response")
+
+                        if (response.code() == 200) {
+                            try {
+                                setSplash(result)
+                            }
+                            catch (e: Exception) {
+                                setSplash(null)
+                                Utilities.log(Enums.LogType.Error, TAG, "getSplash(): e = ${e.message} ; result.data = ${result?.toString()}")
+                            }
                         }
-                        catch (e: Exception) {
-                            setServerSplash(null)
-                            Utilities.log(Enums.LogType.Error, TAG, "getServerSplash(): e = ${e.message} ; result.data = ${result?.data.toString()}")
-                           // Utilities.log(Enums.LogType.Error, "ADITEST", "getServerSplash(): e = ${e.message} ; result.data = ${result?.data.toString()}")
+                        else {
+                            setSplash(null)
+                            Utilities.log(Enums.LogType.Error, TAG, "getSplash(): response = $response")
                         }
                     }
-                    else {
-                        setServerSplash(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "getServerSplash(): response = $response")
-                        //Utilities.log(Enums.LogType.Error, "ADITEST", "getServerSplash(): response = $response")
+
+                    override fun onFailure(call: Call<SplashModel?>, t: Throwable) {
+                        setSplash(null)
+
+                        Utilities.log(Enums.LogType.Error, TAG, "getSplash(): onFailure = $t")
+                        call.cancel()
                     }
-                }
-
-                override fun onFailure(call: Call<SplashModel?>, t: Throwable) {
-                    setServerSplash(null)
-
-                    Utilities.log(Enums.LogType.Error, TAG, "getServerSplash(): onFailure = $t")
-                    call.cancel()
-                }
-            })
+                })
+            }
         }
     }
 
-    private fun setServerSplash(splash: SplashDataClass?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setServerSplash()", showToast = false)
-        this.serverSplash.postValue(splash)
+    private fun setSplash(splash: SplashModel?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setSplash()", showToast = false)
+        this.splashCallback.postValue(splash)
     }
 
-    fun saveRoomSplash(applicationContext: Context, lifecycleOwner: LifecycleOwner, splash: SplashDataClass?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "saveRoomSplash(): splash = ${splash.toString()}")
+    fun saveLocalSplash(applicationContext: Context, lifecycleOwner: LifecycleOwner, splash: SplashModel?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "saveLocalSplash(): splash = ${splash.toString()}")
         CoroutineScope(Dispatchers.IO).launch {
 
             // ----------------
             // fixed parameters
             // ----------------
-            val roomFixedParametersList = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
+            val localFixedParametersList = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
 
-            if (roomFixedParametersList != null) {
-                if (roomFixedParametersList.isNotEmpty()) {
+            if (localFixedParametersList != null) {
+                if (localFixedParametersList.isNotEmpty()) {
                     DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.deleteAll()!!
                 }
             }
 
-            val roomFixedParameters = splash?.fixedParameters
-            if (roomFixedParameters != null) {
-                DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.insert(roomFixedParameters)!!
+            val localFixedParameters = splash?.fixedParameters
+            if (localFixedParameters != null) {
+                DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.insert(localFixedParameters)!!
             }
 
             // ----------------
@@ -127,20 +134,20 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
                 }
             }
 
-            val roomStrings = splash?.strings
-            if (roomStrings != null) {
-                for (item in roomStrings) {
-                    DatabaseClient.getInstance(applicationContext)?.appDatabase?.stringsDao()?.insert(item as StringEntity)!!
+            val localPhrases = splash?.strings
+            if (localPhrases != null) {
+                for (item in localPhrases) {
+                    DatabaseClient.getInstance(applicationContext)?.appDatabase?.stringsDao()?.insert(item as PhraseEntity)!!
                 }
             }
 
             // ----------------
             // user
             // ----------------
-            val roomUser = splash?.user
-            if (roomUser != null) {
+            val localUser = splash?.user
+            if (localUser != null) {
                 DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.deleteAll()!!
-                val roomUID = DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.insert(roomUser)!!
+                val roomUID = DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.insert(localUser)!!
                 activity.preferences?.setLong("roomUID", roomUID, false)
             }
 
@@ -155,32 +162,32 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
                 }
             }
 
-            val roomCalculators = splash?.calculators
-            if (roomCalculators != null) {
-                for (item in roomCalculators) {
+            val localCalculators = splash?.calculators
+            if (localCalculators != null) {
+                for (item in localCalculators) {
                     DatabaseClient.getInstance(applicationContext)?.appDatabase?.calculatorDao()?.insert(item as CalculatorEntity)!!
                 }
             }
 
-            setRoomSplash(roomUser, roomFixedParameters)
+            setLocalSplash(localUser, localFixedParameters)
         }
     }
 
-    private fun setRoomSplash(user: UserEntity?, fixedParameters: FixedParametersEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomSplash()", showToast = false)
-        val roomData = mutableListOf(user, fixedParameters)
-        this.roomSplash.postValue(roomData)
+    private fun setLocalSplash(user: UserEntity?, fixedParameters: FixedParametersEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "saveLocalSplash()", showToast = false)
+        val localData = mutableListOf(user, fixedParameters)
+        this.localSplashCallback.postValue(localData)
     }
 
     //endregion == splash =============
 
     //region == user ===============
 
-    fun getRoomUser(applicationContext: Context, lifecycleOwner: LifecycleOwner) {
+    fun getLocalUser(applicationContext: Context, lifecycleOwner: LifecycleOwner) {
         //appVersion = "[{key:'subscriber_type',value:'trial'},{key:'expired_time',value:1649673662915},{key:'is_code_expired',value:false}]",
         //registerTime = 1649673662915,
 
-        Utilities.log(Enums.LogType.Debug, TAG, "getRoomUser()")
+        Utilities.log(Enums.LogType.Debug, TAG, "getLocalUser()")
         GlobalScope.launch {
 
             val resultUsers =
@@ -189,30 +196,30 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
             // TO DELETE
             /*if (resultUsers?.isNotEmpty() == true) {
                 DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.delete(resultUsers.first())
-                setRoomUser(null)
+                setLocalUser(null)
                 return@launch
             }*/
             // TO DELETE
 
             if (resultUsers?.isNotEmpty() == true) {
-                setRoomUser(resultUsers.first())
+                setLocalUser(resultUsers.first())
             } else {
-                setRoomUser(null)
+                setLocalUser(null)
             }
         }
     }
 
-    private fun setRoomUser(user: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setUser()", showToast = false)
-        this.roomUser.postValue(user)
+    private fun setLocalUser(user: UserEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setLocalUser()", showToast = false)
+        this.localUserCallback.postValue(user)
     }
 
     //endregion == user ===============
 
     //region == restore ============
 
-    fun restoreRoomData(applicationContext: Context, userEntity: UserEntity?, propertyEntities: List<PropertyEntity>?, calculatorEntities: List<CalculatorEntity>?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "restoreRoomData(): userEntity = $userEntity, propertyEntities = $propertyEntities, calculatorEntities = $calculatorEntities")
+    fun restoreLocalData(applicationContext: Context, userEntity: UserEntity?, propertyEntities: List<PropertyEntity>?, calculatorEntities: List<CalculatorEntity>?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "restoreLocalData(): userEntity = $userEntity, propertyEntities = $propertyEntities, calculatorEntities = $calculatorEntities")
 
         GlobalScope.launch {
             if (userEntity != null) {
@@ -234,25 +241,25 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
                 }
             }
 
-            setRoomUserRestore(userEntity)
+            setLocalUserRestore(userEntity)
 
         }
     }
 
-    private fun setRoomUserRestore(user: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomUserRestore(): roomUID = ${user?.roomUID}", showToast = false)
-        this.roomRestoreData.postValue(user)
+    private fun setLocalUserRestore(user: UserEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setLocalUserRestore(): roomUID = ${user?.roomUID}", showToast = false)
+        this.localRestoreData.postValue(user)
     }
 
     //endregion == restore ============
 
     //region == announcement =======
 
-    fun confirmAnnouncement(announcementUUID: String, userUUID: String?) {
+    fun confirmAnnouncement(announcementId: String) {
         CoroutineScope(Dispatchers.IO).launch {
 
 
-            val call: Call<AnnouncementModel?>? = announcementService.announcementAPI.confirm(announcementUUID, userUUID)
+            val call: Call<AnnouncementModel?>? = announcementService.announcementAPI.confirm(announcementId)
             call?.enqueue(object : Callback<AnnouncementModel?> {
                 override fun onResponse(call: Call<AnnouncementModel?>, response: Response<AnnouncementModel?>) {
 

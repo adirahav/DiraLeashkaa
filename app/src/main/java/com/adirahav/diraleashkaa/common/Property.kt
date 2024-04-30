@@ -27,12 +27,12 @@ class Property
 
     init {
         amortizationScheduleArray = Utilities.parseArray(
-            json = property?.calcAmortizationScheduleList,
+            json = property?.calcAmortizationSchedule,
             typeToken = amortizationScheduleType
         )
 
         yieldForecastListArray = Utilities.parseArray(
-            json = property?.calcYieldForecastList,
+            json = property?.calcYieldForecast,
             typeToken = yieldForecastType
         )
     }

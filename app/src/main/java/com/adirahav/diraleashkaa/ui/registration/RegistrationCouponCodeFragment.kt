@@ -14,9 +14,7 @@ import com.adirahav.diraleashkaa.common.AppApplication
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.common.Utilities.hideKeyboard
-import com.adirahav.diraleashkaa.data.network.entities.APIResponseErrorEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
-import com.adirahav.diraleashkaa.data.network.models.RegistrationModel
 import com.adirahav.diraleashkaa.databinding.FragmentRegistrationCouponCodeBinding
 import com.adirahav.diraleashkaa.ui.contactus.ContactUsActivity
 import com.adirahav.diraleashkaa.ui.signup.SignUpActivity
@@ -43,10 +41,10 @@ class RegistrationCouponCodeFragment : Fragment() {
     var isSignUpActivity: Boolean? = null
 
     // layout
-    private var layout: FragmentRegistrationCouponCodeBinding? = null
+    internal var layout: FragmentRegistrationCouponCodeBinding? = null
 
     // user data
-    var userData: UserEntity? = null
+    var registerUser: UserEntity? = null
 
     // code
     private var codeAdapter: RegistrationCouponCodeAdapter? = null
@@ -87,7 +85,7 @@ class RegistrationCouponCodeFragment : Fragment() {
         _registrationActivity = if (!isSignUpActivity!!) activity as RegistrationActivity else null
 
         // user data
-        userData = if (isSignUpActivity!!) _signupActivity?.userData else _registrationActivity?.userData
+        registerUser = if (isSignUpActivity!!) _signupActivity?.loggingUser else _registrationActivity?.userData
 
         // hide keyboard
         hideKeyboard(requireContext())
@@ -103,7 +101,7 @@ class RegistrationCouponCodeFragment : Fragment() {
         }
 
         // strings
-        setRoomStrings()
+        setPhrases()
     }
 
     fun initData() {
@@ -117,12 +115,13 @@ class RegistrationCouponCodeFragment : Fragment() {
         Utilities.setTextViewHtml(layout?.registerWithPayProgram, "signup_register_with_pay_program")
 
         // contact us
-        if (isSignUpActivity!!) {
+        /*if (isSignUpActivity!!) {
             layout?.contactUs?.visibility = GONE
         }
         else {
             Utilities.setTextViewHtml(layout?.contactUs, "signup_contact_us")
-        }
+        }*/
+        layout?.contactUs?.visibility = GONE  // TODO
 
         // skip
         if (isSignUpActivity!!) {
@@ -160,6 +159,7 @@ class RegistrationCouponCodeFragment : Fragment() {
 
         // skip
         layout?.skip?.setOnClickListener {
+            //SKIP-1
             _signupActivity?.submitNext(null)
         }
 
@@ -169,8 +169,8 @@ class RegistrationCouponCodeFragment : Fragment() {
 
     //region == strings ============
 
-    private fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    private fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         Utilities.setTextViewString(layout?.title, "signup_code_label")
         Utilities.setTextViewString(layout?.registerWithPayProgram, "signup_register_with_pay_program")
@@ -190,7 +190,6 @@ class RegistrationCouponCodeFragment : Fragment() {
 
     fun submitForm(skip: Boolean) {
         var isValid = true
-        var errorCode: Enums.CodeError? = null
         val _code = CharArray(CODE_SIZE)
 
         if (!skip) {
@@ -199,7 +198,6 @@ class RegistrationCouponCodeFragment : Fragment() {
 
                 if (_char.isNullOrEmpty()) {
                     isValid = false
-                    errorCode = Enums.CodeError.WRONG_FORMAT
                     layout?.codeList?.getChildAt(i)?.requestFocus()
                     break
                 }
@@ -212,74 +210,45 @@ class RegistrationCouponCodeFragment : Fragment() {
         if (isValid) {
             if (isSignUpActivity!!) {
                 if (skip) {
-                    _signupActivity?.viewModel?.skipRegistration(userData)
+                    _signupActivity?.viewModel?.skipRegistration(registerUser)
                 }
                 else {
-                    _signupActivity?.viewModel?.couponRegistration(userData, String(_code))
+                    _signupActivity?.viewModel?.couponRegistration(String(_code))
                 }
             }
             else {
-                _registrationActivity?.viewModel?.couponRegistration(userData, String(_code))
+                _registrationActivity?.viewModel?.couponRegistration(String(_code))
             }
         }
         else {
-            val registrationCodeValidation = RegistrationModel(
-                success = false,
-                data = null,
-                error = APIResponseErrorEntity(errorCode = errorCode.toString(), errorMessage = "")
-            )
-            couponCodeCallback(registrationCodeValidation)
+            couponCodeAfterResponse(null)
         }
     }
 
-    fun couponCodeCallback(registrationCodeValidation: RegistrationModel?) {
-
-        // results
-        val map = mutableMapOf<String, Any?>()
-        val entities = mutableMapOf<String, Any?>()
-
-        val isValid = registrationCodeValidation?.success ?: false
-        val errorCode = if (registrationCodeValidation?.error?.errorCode != null)
-                            Enums.CodeError.valueOf(registrationCodeValidation.error!!.errorCode).errorCode
-                        else
-                            Enums.CodeError.SERVER_ERROR.errorCode
-
-        if (isValid) {
-            entities["registration_code_verified"] = true
-            entities["registration_expired_time"] = registrationCodeValidation?.data?.registration?.registrationExpireDate
-            entities["subscriber_type"] = registrationCodeValidation?.data?.registration?.subscriberType
-        }
-
-        map["isValid"] = isValid
-        map["entities"] = entities
-
+    fun couponCodeAfterResponse(userData: UserEntity?) {
+        //COUPON-4
         hideKeyboard(requireContext())
 
-        if (isValid) {
+        if (userData != null) {
+
             runBlocking {
                 layout?.codeError?.visibility = View.INVISIBLE
                 if (isSignUpActivity!!) {
-                    _signupActivity?.insertUpdateUser(map)
+                    userData.roomUID = _signupActivity?.roomUID
+                    //_signupActivity?.setPayProgramRegistration(userData)
                 }
                 else {
+                    //COUPON-5
                     Utilities.setButtonDisable(_registrationActivity?.layout?.buttons?.send)
-                    _registrationActivity?.updateUser(map)
+                    userData.roomUID = _registrationActivity?.roomUID
+                    _registrationActivity?.updateLocalUser(userData)
                 }
             }
         }
         else {
-            Utilities.log(
-                Enums.LogType.Debug,
-                TAG,
-                "signup_code_error_${errorCode}"
-            )
-
-            layout?.codeError?.visibility = VISIBLE
-            layout?.codeError?.text =
-                if (Utilities.getRoomString("signup_code_error_${errorCode}").isNotEmpty())
-                    String.format(Utilities.getRoomString("signup_code_error_${errorCode}"), CODE_SIZE)
-                else
-                    ""
+            layout?.codeError?.visibility = View.VISIBLE
+            layout?.codeError?.text = Utilities.getLocalPhrase("signup_code_error")
+            Utilities.setButtonEnable(_registrationActivity?.layout?.buttons?.send)
 
             if (isSignUpActivity!!) {
                 Utilities.setButtonEnable(_signupActivity?.layout?.buttons?.next)
@@ -288,7 +257,7 @@ class RegistrationCouponCodeFragment : Fragment() {
                 Utilities.setButtonEnable(_registrationActivity?.layout?.buttons?.send)
             }
 
-            Utilities.log(Enums.LogType.Warning, TAG, "afterCheckCouponCode(): errorCode = $errorCode ; errorDesc = ${layout?.codeError?.text}", userData)
+            Utilities.log(Enums.LogType.Warning, TAG, "couponCodeAfterResponse(): ${layout?.codeError?.text}", registerUser)
         }
     }
 }

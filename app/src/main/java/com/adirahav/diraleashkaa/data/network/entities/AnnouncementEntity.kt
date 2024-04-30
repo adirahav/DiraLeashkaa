@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName
 
 @Entity
 data class AnnouncementEntity(
-	@SerializedName("uuid")	var uuid: String? = null,
+	@SerializedName("_id")	var _id: String? = null,
 	@SerializedName("title") val title: String? = null,
 	@SerializedName("message") val message: String? = null,
 	@SerializedName("positive_button_text") val positiveButtonText: String? = null,

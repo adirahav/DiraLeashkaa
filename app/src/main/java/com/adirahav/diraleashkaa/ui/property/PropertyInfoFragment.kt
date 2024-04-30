@@ -5,7 +5,6 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.fragment.app.Fragment
@@ -25,19 +24,13 @@ import com.skydoves.powerspinner.PowerSpinnerView
 import com.squareup.picasso.Picasso
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
-import com.adirahav.diraleashkaa.common.Utilities.getImageUri
 import android.content.res.Resources
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.WindowManager
 import com.adirahav.diraleashkaa.common.*
 import com.adirahav.diraleashkaa.common.Utilities.dpToPx
 import com.adirahav.diraleashkaa.common.Utilities.percentToMultipleFraction
-import com.adirahav.diraleashkaa.data.network.entities.SpinnerEntity
 import com.adirahav.diraleashkaa.databinding.FragmentPropertyInfoBinding
-import com.adirahav.diraleashkaa.ui.signup.SignUpFinancialInfoFragment
-import com.adirahav.diraleashkaa.views.LabelWithIcon
-import com.adirahav.diraleashkaa.views.PropertyInput
 
 class PropertyInfoFragment : Fragment() {
 
@@ -236,14 +229,14 @@ class PropertyInfoFragment : Fragment() {
         setActionsMenuEnable(false)
 
         // strings
-        setRoomStrings()
+        setPhrases()
     }
 
     private fun initViews() {
         Utilities.log(Enums.LogType.Debug, TAG, "initViews()", showToast = false)
 
         // camera
-        val showCamera = _activity?.fixedParametersData?.pictureArray?.find { it.key == "allow_upload" }?.value?.toBoolean() ?: true
+        val showCamera = _activity?.fixedParametersData?.pictureArray?.find { it.key == "allowUpload" }?.value?.toBoolean() ?: true
         layout?.camera?.visibility = if (showCamera) VISIBLE else GONE
 
         // picture
@@ -359,7 +352,7 @@ class PropertyInfoFragment : Fragment() {
 
     fun initData() {
 
-        Utilities.log(Enums.LogType.Debug, TAG, "initData(): roomID = ${_activity?.propertyData?.roomID} ; uuid = ${_activity?.propertyData?.uuid} ; propertyData = ${_activity?.propertyData}")
+        Utilities.log(Enums.LogType.Debug, TAG, "initData(): roomID = ${_activity?.propertyData?.roomID} ; _id = ${_activity?.propertyData?._id} ; propertyData = ${_activity?.propertyData}")
 
         isFieldFieldChangedByUser = false
 
@@ -754,7 +747,7 @@ class PropertyInfoFragment : Fragment() {
         layout?.possibleMonthlyRepayment?.numberPickerAcceptView?.setOnClickListener {
             layout?.possibleMonthlyRepayment?.numberPickerActualValue = layout?.possibleMonthlyRepayment?.numberPickerView?.progress
             _activity?.propertyData?.possibleMonthlyRepaymentPercent = layout?.possibleMonthlyRepayment?.numberPickerActualValue
-            _activity?.insertUpdateProperty(Const.POSSIBLE_MONTHLY_REPAYMENT_PERCENT, _activity?.propertyData?.possibleMonthlyRepaymentPercent)
+            _activity?.saveProperty(Const.POSSIBLE_MONTHLY_REPAYMENT_PERCENT, _activity?.propertyData?.possibleMonthlyRepaymentPercent)
 
             layout?.possibleMonthlyRepayment?.onNumberPickerAccept()
         }
@@ -766,7 +759,7 @@ class PropertyInfoFragment : Fragment() {
 
             _activity?.propertyData?.possibleMonthlyRepaymentPercent = ((_activity?.fixedParametersData?.propertyInputsArray?.find { it.name == Const.POSSIBLE_MONTHLY_REPAYMENT_PERCENT })?.default ?: 0F)
 
-            _activity?.insertUpdateProperty(Const.POSSIBLE_MONTHLY_REPAYMENT_PERCENT, _activity?.propertyData?.possibleMonthlyRepaymentPercent)
+            _activity?.saveProperty(Const.POSSIBLE_MONTHLY_REPAYMENT_PERCENT, _activity?.propertyData?.possibleMonthlyRepaymentPercent)
         }
 
         possibleMonthlyRepaymentInputView!!.addTextChangedListener(object : TextWatcher {
@@ -860,7 +853,7 @@ class PropertyInfoFragment : Fragment() {
         lawyerNumberPickerAcceptView?.setOnClickListener {
             layout?.lawyer?.numberPickerActualValue = layout?.lawyer?.numberPickerView?.progress
             _activity?.propertyData?.calcLawyerPercent = layout?.lawyer?.numberPickerActualValue
-            _activity?.insertUpdateProperty(Const.LAWYER_PERCENT, _activity?.propertyData?.calcLawyerPercent)
+            _activity?.saveProperty(Const.LAWYER_PERCENT, _activity?.propertyData?.calcLawyerPercent)
             layout?.lawyer?.onNumberPickerAccept()
         }
 
@@ -871,7 +864,7 @@ class PropertyInfoFragment : Fragment() {
             _activity?.propertyData?.calcLawyer = null
             lawyerInputView?.clearFocus()
 
-            _activity?.insertUpdateProperty(Const.LAWYER_PERCENT, "")
+            _activity?.saveProperty(Const.LAWYER_PERCENT, "")
         }
 
         lawyerInputView!!.addTextChangedListener(object : TextWatcher {
@@ -899,7 +892,7 @@ class PropertyInfoFragment : Fragment() {
         realEstateAgentNumberPickerAcceptView?.setOnClickListener {
             layout?.realEstateAgent?.numberPickerActualValue = layout?.realEstateAgent?.numberPickerView?.progress
             _activity?.propertyData?.calcRealEstateAgentPercent = layout?.realEstateAgent?.numberPickerActualValue
-            _activity?.insertUpdateProperty(Const.REAL_ESTATE_AGENT_PERCENT, _activity?.propertyData?.calcRealEstateAgentPercent)
+            _activity?.saveProperty(Const.REAL_ESTATE_AGENT_PERCENT, _activity?.propertyData?.calcRealEstateAgentPercent)
             layout?.realEstateAgent?.onNumberPickerAccept()
         }
 
@@ -910,7 +903,7 @@ class PropertyInfoFragment : Fragment() {
             _activity?.propertyData?.calcRealEstateAgent = null
             realEstateAgentInputView?.clearFocus()
 
-            _activity?.insertUpdateProperty(Const.REAL_ESTATE_AGENT_PERCENT, "")
+            _activity?.saveProperty(Const.REAL_ESTATE_AGENT_PERCENT, "")
         }
 
         realEstateAgentInputView!!.addTextChangedListener(object : TextWatcher {
@@ -1004,7 +997,7 @@ class PropertyInfoFragment : Fragment() {
         rentNumberPickerAcceptView?.setOnClickListener {
             layout?.rent?.numberPickerActualValue = layout?.rent?.numberPickerView?.progress
             _activity?.propertyData?.rentPercent = layout?.rent?.numberPickerActualValue
-            _activity?.insertUpdateProperty(Const.RENT_PERCENT, _activity?.propertyData?.rentPercent)
+            _activity?.saveProperty(Const.RENT_PERCENT, _activity?.propertyData?.rentPercent)
             layout?.rent?.onNumberPickerAccept()
         }
 
@@ -1015,7 +1008,7 @@ class PropertyInfoFragment : Fragment() {
             _activity?.propertyData?.calcRent = null
             rentInputView?.clearFocus()
 
-            _activity?.insertUpdateProperty(Const.RENT_PERCENT, "")
+            _activity?.saveProperty(Const.RENT_PERCENT, "")
         }
 
         rentInputView!!.addTextChangedListener(object : TextWatcher {
@@ -1171,8 +1164,8 @@ class PropertyInfoFragment : Fragment() {
 
     //region == strings ============
 
-    private fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    private fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         Utilities.setPropertyInputString(layout?.city, "property_city_label")
         Utilities.setPropertyInputString(layout?.cityElse, "property_city_else_label")
@@ -1219,7 +1212,7 @@ class PropertyInfoFragment : Fragment() {
 
         activity?.runOnUiThread {
             _activity?.propertyData?.city = city
-            _activity?.insertUpdateProperty(Const.CITY, _activity?.propertyData?.city)
+            _activity?.saveProperty(Const.CITY, _activity?.propertyData?.city)
             updateCity()
         }
     }
@@ -1229,14 +1222,14 @@ class PropertyInfoFragment : Fragment() {
 
         activity?.runOnUiThread {
             _activity?.propertyData?.cityElse = cityElseInputView?.text.toString()
-            _activity?.insertUpdateProperty(Const.CITY_ELSE, _activity?.propertyData?.cityElse)
+            _activity?.saveProperty(Const.CITY_ELSE, _activity?.propertyData?.cityElse)
         }
     }
 
     private fun onAddressChanged() {
         activity?.runOnUiThread {
             _activity?.propertyData?.address = addressInputView?.text.toString()
-            _activity?.insertUpdateProperty(Const.ADDRESS, _activity?.propertyData?.address)
+            _activity?.saveProperty(Const.ADDRESS, _activity?.propertyData?.address)
         }
     }
 
@@ -1247,7 +1240,7 @@ class PropertyInfoFragment : Fragment() {
             _activity?.fixedParametersData?.apartmentTypesArray?.get(position)
 
         _activity?.propertyData?.apartmentType = apartmentType?.key
-        _activity?.insertUpdateProperty(Const.APARTMENT_TYPE, _activity?.propertyData?.apartmentType)
+        _activity?.saveProperty(Const.APARTMENT_TYPE, _activity?.propertyData?.apartmentType)
     }
 
     private fun onPriceChanged() {
@@ -1258,7 +1251,7 @@ class PropertyInfoFragment : Fragment() {
                 else
                     null
 
-            _activity?.insertUpdateProperty(Const.PRICE, _activity?.propertyData?.price)
+            _activity?.saveProperty(Const.PRICE, _activity?.propertyData?.price)
         }
     }
 
@@ -1271,7 +1264,7 @@ class PropertyInfoFragment : Fragment() {
                     null
 
             if (!equityInputView?.text.isNullOrEmpty()) {
-                _activity?.insertUpdateProperty(Const.EQUITY, _activity?.propertyData?.calcEquity)
+                _activity?.saveProperty(Const.EQUITY, _activity?.propertyData?.calcEquity)
             }
         }
     }
@@ -1305,7 +1298,7 @@ class PropertyInfoFragment : Fragment() {
                     null
 
             if (!incomesInputView?.text.isNullOrEmpty()) {
-                _activity?.insertUpdateProperty(Const.INCOMES, _activity?.propertyData?.calcIncomes)
+                _activity?.saveProperty(Const.INCOMES, _activity?.propertyData?.calcIncomes)
             }
         }
     }
@@ -1319,7 +1312,7 @@ class PropertyInfoFragment : Fragment() {
                     null
 
             if (!commitmentsInputView?.text.isNullOrEmpty()) {
-                _activity?.insertUpdateProperty(Const.COMMITMENTS, _activity?.propertyData?.calcCommitments)
+                _activity?.saveProperty(Const.COMMITMENTS, _activity?.propertyData?.calcCommitments)
             }
         }
     }
@@ -1374,7 +1367,7 @@ class PropertyInfoFragment : Fragment() {
                 layout?.lawyer?.setNumberPickerWithoutValue()
             }
 
-            _activity?.insertUpdateProperty(Const.LAWYER_CUSTOM_VALUE, _activity?.propertyData?.calcLawyer)
+            _activity?.saveProperty(Const.LAWYER_CUSTOM_VALUE, _activity?.propertyData?.calcLawyer)
         }
     }
 
@@ -1390,7 +1383,7 @@ class PropertyInfoFragment : Fragment() {
                 layout?.realEstateAgent?.setNumberPickerWithoutValue()
             }
 
-            _activity?.insertUpdateProperty(Const.REAL_ESTATE_AGENT_CUSTOM_VALUE, _activity?.propertyData?.calcRealEstateAgent)
+            _activity?.saveProperty(Const.REAL_ESTATE_AGENT_CUSTOM_VALUE, _activity?.propertyData?.calcRealEstateAgent)
         }
     }
 
@@ -1402,7 +1395,7 @@ class PropertyInfoFragment : Fragment() {
                 else
                     null
 
-            _activity?.insertUpdateProperty(Const.BROKER_MORTGAGE, _activity?.propertyData?.calcBrokerMortgage)
+            _activity?.saveProperty(Const.BROKER_MORTGAGE, _activity?.propertyData?.calcBrokerMortgage)
         }
     }
 
@@ -1414,7 +1407,7 @@ class PropertyInfoFragment : Fragment() {
                 else
                     null
 
-            _activity?.insertUpdateProperty(Const.REPAIRING, _activity?.propertyData?.calcRepairing)
+            _activity?.saveProperty(Const.REPAIRING, _activity?.propertyData?.calcRepairing)
         }
     }
 
@@ -1440,7 +1433,7 @@ class PropertyInfoFragment : Fragment() {
                 layout?.rent?.setNumberPickerWithoutValue()
             }
 
-            _activity?.insertUpdateProperty(Const.RENT_CUSTOM_VALUE, _activity?.propertyData?.calcRent)
+            _activity?.saveProperty(Const.RENT_CUSTOM_VALUE, _activity?.propertyData?.calcRent)
         }
     }
 
@@ -1452,7 +1445,7 @@ class PropertyInfoFragment : Fragment() {
                 else
                     null
 
-            _activity?.insertUpdateProperty(Const.LIFE_INSURANCE, _activity?.propertyData?.calcLifeInsurance)
+            _activity?.saveProperty(Const.LIFE_INSURANCE, _activity?.propertyData?.calcLifeInsurance)
         }
     }
 
@@ -1464,7 +1457,7 @@ class PropertyInfoFragment : Fragment() {
                 else
                     null
 
-            _activity?.insertUpdateProperty(Const.STRUCTURE_INSURANCE, _activity?.propertyData?.calcStructureInsurance)
+            _activity?.saveProperty(Const.STRUCTURE_INSURANCE, _activity?.propertyData?.calcStructureInsurance)
         }
     }
 
@@ -1485,7 +1478,7 @@ class PropertyInfoFragment : Fragment() {
 
         activity?.runOnUiThread {
             _activity?.propertyData?.calcMortgagePeriod = period?.key?.toInt()
-            _activity?.insertUpdateProperty(Const.MORTGAGE_PERIOD, _activity?.propertyData?.calcMortgagePeriod)
+            _activity?.saveProperty(Const.MORTGAGE_PERIOD, _activity?.propertyData?.calcMortgagePeriod)
         }
     }
 
@@ -1647,7 +1640,7 @@ class PropertyInfoFragment : Fragment() {
             else {
                 mortgageRequiredInputView?.setText(Utilities.getDecimalNumber(_activity?.propertyData!!.calcMortgageRequired))
 
-                var hasWarning = _activity?.userData?.canTakeMortgage == false && _activity?.propertyData!!.calcMortgageRequired!! > 0
+                var hasWarning = _activity?.userData?.calcCanTakeMortgage == false && _activity?.propertyData!!.calcMortgageRequired!! > 0
 
                 layout?.mortgageRequired?.setWarning(mortgageRequiredInputView, hasWarning)
             }
@@ -1879,7 +1872,7 @@ class PropertyInfoFragment : Fragment() {
     // --------------------------------------
 
     private fun takeMortgageVisibility() {
-        val visible = if (_activity?.propertyData?.showMortgagePrepayment == false || _activity?.userData?.canTakeMortgage == false) GONE else VISIBLE
+        val visible = if (_activity?.propertyData?.showMortgagePrepayment == false || _activity?.userData?.calcCanTakeMortgage == false) GONE else VISIBLE
         layout?.possibleMonthlyRepayment?.visibility = visible
         layout?.brokerMortgage?.visibility = visible
 
@@ -1896,7 +1889,7 @@ class PropertyInfoFragment : Fragment() {
 
     private fun updateMortgagePeriod() {
 
-        if (_activity?.propertyData?.showMortgagePrepayment == false || _activity?.userData?.canTakeMortgage == false) {
+        if (_activity?.propertyData?.showMortgagePrepayment == false || _activity?.userData?.calcCanTakeMortgage == false) {
             return
         }
 
@@ -1935,7 +1928,7 @@ class PropertyInfoFragment : Fragment() {
     }
 
     private fun updateMortgageMonthlyRepayment() {
-        if (_activity?.propertyData?.showMortgagePrepayment == false || _activity?.userData?.canTakeMortgage == false) {
+        if (_activity?.propertyData?.showMortgagePrepayment == false || _activity?.userData?.calcCanTakeMortgage == false) {
             return
         }
 
@@ -1956,7 +1949,7 @@ class PropertyInfoFragment : Fragment() {
     }
 
     private fun updateMortgageMonthlyYield() {
-        if (_activity?.propertyData?.showMortgagePrepayment == false || _activity?.userData?.canTakeMortgage == false) {
+        if (_activity?.propertyData?.showMortgagePrepayment == false || _activity?.userData?.calcCanTakeMortgage == false) {
             return
         }
 
@@ -1987,7 +1980,7 @@ class PropertyInfoFragment : Fragment() {
     //region == actions menu =======
 
     internal fun activateActionsMenuIfNeeded() {
-        val isEnable = !_activity?.propertyData?.calcYieldForecastList.isNullOrEmpty()
+        val isEnable = !_activity?.propertyData?.calcYieldForecast.isNullOrEmpty()
         setActionsMenuEnable(isEnable)
     }
 
@@ -1998,7 +1991,7 @@ class PropertyInfoFragment : Fragment() {
         _activity?.layout?.actionsMenuYieldForecastBottomIcon?.setImageDrawable(ContextCompat.getDrawable(_context!!, if (isEnable) R.drawable.icon_yield_forecast_off else R.drawable.icon_yield_forecast_disable))
         _activity?.layout?.actionsMenuYieldForecastBottomText?.setTextColor(ContextCompat.getColor(_context!!, if (isEnable) R.color.textActionsMenu else R.color.textActionsMenuDisable))
 
-        if (_activity?.propertyData?.showMortgagePrepayment == false || _activity?.userData?.canTakeMortgage == false) {
+        if (_activity?.propertyData?.showMortgagePrepayment == false || _activity?.userData?.calcCanTakeMortgage == false) {
             _activity?.layout?.actionsMenuAmortizationScheduleBottom?.visibility = GONE
         }
         else {

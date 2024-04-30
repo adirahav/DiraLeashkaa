@@ -1,17 +1,21 @@
 package com.adirahav.diraleashkaa.data.network.services
 
 import com.adirahav.diraleashkaa.BuildConfig.BASE_URL
-import com.adirahav.diraleashkaa.common.Const
-import com.adirahav.diraleashkaa.data.network.models.APIResponseModel
-import com.adirahav.diraleashkaa.data.network.models.SMSCodeValidationModel
+import com.adirahav.diraleashkaa.data.network.models.HomeModel
+import com.adirahav.diraleashkaa.data.network.response.UserResponse
+import com.adirahav.diraleashkaa.data.network.models.SplashModel
 import com.adirahav.diraleashkaa.data.network.models.UnsubscribeModel
-import com.adirahav.diraleashkaa.data.network.models.UserModel
+import com.adirahav.diraleashkaa.data.network.requests.SignUpRequest
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Field
+import retrofit2.http.Body
 import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Query
 
 class UserService private constructor() {
     val userAPI: UserAPI
@@ -33,69 +37,27 @@ class UserService private constructor() {
     }
 
     interface UserAPI {
-        @FormUrlEncoded
-        @POST("users/insert")
-        fun insertUser(
-            @Field("user_name") userName: String?,
-            @Field("email") email: String?,
-            @Field("year_of_birth") yearOfBirth: Int?,
-            @Field("phone_number") phoneNumber: String?,
-            @Field("phone_number_sms_verified") phoneNumberSMSVerified: Boolean?,
-            @Field("device_id") deviceID: String?,
-            @Field("device_type") deviceType: String?,
-            @Field(Const.EQUITY) equity: Int?,
-            @Field(Const.INCOMES) incomes: Int?,
-            @Field(Const.COMMITMENTS) commitments: Int?,
-            @Field("terms_of_use_accept_time") termsOfUseAcceptTime: Long?,
-            //@Field("insert_time") insertTime: Long?,
-            //@Field("update_time") updateTime: Long?,
-            @Field("subscriber_type") subscriberType: String?,
-            //@Field("registration_start_time") registrationStartTime: Long?,
-            @Field("registration_expired_time") registrationExpiredTime: Long?,
-            @Field("app_version") appVersion: String?,
-            @Field("is_first_login") isFirstLogin: Boolean?,
-        ): Call<UserModel?>?
+        @PUT("user")
+        fun update(
+            @Header("Authorization") token: String?,
+            @Body request: SignUpRequest
+        ): Call<UserResponse?>?
 
-        @FormUrlEncoded
-        @POST("users/update")
-        fun updateUser(
-            @Field("uuid") uuid: String?,
-            @Field("user_name") userName: String?,
-            @Field("email") email: String?,
-            @Field("year_of_birth") yearOfBirth: Int?,
-            @Field("phone_number") phoneNumber: String?,
-            @Field("phone_number_sms_verified") phoneNumberSMSVerified: Boolean?,
-            @Field("device_id") deviceID: String?,
-            @Field("device_type") deviceType: String?,
-            @Field(Const.EQUITY) equity: Int?,
-            @Field(Const.INCOMES) incomes: Int?,
-            @Field(Const.COMMITMENTS) commitments: Int?,
-            @Field("terms_of_use_accept_time") termsOfUseAcceptTime: Long?,
-            //@Field("insert_time") insertTime: Long?,
-            //@Field("update_time") updateTime: Long?,
-            @Field("subscriber_type") subscriberType: String?,
-            //@Field("registration_start_time") registrationStartTime: Long?,
-            @Field("registration_expired_time") registrationExpiredTime: Long?,
-            @Field("app_version") appVersion: String?,
-            @Field("is_first_login") isFirstLogin: Boolean?,
-        ): Call<UserModel?>?
+        @GET("user/splash")
+        fun getSplashData(
+            @Query("platform") platform: String = "android",
+            @Query("appVersionName") appVersionName: String,
+            @Query("email") email: String?
+        ): Call<SplashModel?>
+
+        @GET("user/home")
+        fun getHomeData(
+            @Header("Authorization") token: String?,
+            @Query("platform") platform: String = "android",
+        ): Call<HomeModel?>?
 
         @FormUrlEncoded
         @POST("users/delete")
-        fun deleteUser(
-                @Field("uuid") uuid: String?,
-                @Field("user_name") userName: String?,
-                @Field("email") email: String?,
-                @Field("phone_number") phoneNumber: String?,
-                @Field("device_id") deviceID: String?,
-        ): Call<UnsubscribeModel?>?
-
-        @FormUrlEncoded
-        @POST("users/smsCodeValidation")
-        fun smsCodeValidation(
-            @Field("user_uuid") userUUID: String?,
-            @Field("sms_code") smsCode: String?,
-            @Field("phone_number") phoneNumber: String?
-        ): Call<SMSCodeValidationModel?>?
+        fun deleteUser(): Call<UnsubscribeModel?>?
     }
 }

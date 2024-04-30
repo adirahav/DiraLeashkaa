@@ -12,11 +12,9 @@ import androidx.recyclerview.widget.RecyclerView
 import butterknife.BindView
 import butterknife.ButterKnife
 import com.adirahav.diraleashkaa.R
-import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.common.Utilities.fractionToPercentFormat
 import com.adirahav.diraleashkaa.data.network.entities.YieldForecastEntity
-import com.adirahav.diraleashkaa.ui.signup.SignUpPersonalInfoFragment
 import com.airbnb.paris.extensions.style
 import java.util.*
 
@@ -120,7 +118,7 @@ class PropertyYieldForecastAdapter(
         // year number
         if (item?.monthNo?.rem(12) == 1) {
             holder.yearNo!!.text =  HtmlCompat.fromHtml(String.format(
-                Utilities.getRoomString("yield_forecast_year_value"),
+                Utilities.getLocalPhrase("yield_forecast_year_value"),
                 item.monthNo?.div(12).toString()
             ), HtmlCompat.FROM_HTML_MODE_LEGACY)
 

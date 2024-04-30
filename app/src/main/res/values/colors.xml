@@ -57,6 +57,7 @@
     <color name="dividerDrawer">@color/palette3</color>
     <color name="formHint">@color/palette5</color>
     <color name="formText">@color/palette5</color>
+    <color name="formDisableText">@color/palette4</color>
     <color name="formLabel">@color/palette4</color>
     <color name="formSpinnerDivider">@color/palette3</color>
     <color name="formSpinnerDividerDark">@color/palette4</color>
@@ -120,6 +121,8 @@
     <color name="missingDataIconFill">@color/palette1</color>
     <color name="lockIcon">@color/palette4</color>
     <color name="lockIconFill">@color/palette1</color>
+    <color name="passwordIcon">@color/palette4</color>
+    <color name="passwordIconFill">@color/palette1</color>
 
     <color name="statePastPresentBackground">@color/palette7</color>
     <color name="statePastPresentText">@color/palette1</color>

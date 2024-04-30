@@ -89,7 +89,7 @@ class PropertyAmortizationScheduleFragment : BaseFragment<PropertyViewModel?>() 
         _activity?.updateActionsMenuVisibility(PropertyActivity.ActionsMenuButtonType.AMORTIZATION_SCHEDULE)
 
         // strings
-        setRoomStrings()
+        setPhrases()
     }
 
     private fun initObserver() {
@@ -127,20 +127,20 @@ class PropertyAmortizationScheduleFragment : BaseFragment<PropertyViewModel?>() 
 
     //region == strings ============
 
-    private fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    private fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        layout?.monthNo?.text = Utilities.getRoomString("amortization_schedule_month_label")
-        layout?.fundBOP?.text = Utilities.getRoomString("amortization_schedule_bop_fund_label")
-        layout?.interest?.text = Utilities.getRoomString("amortization_schedule_interest_label")
-        layout?.monthlyRepayments?.text = Utilities.getRoomString("amortization_schedule_monthly_repayments_label")
-        layout?.fundRefund?.text = Utilities.getRoomString("amortization_schedule_fund_refund_label")
-        layout?.interestRepayment?.text = Utilities.getRoomString("amortization_schedule_interest_repayment_label")
-        layout?.fundEOP?.text = Utilities.getRoomString("amortization_schedule_eop_fund_label")
+        layout?.monthNo?.text = Utilities.getLocalPhrase("amortization_schedule_month_label")
+        layout?.fundBOP?.text = Utilities.getLocalPhrase("amortization_schedule_bop_fund_label")
+        layout?.interest?.text = Utilities.getLocalPhrase("amortization_schedule_interest_label")
+        layout?.monthlyRepayments?.text = Utilities.getLocalPhrase("amortization_schedule_monthly_repayments_label")
+        layout?.fundRefund?.text = Utilities.getLocalPhrase("amortization_schedule_fund_refund_label")
+        layout?.interestRepayment?.text = Utilities.getLocalPhrase("amortization_schedule_interest_repayment_label")
+        layout?.fundEOP?.text = Utilities.getLocalPhrase("amortization_schedule_eop_fund_label")
     }
 
     override fun createViewModel(): PropertyViewModel {
-        val factory = PropertyViewModelFactory(DataManager.instance!!.propertyService)
+        val factory = PropertyViewModelFactory(activity as PropertyActivity, DataManager.instance!!.propertyService)
         return ViewModelProvider(this, factory)[PropertyViewModel::class.java]
     }
 }

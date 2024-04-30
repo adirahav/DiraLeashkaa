@@ -40,7 +40,8 @@ object Configuration {
     )
 
     val PASSWORD_PATTERN = Pattern.compile(
-        "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$"      // Minimum 8 characters ; at least one letter ; and one number
+        //"^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,20}$"      // Minimum 8 characters ; Maximum 20 characters ; at least one letter ; and one number
+    "^.{8,20}\$"
     )
 
     val AGE_PATTERN = Pattern.compile(

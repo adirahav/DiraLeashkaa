@@ -3,7 +3,6 @@ package com.adirahav.diraleashkaa.data.network.dao
 import androidx.room.*
 import com.adirahav.diraleashkaa.data.network.entities.CalculatorEntity
 import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
-import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 
 @Dao
 interface CalculatorsDao {

@@ -45,7 +45,7 @@ class SignUpWelcomeFragment : Fragment() {
         hideKeyboard(requireContext())
 
         // strings
-        setRoomStrings()
+        setPhrases()
     }
 
     fun initData() {
@@ -54,8 +54,8 @@ class SignUpWelcomeFragment : Fragment() {
 
     //region == strings ============
 
-    private fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    private fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
         Utilities.setTextViewString(layout?.welcomeMessage, "signup_welcome_text")
     }
 

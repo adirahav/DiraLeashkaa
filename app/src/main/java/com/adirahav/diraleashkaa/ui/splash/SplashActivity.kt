@@ -1,12 +1,9 @@
 package com.adirahav.diraleashkaa.ui.splash
 
 import android.content.*
-import android.graphics.Color
-import android.graphics.PorterDuff
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -20,17 +17,17 @@ import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
 import com.adirahav.diraleashkaa.common.Configuration.dateFormatter
 import com.adirahav.diraleashkaa.common.Configuration.timeFormatter
 import com.adirahav.diraleashkaa.common.Utilities.await
-import com.adirahav.diraleashkaa.common.Utilities.getDeviceID
 import com.adirahav.diraleashkaa.common.Utilities.getNetworkStatus
 import com.adirahav.diraleashkaa.data.DataManager
 import com.adirahav.diraleashkaa.data.network.dataClass.DeviceDataClass
-import com.adirahav.diraleashkaa.data.network.dataClass.SplashDataClass
 import com.adirahav.diraleashkaa.data.network.entities.*
+import com.adirahav.diraleashkaa.data.network.models.SplashModel
 import com.adirahav.diraleashkaa.databinding.ActivitySplashBinding
 import com.adirahav.diraleashkaa.ui.base.BaseActivity
 import com.adirahav.diraleashkaa.ui.dialog.FancyDialog
 import com.adirahav.diraleashkaa.ui.home.HomeActivity
 import com.adirahav.diraleashkaa.ui.registration.RegistrationActivity
+import com.adirahav.diraleashkaa.ui.login.LoginActivity
 import com.adirahav.diraleashkaa.ui.signup.SignUpActivity
 import java.util.*
 
@@ -55,8 +52,8 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     // lifecycle owner
     var lifecycleOwner: LifecycleOwner? = null
 
-    // room/server data loaded
-    var isRoomUserLoaded: Boolean = false
+    // data loaded
+    var isLocalUserLoaded: Boolean = false
 
     // fixed parameters
     var fixedParameters: FixedParameters? = null
@@ -72,8 +69,8 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     var startTime = Date()
 
     // user data
-    var userUUID: String? = null
-    var userData: UserEntity? = null
+    var userId: String? = null
+    var localUser: UserEntity? = null
 
     // device data
     var deviceData: DeviceDataClass? = null
@@ -91,10 +88,6 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
 
     // server down
     var isServerDown: Boolean? = null
-
-    // track user
-    var openTrackUserDialog: Boolean? = null
-    var trackUserData: TrackUserEntity? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -144,26 +137,23 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
         preferences = AppPreferences.instance
         preferences?.setString("homeSelectedCity", null, false)
 
-        // track user
-        openTrackUserDialog = false
-
         startLoadData()
     }
 
     override fun createViewModel(): SplashViewModel {
-        val factory = SplashViewModelFactory(this@SplashActivity, DataManager.instance!!.splashService, DataManager.instance!!.announcementService)
+        val factory = SplashViewModelFactory(this@SplashActivity, DataManager.instance!!.userService, DataManager.instance!!.announcementService)
         return ViewModelProvider(this, factory)[SplashViewModel::class.java]
     }
 
     private fun initObserver() {
         if (getNetworkStatus() != Enums.NetworkStatus.NOT_CONNECTED) {
-            if (!viewModel!!.serverSplash.hasObservers()) viewModel!!.serverSplash.observe(this, ServerSplashObserver())
-            if (!viewModel!!.roomSplash.hasObservers()) viewModel!!.roomSplash.observe(this, RoomSplashObserver())
-            if (!viewModel!!.roomUser.hasObservers()) viewModel!!.roomUser.observe(this, RoomUserObserver())
-            if (!viewModel!!.roomRestoreData.hasObservers()) viewModel!!.roomRestoreData.observe(this, RoomRestoreDataObserver())
+            if (!viewModel!!.splashCallback.hasObservers()) viewModel!!.splashCallback.observe(this, SplashObserver())
+            if (!viewModel!!.localSplashCallback.hasObservers()) viewModel!!.localSplashCallback.observe(this, LocalSplashObserver())
+            if (!viewModel!!.localUserCallback.hasObservers()) viewModel!!.localUserCallback.observe(this, LocalUserObserver())
+            if (!viewModel!!.localRestoreData.hasObservers()) viewModel!!.localRestoreData.observe(this, LocalRestoreDataObserver())
 
-            if (!isRoomUserLoaded) {
-                viewModel!!.getRoomUser(applicationContext, lifecycleOwner!!)
+            if (!isLocalUserLoaded) {
+                viewModel!!.getLocalUser(applicationContext, lifecycleOwner!!)
             }
         }
         else {
@@ -172,16 +162,16 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     }
 
     //strings
-    override fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    override fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         layout?.loaderText?.text =
-            if (Utilities.roomStrings.isNullOrEmpty() == false)
-                Utilities.getRoomString("splash_loading")
+            if (Utilities.localPhrase.isNullOrEmpty() == false)
+                Utilities.getLocalPhrase("splash_loading")
             else
                 resources.getString(R.string.splash_loading)
 
-        super.setRoomStrings()
+        super.setPhrases()
     }
     //strings
 
@@ -191,48 +181,23 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
 
     fun endLoadData() {
         Log.d(TAG, "endLoadData()")
-        //await(startTime, MIN_SPLASH_AWAIT_SECONDS, ::checkIfCanTrack)
         await(startTime, MIN_SPLASH_AWAIT_SECONDS, ::responseAfterAwait)
-    }
-
-    private fun checkIfCanTrack() {
-
-        Log.d(TAG, "checkIfCanTrack()")
-
-        if (trackUserData?.allowTrackUser == true) {
-            layout?.progressBar?.getIndeterminateDrawable()?.setColorFilter(Color.GREEN, PorterDuff.Mode.MULTIPLY)
-            await(Date(), MIN_ALLOW_TRACK_USER_AWAIT_SECONDS, ::responseAfterAwait)
-
-            layout?.loader?.setOnClickListener {
-                trackUser()
-            }
-        }
-        else {
-            //Log.d("ADITEST8", "SET ${trackUserData?.isTrackUser} [splash]")
-            //preferences?.setBoolean("isTrackUser", trackUserData?.isTrackUser == true, isAsync = false)
-            layout?.loader?.setOnClickListener(null)
-            responseAfterAwait()
-        }
     }
 
     private fun responseAfterAwait() {
         Log.d(TAG, "responseAfterAwait()")
-
-        if (openTrackUserDialog == true) {
-            return
-        }
 
         fixedParameters = FixedParameters.init(fixedParametersData)
 
         val nowUTC = Calendar.getInstance()
         nowUTC.timeZone = TimeZone.getTimeZone("UTC")
 
-        val isBetaVersion = fixedParameters?.appVersionArray?.find { it.key == "is_beta" }?.value?.toBoolean() ?: true
-        val isNewVersionRequired = fixedParameters?.appVersionArray?.find { it.key == "new_version_required" }?.value?.toBoolean() ?: true
+        val isBetaVersion = fixedParameters?.appVersionArray?.find { it.key == "isBeta" }?.value?.toBoolean() ?: true
+        val isNewVersionRequired = fixedParameters?.appVersionArray?.find { it.key == "newVersionRequired" }?.value?.toBoolean() ?: true
 
         preferences?.setBoolean("isBetaVersion", isBetaVersion, isAsync = false)
 
-        if (userData != null && userData?.subscriberType != null && userData?.subscriberType!!.equals(Enums.SubscriberType.BLOCKED.toString(), true)) {
+        if (localUser != null && localUser?.subscriberType != null && localUser?.subscriberType!!.equals(Enums.SubscriberType.BLOCKED.toString(), true)) {
             Utilities.openFancyDialog(this@SplashActivity, Enums.DialogType.BLOCKED, ::responseAfterBlockedPositivePress, null, emptyArray())
             return
         }
@@ -252,8 +217,8 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
             return
         }
 
-        if (userData != null && userData?.registrationExpiredTime != null && userData?.registrationExpiredTime!! > 0L && nowUTC.timeInMillis > userData?.registrationExpiredTime!!) {
-            Utilities.openFancyDialog(this@SplashActivity, Enums.DialogType.EXPIRED_REGISTRATION, ::responseAfterExpiredCodePositivePress, null, arrayOf(dateFormatter.format(userData?.registrationExpiredTime), timeFormatter.format(userData?.registrationExpiredTime)))
+        if (localUser != null && localUser?.registrationExpiredTime != null && localUser?.registrationExpiredTime!! > 0L && nowUTC.timeInMillis > localUser?.registrationExpiredTime!!) {
+            Utilities.openFancyDialog(this@SplashActivity, Enums.DialogType.EXPIRED_REGISTRATION, ::responseAfterExpiredCodePositivePress, null, arrayOf(dateFormatter.format(localUser?.registrationExpiredTime), timeFormatter.format(localUser?.registrationExpiredTime)))
             return
         }
 
@@ -264,14 +229,14 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
             }
         }
 
-        if (userData == null && deviceData != null) {
+        if (localUser == null && deviceData != null) {
             startTime = Date()
             Utilities.openFancyDialog(this@SplashActivity, Enums.DialogType.RESTORE, null, null, emptyArray())
             restoreData(deviceData)
             return
         }
 
-        if (userData == null && calculatorsData != null) {
+        if (localUser == null && calculatorsData != null) {
             startTime = Date()
             Utilities.openFancyDialog(this@SplashActivity, Enums.DialogType.RESTORE, null, null, emptyArray())
             restoreData(deviceData)
@@ -295,19 +260,19 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     }
 
     private fun showAnnouncements(announcement: AnnouncementEntity) {
-        Utilities.roomStrings!!.remove(StringEntity(key = "dialog_announcement_title", value = Utilities.getRoomString("dialog_announcement_title")))
-        Utilities.roomStrings!!.remove(StringEntity(key = "dialog_announcement_message", value = Utilities.getRoomString("dialog_announcement_message")))
-        Utilities.roomStrings!!.remove(StringEntity(key = "dialog_announcement_positive", value = Utilities.getRoomString("dialog_announcement_positive")))
-        Utilities.roomStrings!!.add(StringEntity(key = "dialog_announcement_title", value = announcement.title!!))
-        Utilities.roomStrings!!.add(StringEntity(key = "dialog_announcement_message", value = announcement.message!!))
-        Utilities.roomStrings!!.add(StringEntity(key = "dialog_announcement_positive", value = announcement.positiveButtonText!!))
+        Utilities.localPhrase!!.remove(PhraseEntity(key = "dialog_announcement_title", value = Utilities.getLocalPhrase("dialog_announcement_title")))
+        Utilities.localPhrase!!.remove(PhraseEntity(key = "dialog_announcement_message", value = Utilities.getLocalPhrase("dialog_announcement_message")))
+        Utilities.localPhrase!!.remove(PhraseEntity(key = "dialog_announcement_positive", value = Utilities.getLocalPhrase("dialog_announcement_positive")))
+        Utilities.localPhrase!!.add(PhraseEntity(key = "dialog_announcement_title", value = announcement.title!!))
+        Utilities.localPhrase!!.add(PhraseEntity(key = "dialog_announcement_message", value = announcement.message!!))
+        Utilities.localPhrase!!.add(PhraseEntity(key = "dialog_announcement_positive", value = announcement.positiveButtonText!!))
         announcementDialog = Utilities.openFancyDialog(this@SplashActivity, Enums.DialogType.ANNOUNCEMENT, ::responseAfterAnnouncementPositivePress, null, emptyArray())
     }
 
     private fun continueToActivity(isBetaVersion: Boolean, isExpired: Boolean) {
         Utilities.log(Enums.LogType.Debug, TAG, "continueToActivity()", showToast = false)
 
-        if (userData == null) {
+        if (localUser == null) {
             preferences?.deleteAll()
             preferences?.setBoolean("isBetaVersion", isBetaVersion, isAsync = false)
 
@@ -315,10 +280,33 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
             SignUpActivity.start(context)
         }
         else {
-            if (userData?.userName.isNullOrEmpty() || userData?.email.isNullOrEmpty() || userData?.yearOfBirth == null ||
-                userData?.equity == null || userData?.incomes == null || userData?.commitments == null ||
-                userData?.termsOfUseAcceptTime == null ||
-                userData?.subscriberType == null) {
+            val subscriberType = localUser?.subscriberType
+            val expiredTime = localUser?.registrationExpiredTime
+            val appURL = fixedParameters?.appVersionArray?.find { it.key == "url" }?.value ?: ""
+            val appID = Utilities.getAppID(fixedParameters)
+            val onErrorSendEmail = fixedParameters?.onErrorArray?.find { it.key == "send_email" }?.value?.toBoolean() ?: true
+            val onErrorMailTo = fixedParameters?.onErrorArray?.find { it.key == "mail_to" }?.value ?: ""
+
+            preferences?.setString("subscriberType", subscriberType, false)
+            expiredTime?.let { preferences?.setLong("expiredTime", it, false) }
+            preferences?.setBoolean("expiredDialogHasShown", b = false, isAsync = false)
+            preferences?.setString("fullname", localUser?.fullname, false)
+            preferences?.setString("email", localUser?.email, false)
+            preferences?.setString("appVersion", BuildConfig.VERSION_NAME, false)
+            preferences?.setString("appURL", appURL, false)
+            preferences?.setString("appID", appID, false)
+            preferences?.setBoolean("isNewVersionAvailable", isNewVersionAvailable == true, false)
+            preferences?.setBoolean("onErrorSendEmail", onErrorSendEmail, false)
+            preferences?.setString("onErrorMailTo", onErrorMailTo, false)
+
+
+            if (preferences!!.getString("token", "").isNullOrEmpty()) {
+                LoginActivity.start(context, localUser?.email)
+            }
+            else if (localUser?.fullname.isNullOrEmpty() || localUser?.email.isNullOrEmpty() || localUser?.yearOfBirth == null ||
+                localUser?.equity == null || localUser?.incomes == null || localUser?.commitments == null ||
+                localUser?.termsOfUseAccept == null ||
+                localUser?.subscriberType == null) {
 
                 Utilities.log(Enums.LogType.Debug, TAG, "continueToActivity(): SignUpActivity.start (missing data)", showToast = false)
                 SignUpActivity.start(context)
@@ -326,30 +314,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
             else {
                 Utilities.log(Enums.LogType.Debug, TAG, "continueToActivity(): HomeActivity.start", showToast = false)
 
-                preferences?.setString("userUUID", userData?.uuid, false)
-
-                val subscriberType = userData?.subscriberType
-                val expiredTime = userData?.registrationExpiredTime
-                val appURL = fixedParameters?.appVersionArray?.find { it.key == "url" }?.value ?: ""
-                val appID = Utilities.getAppID(fixedParameters)
-                val onErrorSendEmail = fixedParameters?.onErrorArray?.find { it.key == "send_email" }?.value?.toBoolean() ?: true
-                val onErrorMailTo = fixedParameters?.onErrorArray?.find { it.key == "mail_to" }?.value ?: ""
-
-                preferences?.setString("subscriberType", subscriberType, false)
-                expiredTime?.let { preferences?.setLong("expiredTime", it, false) }
-                preferences?.setBoolean("expiredDialogHasShown", b = false, isAsync = false)
-                preferences?.setString("userName", userData?.userName, false)
-                preferences?.setString("appVersion", userData?.appVersion, false)
-                preferences?.setString("appURL", appURL, false)
-                preferences?.setString("appID", appID, false)
-                preferences?.setBoolean("isNewVersionAvailable", isNewVersionAvailable == true, false)
-                preferences?.setBoolean("onErrorSendEmail", onErrorSendEmail, false)
-                preferences?.setString("onErrorMailTo", onErrorMailTo, false)
-
-                if (isBetaVersion) {
-                    RegistrationActivity.start(context, Enums.RegistrationPageType.BETA_CODE, allowBack = false)
-                }
-                else if (isExpired) {
+                if (isExpired) {
                     RegistrationActivity.start(context, Enums.RegistrationPageType.COUPON_CODE, false)
                 }
                 else {
@@ -366,7 +331,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     private fun responseAfterAnnouncementPositivePress() {
 
         if (announcementsData!![announcementIndex].confirm!!) {
-            viewModel!!.confirmAnnouncement(announcementsData!![announcementIndex].uuid!!, userUUID)
+            viewModel!!.confirmAnnouncement(announcementsData!![announcementIndex]._id!!)
         }
 
         if (announcementIndex + 1 < announcementsData!!.size) {
@@ -395,7 +360,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appID")))
         } catch (e: ActivityNotFoundException) {
-            Utilities.log(Enums.LogType.Error, TAG, "responseAfterNewVersionAvailableNotRequiredPositivePress(): ActivityNotFoundException = ${e.message}", userData)
+            Utilities.log(Enums.LogType.Error, TAG, "responseAfterNewVersionAvailableNotRequiredPositivePress(): ActivityNotFoundException = ${e.message}", localUser)
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appID")))
         }
     }
@@ -417,47 +382,39 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     }
 
     //region observers
-    private inner class ServerSplashObserver : Observer<SplashDataClass?> {
-        override fun onChanged(splashData: SplashDataClass?) {
+    private inner class SplashObserver : Observer<SplashModel?> {
+        override fun onChanged(splashData: SplashModel?) {
 
             if (splashData == null) {
-                Log.d(TAG, "ServerSplashObserver(): splashData == null)")
+                Log.d(TAG, "SplashObserver(): splashData == null)")
                 endLoadData()
                 return
             }
 
             fixedParametersData = splashData.fixedParameters
-            userData = splashData.user
+            localUser = splashData.user
             deviceData = splashData.restore
             calculatorsData = splashData.calculators
             announcementsData = splashData.announcements
             isNewVersionAvailable = splashData.newVersionAvailable
             isServerDown = splashData.serverDown
-            trackUserData = splashData.trackUser
 
-            viewModel!!.saveRoomSplash(applicationContext, lifecycleOwner!!, splashData)
+            viewModel!!.saveLocalSplash(applicationContext, lifecycleOwner!!, splashData)
         }
     }
 
-    private inner class RoomSplashObserver : Observer<MutableList<Any?>> {
-        override fun onChanged(roomData: MutableList<Any?>) {
-            Log.d(TAG, "RoomSplashObserver()")
+    private inner class LocalSplashObserver : Observer<MutableList<Any?>> {
+        override fun onChanged(localData: MutableList<Any?>) {
+            Log.d(TAG, "LocalSplashObserver()")
             endLoadData()
         }
     }
 
-    private inner class RoomUserObserver() : Observer<UserEntity?> {
+    private inner class LocalUserObserver() : Observer<UserEntity?> {
         override fun onChanged(user: UserEntity?) {
-            isRoomUserLoaded = true
-            userUUID = user?.uuid
+            isLocalUserLoaded = true
 
-            //Log.d("ADITEST9","GET ${preferences?.getBoolean("isTrackUser", false).toString()} SET false [splash]")
-            /*if (preferences?.getBoolean("isTrackUser", false) == true) {
-                preferences?.setBoolean("isTrackUser", false, isAsync = false)
-                userUUID = null
-            }*/
-
-            viewModel!!.getServerSplash(userUUID, Settings.Secure.getString(contentResolver, getDeviceID(context))!!)
+            viewModel!!.getSplash()
         }
     }
 
@@ -470,14 +427,14 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
         val restoreCalculators = deviceData?.calculators
 
         if (restoreUser != null || restoreProperties != null || restoreCalculators != null) {
-            viewModel!!.restoreRoomData(applicationContext, restoreUser, restoreProperties, restoreCalculators)
+            viewModel!!.restoreLocalData(applicationContext, restoreUser, restoreProperties, restoreCalculators)
         }
     }
 
-    private inner class RoomRestoreDataObserver : Observer<UserEntity?> {
-        override fun onChanged(roomUserData: UserEntity?) {
-            if (roomUserData != null) {
-                userData = roomUserData
+    private inner class LocalRestoreDataObserver : Observer<UserEntity?> {
+        override fun onChanged(localUserData: UserEntity?) {
+            if (localUserData != null) {
+                localUser = localUserData
             }
 
             endRestoreData()
@@ -489,26 +446,6 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     }
 
     //endregion restore
-
-    //region track user
-    fun trackUser() {
-        openTrackUserDialog = true;
-        Utilities.openTrackUserDialog(this@SplashActivity, trackUserData?.valueLength, ::responseAfterTrackUserPositivePress, ::responseAfterTrackUserNegativePress)
-    }
-
-    private fun responseAfterTrackUserPositivePress(trackUserUUID: String) {
-        openTrackUserDialog = false
-        viewModel!!.getServerSplash(trackUserUUID, "", true)
-    }
-
-    private fun responseAfterTrackUserNegativePress() {
-        openTrackUserDialog = false
-        /*if (isRoomUserLoaded) {
-            Log.d(TAG, "responseAfterTrackUserNegativePress(): isRoomUserLoaded = ${isRoomUserLoaded}")
-            endLoadData()
-        }*/
-    }
-    //endregion track user
 
     /////
     private var networkChangeReceiver: BroadcastReceiver? = object : BroadcastReceiver() {

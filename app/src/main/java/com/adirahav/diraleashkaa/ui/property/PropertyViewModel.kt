@@ -6,9 +6,8 @@ import com.adirahav.diraleashkaa.common.Configuration
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.data.network.DatabaseClient
-import com.adirahav.diraleashkaa.data.network.dataClass.PropertyDataClass
 import com.adirahav.diraleashkaa.data.network.entities.*
-import com.adirahav.diraleashkaa.data.network.models.*
+import com.adirahav.diraleashkaa.data.network.requests.PropertyRequest
 import com.adirahav.diraleashkaa.data.network.services.PropertyService
 import com.adirahav.diraleashkaa.ui.base.BaseViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -20,23 +19,25 @@ import retrofit2.Response
 import java.util.*
 import kotlin.concurrent.schedule
 
-class PropertyViewModel internal constructor(private val propertyService: PropertyService) : BaseViewModel() {
+class PropertyViewModel internal constructor(
+		private val activity: PropertyActivity,
+		private val propertyService: PropertyService) : BaseViewModel() {
 
 	private val TAG = "PropertyViewModel"
 
 	// fixed parameters
-	val roomFixedParametersGet: MutableLiveData<FixedParametersEntity> = MutableLiveData()
+	val fixedParametersCallback: MutableLiveData<FixedParametersEntity> = MutableLiveData()
 
 	// user
 	val roomUserGet: MutableLiveData<UserEntity> = MutableLiveData()
 
 	// property
-	val serverPropertyGet: MutableLiveData<PropertyEntity> = MutableLiveData()
-	val serverPropertyInsert: MutableLiveData<PropertyEntity> = MutableLiveData()
-	val serverPropertyUpdate: MutableLiveData<PropertyEntity> = MutableLiveData()
-	val roomPropertyGet: MutableLiveData<PropertyEntity> = MutableLiveData()
-	val roomPropertyInsertRoom: MutableLiveData<PropertyEntity> = MutableLiveData()
-	val roomPropertyUpdateRoom: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val propertyGet: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val propertyInsert: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val propertyUpdate: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val localPropertyGet: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val localPropertyInsert: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val localPropertyUpdate: MutableLiveData<PropertyEntity> = MutableLiveData()
 	val roomPropertyUpdateServer: MutableLiveData<PropertyEntity> = MutableLiveData()
 
 	// yield forecast
@@ -59,7 +60,7 @@ class PropertyViewModel internal constructor(private val propertyService: Proper
 	}
 
 	private fun setFixedParameters(fixedParameters: FixedParametersEntity?) {
-		this.roomFixedParametersGet.postValue(fixedParameters)
+		this.fixedParametersCallback.postValue(fixedParameters)
 	}
 	//endregion == fixed parameters ==============
 
@@ -96,129 +97,126 @@ class PropertyViewModel internal constructor(private val propertyService: Proper
 
 	// == SERER =====
 
-	fun actionServerProperty(propertyUUID: String?, userUUID: String?, fieldName: String?, fieldValue: String?) {
-		Utilities.log(Enums.LogType.Debug, TAG, "actionServerProperty(): propertyUUID = ${propertyUUID} ; userUUID = ${userUUID} ; fieldName = ${fieldName} ; fieldValue = ${fieldValue}")
+	fun actionProperty(propertyId: String?, fieldName: String?, fieldValue: String?) {
+		Utilities.log(Enums.LogType.Debug, TAG, "actionProperty(): propertyId = ${propertyId} ; fieldName = ${fieldName} ; fieldValue = ${fieldValue}")
 
 		CoroutineScope(Dispatchers.IO).launch {
 
-			val action = if (!propertyUUID.isNullOrEmpty() && fieldName == null && fieldValue == null)
-							Enums.ObserverAction.GET_SERVER
-						 else if (propertyUUID.isNullOrEmpty())
-						 	Enums.ObserverAction.INSERT_SERVER
+			val action = if (!propertyId.isNullOrEmpty() && fieldName == null && fieldValue == null)
+							Enums.ObserverAction.GET
+						 else if (propertyId.isNullOrEmpty())
+						 	Enums.ObserverAction.CREATE
 						 else
-						 	Enums.ObserverAction.UPDATE_SERVER
+						 	Enums.ObserverAction.UPDATE
 
-			val call: Call<PropertyModel?>? =
-				if (action == Enums.ObserverAction.GET_SERVER)
+			val call: Call<PropertyEntity?>? =
+				if (action == Enums.ObserverAction.GET)
 					propertyService.propertyAPI.getProperty(
-						UUID = propertyUUID,
-						userUUID = userUUID
+						token = "Bearer ${activity.userToken}",
+						_id = propertyId!!
 					)
-				else if (action == Enums.ObserverAction.INSERT_SERVER)
-					propertyService.propertyAPI.insertProperty(
-						userUUID = userUUID,
-						fieldName = fieldName,
-						fieldValue = fieldValue
+				else if (action == Enums.ObserverAction.CREATE)
+					propertyService.propertyAPI.createProperty(
+						token = "Bearer ${activity.userToken}",
+						PropertyRequest(propertyId = null, fieldName = fieldName!!, fieldValue = fieldValue!!)
 					)
 				else
 					propertyService.propertyAPI.updateProperty(
-						UUID = propertyUUID,
-						userUUID = userUUID,
-						fieldName = fieldName,
-						fieldValue = fieldValue
+						token = "Bearer ${activity.userToken}",
+						PropertyRequest(propertyId = propertyId!!, fieldName = fieldName!!, fieldValue = fieldValue)
 					)
 
-			call?.enqueue(object : Callback<PropertyModel?> {
-				override fun onResponse(call: Call<PropertyModel?>, response: Response<PropertyModel?>) {
+			call?.enqueue(object : Callback<PropertyEntity?> {
+				override fun onResponse(call: Call<PropertyEntity?>, response: Response<PropertyEntity?>) {
 					Utilities.log(Enums.LogType.Debug, TAG, "actionServerProperty(): action = $action ; response = $response ; body = ${response.body()}")
-					val result: PropertyModel? = response.body()
+					val result: PropertyEntity? = response.body()
 
-					if (response.code() == 200 && response.body()?.success == true) {
+					if (response.code() == 200) {
 						try {
-							setServerPropertyInsertUpdate(action, result?.data)
+							setProperty(action, result)
 						}
 						catch (e: Exception) {
-							Utilities.log(Enums.LogType.Error, TAG, "actionServerProperty(): action = $action ; e = ${e.message} ; result.data = ${result?.data.toString()}")
-							setServerPropertyInsertUpdate(action, null)
+							Utilities.log(Enums.LogType.Error, TAG, "actionServerProperty(): action = $action ; e = ${e.message} ; result.data = ${result?.toString()}")
+							setProperty(action, null)
 						}
 					}
 					else {
 						Utilities.log(Enums.LogType.Error, TAG, "actionServerProperty(): action = $action ; response = $response")
-						setServerPropertyInsertUpdate(action, null)
+						setProperty(action, null)
 					}
 				}
 
-				override fun onFailure(call: Call<PropertyModel?>, t: Throwable) {
-					setServerPropertyInsertUpdate(action, null)
-					Utilities.log(Enums.LogType.Error, TAG, "actionServerProperty(): action = $action ; onFailure = $t ; uuid = ${propertyUUID} ; userUUID = ${userUUID} ; fieldName = ${fieldName} ; fieldValue = ${fieldValue}")
+				override fun onFailure(call: Call<PropertyEntity?>, t: Throwable) {
+					setProperty(action, null)
+					Utilities.log(Enums.LogType.Error, TAG, "actionServerProperty(): action = $action ; onFailure = $t ; _id = ${propertyId} ; fieldName = ${fieldName} ; fieldValue = ${fieldValue}")
 					call.cancel()
 				}
 			})
 		}
 	}
 
-	private fun setServerPropertyInsertUpdate(action: Enums.ObserverAction, response: PropertyDataClass?) {
-		Utilities.log(Enums.LogType.Debug, TAG, "setServerPropertyInsertUpdate(): action = $action", showToast = false)
+	private fun setProperty(action: Enums.ObserverAction, response: PropertyEntity?) {
+		Utilities.log(Enums.LogType.Debug, TAG, "setProperty(): action = $action", showToast = false)
 		when (action) {
-			Enums.ObserverAction.GET_SERVER ->
-				this.serverPropertyGet.postValue(response?.property)
-			Enums.ObserverAction.INSERT_SERVER ->
-				this.serverPropertyInsert.postValue(response?.property)
-			Enums.ObserverAction.UPDATE_SERVER ->
-				this.serverPropertyUpdate.postValue(response?.property)
+			Enums.ObserverAction.GET ->
+				this.propertyGet.postValue(response)
+			Enums.ObserverAction.CREATE ->
+				this.propertyInsert.postValue(response)
+			Enums.ObserverAction.UPDATE ->
+				this.propertyUpdate.postValue(response)
 
 			else -> {}
 		}
 	}
 
-	// == ROOM =====
+	// == LOCAL =====
 
-	fun getRoomProperty(applicationContext: Context, propertyUUID: String?) {
+	fun getLocalProperty(applicationContext: Context, propertyId: String?) {
 		CoroutineScope(Dispatchers.IO).launch {
-			val resultProperty =
+			val localProperty =
 				DatabaseClient.getInstance(applicationContext)?.appDatabase?.propertyDao()
-					?.findByUUID(
-						if (!(propertyUUID.isNullOrEmpty()))
-							propertyUUID
+					?.findById(
+						if (!(propertyId.isNullOrEmpty()))
+							propertyId
 						else
 							""
 					)
-			setRoomProperty(resultProperty)
+			setLocalProperty(localProperty)
 		}
 	}
 
-	private fun setRoomProperty(property: PropertyEntity?) {
-		this.roomPropertyGet.postValue(property)
+	private fun setLocalProperty(property: PropertyEntity?) {
+		this.localPropertyGet.postValue(property)
 	}
 
-	fun actionRoomProperty(applicationContext: Context, propertyData: PropertyEntity?) {
+	fun actionLocalProperty(applicationContext: Context, propertyData: PropertyEntity?) {
 		Utilities.log(Enums.LogType.Debug, TAG, "actionRoomProperty(): propertyData = $propertyData")
 
 		val action = if (propertyData?.roomID == null || propertyData.roomID == 0L)
-			Enums.ObserverAction.INSERT_ROOM
+			Enums.ObserverAction.INSERT_LOCAL
 		else
-			Enums.ObserverAction.UPDATE_ROOM
+			Enums.ObserverAction.UPDATE_LOCAL
 
 		CoroutineScope(Dispatchers.IO).launch {
-			if (action == Enums.ObserverAction.INSERT_ROOM) {
+			if (action == Enums.ObserverAction.INSERT_LOCAL) {
 				propertyData?.roomID = DatabaseClient.getInstance(applicationContext)?.appDatabase?.propertyDao()?.insert(propertyData!!)
-				Utilities.log(Enums.LogType.Debug, TAG, "actionRoomProperty(): action = $action ; roomID = ${propertyData?.roomID}")
+				Utilities.log(Enums.LogType.Debug, TAG, "actionLocalProperty(): action = $action ; roomID = ${propertyData?.roomID}")
 			}
 			else {
 				DatabaseClient.getInstance(applicationContext)?.appDatabase?.propertyDao()?.update(propertyData!!)
-				Utilities.log(Enums.LogType.Debug, TAG, "actionRoomProperty(): action = $action ; roomID = ${propertyData?.roomID}")
+				Utilities.log(Enums.LogType.Debug, TAG, "actionLocalProperty(): action = $action ; roomID = ${propertyData?.roomID}")
 			}
-			setRoomPropertyInsertUpdate(action, propertyData!!)
+			setLocalPropertySave(action, propertyData!!)
 		}
 	}
 
-	private fun setRoomPropertyInsertUpdate(action: Enums.ObserverAction, property: PropertyEntity) {
-		Utilities.log(Enums.LogType.Debug, TAG, "setRoomPropertyInsertUpdate(): action = $action", showToast = false)
-		if (action == Enums.ObserverAction.INSERT_ROOM) {
-			this.roomPropertyInsertRoom.postValue(property)
+	private fun setLocalPropertySave(action: Enums.ObserverAction, property: PropertyEntity) {
+		Utilities.log(Enums.LogType.Debug, TAG, "setLocalPropertySave(): action = $action", showToast = false)
+		if (action == Enums.ObserverAction.INSERT_LOCAL) {
+			this.localPropertyInsert.postValue(property)
 		}
 		else {
-			this.roomPropertyUpdateRoom.postValue(property)
+			this.localPropertyUpdate.postValue(property)
 		}
 	}
 

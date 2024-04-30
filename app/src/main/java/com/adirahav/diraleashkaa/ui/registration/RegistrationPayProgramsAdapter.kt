@@ -166,7 +166,7 @@ class RegistrationPayProgramsAdapter(
 
         // data container - price
         if (property?.price != null) {
-            val priceString = Utilities.getRoomString("signup_pay_program_price")
+            val priceString = Utilities.getLocalPhrase("signup_pay_program_price")
             if (priceString.isNotEmpty()) {
                 holder.price!!.text = String.format(priceString, property.price)
             }
@@ -179,10 +179,10 @@ class RegistrationPayProgramsAdapter(
         when (unit?.lowercase()) {
             "d" ->
                 when {
-                    count == 1 -> return Utilities.getRoomString("signup_pay_program_1_day")
-                    count == 2 -> return Utilities.getRoomString("signup_pay_program_2_days")
+                    count == 1 -> return Utilities.getLocalPhrase("signup_pay_program_1_day")
+                    count == 2 -> return Utilities.getLocalPhrase("signup_pay_program_2_days")
                     count ?: 0 > 2 -> {
-                        val daysString = Utilities.getRoomString("signup_pay_program_many_days")
+                        val daysString = Utilities.getLocalPhrase("signup_pay_program_many_days")
                         if (daysString.isNotEmpty()) {
                             return String.format(daysString, count)
                         }
@@ -190,10 +190,10 @@ class RegistrationPayProgramsAdapter(
                 }
             "w" ->
                 when {
-                    count == 1 -> return Utilities.getRoomString("signup_pay_program_1_week")
-                    count == 2 -> return Utilities.getRoomString("signup_pay_program_2_weeks")
+                    count == 1 -> return Utilities.getLocalPhrase("signup_pay_program_1_week")
+                    count == 2 -> return Utilities.getLocalPhrase("signup_pay_program_2_weeks")
                     count ?: 0 > 2 -> {
-                        val weeksString = Utilities.getRoomString("signup_pay_program_many_weeks")
+                        val weeksString = Utilities.getLocalPhrase("signup_pay_program_many_weeks")
                         if (weeksString.isNotEmpty()) {
                             return String.format(weeksString, count)
                         }
@@ -202,10 +202,10 @@ class RegistrationPayProgramsAdapter(
 
             "m" ->
                 when {
-                    count == 1 -> return Utilities.getRoomString("signup_pay_program_1_month")
-                    count == 2 -> return Utilities.getRoomString("signup_pay_program_2_monthes")
+                    count == 1 -> return Utilities.getLocalPhrase("signup_pay_program_1_month")
+                    count == 2 -> return Utilities.getLocalPhrase("signup_pay_program_2_monthes")
                     count ?: 0 > 2 -> {
-                        val monthsString = Utilities.getRoomString("signup_pay_program_many_monthes")
+                        val monthsString = Utilities.getLocalPhrase("signup_pay_program_many_monthes")
                         if (monthsString.isNotEmpty()) {
                             return String.format(monthsString, count)
                         }
@@ -213,16 +213,16 @@ class RegistrationPayProgramsAdapter(
                 }
             "y" ->
                 when {
-                    count == 1 -> return Utilities.getRoomString("signup_pay_program_1_year")
-                    count == 2 -> return Utilities.getRoomString("signup_pay_program_2_years")
+                    count == 1 -> return Utilities.getLocalPhrase("signup_pay_program_1_year")
+                    count == 2 -> return Utilities.getLocalPhrase("signup_pay_program_2_years")
                     count ?: 0 > 2 -> {
-                        val yearsString = Utilities.getRoomString("signup_pay_program_many_years")
+                        val yearsString = Utilities.getLocalPhrase("signup_pay_program_many_years")
                         if (yearsString.isNotEmpty()) {
                             return String.format(yearsString, count)
                         }
                     }
                 }
-            "u" -> return Utilities.getRoomString("signup_pay_program_unlimited")
+            "u" -> return Utilities.getLocalPhrase("signup_pay_program_unlimited")
         }
 
         return ""

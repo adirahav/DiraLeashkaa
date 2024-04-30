@@ -7,7 +7,6 @@ import android.content.res.Resources
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -43,10 +42,9 @@ import com.adirahav.diraleashkaa.common.Configuration.PHONE_PATTERN
 import com.adirahav.diraleashkaa.data.DataManager
 import com.adirahav.diraleashkaa.data.network.dataClass.EmailDataClass
 import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
-import com.adirahav.diraleashkaa.data.network.entities.StringEntity
+import com.adirahav.diraleashkaa.data.network.entities.PhraseEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.data.network.models.EmailModel
-import com.adirahav.diraleashkaa.gmailbackgroundlibrary.BackgroundMail
 import com.adirahav.diraleashkaa.ui.dialog.FancyDialog
 import com.adirahav.diraleashkaa.ui.dialog.FancyDialogListener
 import com.adirahav.diraleashkaa.views.LabelWithIcon
@@ -65,7 +63,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.lang.Thread.sleep
 import java.lang.reflect.Type
-import java.security.MessageDigest
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -138,11 +135,11 @@ object Utilities {
 
             val fullMessage = "${message}\n\n" +
                     "------------------------------------------------------------------------------\n\n" +
-                    "userName: ${userData?.userName}\n" +
+                    "fullname: ${userData?.fullname}\n" +
                     "property:\n" + "${propertyData?.toString()}\n\n"
 
 
-            val call: Call<EmailModel?>? = DataManager.instance?.emailService?.emailAPI?.sendEmail(userData?.uuid, type, subject, fullMessage)
+            val call: Call<EmailModel?>? = DataManager.instance?.emailService?.emailAPI?.sendEmail(userData?.email, type, subject, fullMessage)
 
             call?.enqueue(object : Callback<EmailModel?> {
                 override fun onResponse(call: Call<EmailModel?>, response: Response<EmailModel?>) {
@@ -243,8 +240,8 @@ object Utilities {
 
     //region == form validation ====
 
-    fun isPhoneValid(email: String): Boolean {
-        return !TextUtils.isEmpty(email) && PHONE_PATTERN.matcher(email).matches()
+    fun isPhoneValidp(hone: String): Boolean {
+        return !TextUtils.isEmpty(hone) && PHONE_PATTERN.matcher(hone).matches()
     }
 
     fun isEmailValid(email: String): Boolean {
@@ -500,6 +497,14 @@ object Utilities {
 
     //endregion == buttons ============
 
+    //region == inputs =============
+
+    fun setInputDisable(editText: EditText?) {
+        editText?.style(R.style.formFieldDarkDisable)
+        editText?.isEnabled = false
+    }
+
+    //endregion == inputs =============
 
     /////
 
@@ -557,9 +562,9 @@ object Utilities {
 
     //region == get map value by key ==
 
-    fun getMapStringValue(map: Map<String, Any?>?, key: String) : String {
+    fun getMapStringValue(map: Map<String, Any?>?, key: String) : String? {
         val entities =  (map?.get("entities")) as Map<*, *>
-        return if (entities.containsKey(key)) { entities[key].toString() } else { "" }
+        return if (entities.containsKey(key)) { entities[key].toString() } else { null }
     }
 
     fun getMapIntValue(map: Map<String, Any?>?, key: String) : Int? {
@@ -572,9 +577,9 @@ object Utilities {
         return if (entities.containsKey(key)) { entities[key].toString().toFloat() } else { null }
     }
 
-    fun getMapLongValue(map: Map<String, Any?>?, key: String) : Long {
+    fun getMapLongValue(map: Map<String, Any?>?, key: String) : Long? {
         val entities =  (map?.get("entities")) as Map<*, *>
-        return if (entities.containsKey(key)) { entities[key].toString().toLong()} else { 0 }
+        return if (entities.containsKey(key)) { entities[key].toString().toLong()} else { null }
     }
 
     fun getMapBooleanValue(map: Map<String, Any?>?, key: String) : Boolean? {
@@ -656,7 +661,7 @@ object Utilities {
 
     fun openFancyDialog(context: Context, dialogType: Enums.DialogType, responsePositive: (() -> Unit)?, responseNegative: (() -> Unit)?, messageArgs: Array<Any>): FancyDialog {
 
-        if (roomStrings.isNullOrEmpty()) {
+        if (localPhrase.isNullOrEmpty()) {
             return FancyDialog.Builder(context)
                 .setTitle(findStringByName("dialog_${dialogType.name.lowercase()}_title"))
                 .setMessage(AppApplication.context.getString(findStringByName("dialog_${dialogType.name.lowercase()}_message"), *messageArgs))
@@ -689,10 +694,10 @@ object Utilities {
         }
         else {
             return FancyDialog.Builder(context)
-                .setTitle(getRoomString("dialog_${dialogType.name.lowercase()}_title"))
-                .setMessage(String.format(getRoomString("dialog_${dialogType.name.lowercase()}_message"), *messageArgs))
-                .setPositiveBtnText(getRoomString("dialog_${dialogType.name.lowercase()}_positive"))
-                .setNegativeBtnText(getRoomString("dialog_${dialogType.name.lowercase()}_negative"))
+                .setTitle(getLocalPhrase("dialog_${dialogType.name.lowercase()}_title"))
+                .setMessage(String.format(getLocalPhrase("dialog_${dialogType.name.lowercase()}_message"), *messageArgs))
+                .setPositiveBtnText(getLocalPhrase("dialog_${dialogType.name.lowercase()}_positive"))
+                .setNegativeBtnText(getLocalPhrase("dialog_${dialogType.name.lowercase()}_negative"))
                 .setGifResource(findDrawableByName("anim_dialog_${dialogType.name.lowercase()}"))
                 .setBackgroundColor(findColorByName("dialog_background_${dialogType.name.lowercase()}"))
                 .isCancellable(
@@ -775,19 +780,19 @@ object Utilities {
 
         val leftTime =
             if (diffInSec == 1L)
-                Utilities.getRoomString("snack_expired_second")
+                Utilities.getLocalPhrase("snack_expired_second")
             else if (diffInSec < 60L)
-                String.format(Utilities.getRoomString("snack_expired_seconds"), diffInSec)
+                String.format(Utilities.getLocalPhrase("snack_expired_seconds"), diffInSec)
             else if (diffInMinutes == 1L)
-                Utilities.getRoomString("snack_expired_minute")
+                Utilities.getLocalPhrase("snack_expired_minute")
             else if (diffInMinutes < 60L)
-                String.format(Utilities.getRoomString("snack_expired_minutes"), diffInMinutes)
+                String.format(Utilities.getLocalPhrase("snack_expired_minutes"), diffInMinutes)
             else if (diffInHours == 1L)
-                Utilities.getRoomString("snack_expired_hour")
+                Utilities.getLocalPhrase("snack_expired_hour")
             else if (diffInHours == 2L)
-                Utilities.getRoomString("snack_expired_two_hours")
+                Utilities.getLocalPhrase("snack_expired_two_hours")
             else if (diffInHours < 24L)
-                String.format(Utilities.getRoomString("snack_expired_hours"), diffInHours)
+                String.format(Utilities.getLocalPhrase("snack_expired_hours"), diffInHours)
             /*else if (diffInDays == 1L)
                 context.resources.getString(R.string.snack_expired_day)
             else if (diffInDays == 2L)
@@ -802,7 +807,7 @@ object Utilities {
         }
 
         return String.format(
-            getRoomString("snack_${snackType.toString().lowercase()}"),
+            getLocalPhrase("snack_${snackType.toString().lowercase()}"),
             leftTime)
 
     }
@@ -919,63 +924,63 @@ object Utilities {
 
     //endregion == internet connection ===
 
-    //region == strings ===============
+    //region == phrases ===============
 
-    var roomStrings: ArrayList<StringEntity>? = null
+    var localPhrase: ArrayList<PhraseEntity>? = null
 
-    fun getRoomString(key: String) : String {
-        if (roomStrings?.find { it.key == key }?.value != null) {
-            return roomStrings?.find { it.key == key }?.value.toString()
+    fun getLocalPhrase(key: String) : String {
+        if (localPhrase?.find { it.key == key }?.value != null) {
+            return localPhrase?.find { it.key == key }?.value.toString()
         }
 
         return key
     }
 
     fun setTextViewString(textView: TextView?, key: String) {
-        textView?.text = getRoomString(key)
+        textView?.text = getLocalPhrase(key)
     }
 
     fun setTextViewHtml(textView: TextView?, key: String) {
-        if (roomStrings?.find { it.key == key }?.value != null) {
+        if (localPhrase?.find { it.key == key }?.value != null) {
             textView?.text =
-                HtmlCompat.fromHtml(getRoomString(key), HtmlCompat.FROM_HTML_MODE_LEGACY)
+                HtmlCompat.fromHtml(getLocalPhrase(key), HtmlCompat.FROM_HTML_MODE_LEGACY)
         }
     }
 
     fun setLabelViewString(labelView: LabelWithIcon?, textKey: String, tooltipKey: String? = null) {
-        labelView?.setLabelText(getRoomString(textKey))
+        labelView?.setLabelText(getLocalPhrase(textKey))
 
-        if (tooltipKey != null && getRoomString(tooltipKey).isNotEmpty()) {
-            labelView?.setTooltipText(getRoomString(tooltipKey))
+        if (tooltipKey != null && getLocalPhrase(tooltipKey).isNotEmpty()) {
+            labelView?.setTooltipText(getLocalPhrase(tooltipKey))
         }
     }
 
     fun setInputViewString(inputView: PropertyInput?, textKey: String, textWithoutValueKey: String? = null, warningKey: String? = null) {
-        inputView?.setInputLabelText(getRoomString(textKey))
+        inputView?.setInputLabelText(getLocalPhrase(textKey))
 
         if (textWithoutValueKey != null) {
-            inputView?.setInputLabelWithoutValueText(getRoomString(textWithoutValueKey))
+            inputView?.setInputLabelWithoutValueText(getLocalPhrase(textWithoutValueKey))
         }
 
         if (warningKey != null) {
-            inputView?.setInputWarningText(getRoomString(warningKey))
+            inputView?.setInputWarningText(getLocalPhrase(warningKey))
         }
     }
 
     fun setPropertyInputString(inputView: PropertyInput?, textKey: String, textWithoutValueKey: String? = null, warningKey: String? = null) {
-        inputView?.setInputLabelText(getRoomString(textKey))
+        inputView?.setInputLabelText(getLocalPhrase(textKey))
 
         if (textWithoutValueKey != null) {
-            inputView?.setInputLabelWithoutValueText(getRoomString(textWithoutValueKey))
+            inputView?.setInputLabelWithoutValueText(getLocalPhrase(textWithoutValueKey))
         }
 
         if (warningKey != null) {
-            inputView?.setInputWarningText(getRoomString(warningKey))
+            inputView?.setInputWarningText(getLocalPhrase(warningKey))
         }
     }
 
     fun setPropertyPercentViewString(inputView: PropertyPercent?, textKey: String) {
-        inputView?.setInputLabelText(getRoomString(textKey))
+        inputView?.setInputLabelText(getLocalPhrase(textKey))
     }
     //endregion == strings ===============
 
@@ -1157,116 +1162,5 @@ object Utilities {
         val appID = if (appURLArr.size == 2) appURLArr[1] else ""
         return appID
     }
-
-    //region == model to entity ====
-    /*fun fixedParametersModelToEntity(fixedParametersModel: FixedParametersModel?) : FixedParametersEntity {
-        val nowUTC = Calendar.getInstance()
-        nowUTC.timeZone = TimeZone.getTimeZone("UTC")
-
-        return FixedParametersEntity(
-            trialPeriod = fixedParametersModel?.trialPeriod,
-            expirationAlert = fixedParametersModel?.expirationAlert,
-            appVersion = fixedParametersModel?.appVersion,
-            propertyInputs = fixedParametersModel?.propertyInputs,
-            propertyValues = fixedParametersModel?.propertyValues,
-            indexesAndInterests = fixedParametersModel?.indexesAndInterests,
-            averageInterests = fixedParametersModel?.averageInterests,
-            additionalInterests = fixedParametersModel?.additionalInterests,
-            cities = fixedParametersModel?.cities,
-            apartmentTypes = fixedParametersModel?.apartmentTypes,
-            contactUs = fixedParametersModel?.contactUs,
-            mortgagePeriods = fixedParametersModel?.mortgagePeriods,
-            serverUpdateTime = nowUTC.timeInMillis,
-            onError = fixedParametersModel?.onError,
-        )
-    }
-
-    fun userModelToEntity(userModel: UserModel?) : UserEntity {
-        return UserEntity(
-            uuid = userModel?.uuid,
-            userName = userModel?.userName,
-            email = userModel?.email,
-            age = userModel?.age,
-            phoneNumber = userModel?.phoneNumber,
-            phoneNumberSMSVerified = userModel?.phoneNumberSMSVerified,
-            deviceID = userModel?.deviceID,
-            deviceType = userModel?.deviceType,
-            equity = userModel?.equity,
-            incomes = userModel?.incomes,
-            commitments = userModel?.commitments,
-            termsOfUseAcceptTime = userModel?.termsOfUseAcceptTime,
-            subscriberType = userModel?.subscriberType,
-            registrationExpiredTime = userModel?.registrationExpiredTime,
-            appVersion = userModel?.appVersion,
-            isFirstLogin = userModel?.isFirstLogin,
-        )
-    }*/
-
-    /*fun propertyModelToEntity(propertyModel: PropertyModel?) : PropertyEntity {
-
-        return PropertyEntity(
-            uuid = propertyModel?.uuid,
-            pictures = propertyModel?.pictures,
-            city = propertyModel?.city,
-            cityElse = propertyModel?.cityElse,
-            address = propertyModel?.address,
-            apartmentType = propertyModel?.apartmentType,
-            price = propertyModel?.price,
-            transferTax = propertyModel?.transferTax,
-            equity = propertyModel?.equity,
-            incomes = propertyModel?.incomes,
-            commitments = propertyModel?.commitments,
-            disposableIncome = propertyModel?.disposableIncome,
-            possibleMonthlyRepaymentPercent = propertyModel?.possibleMonthlyRepaymentPercent,
-            lawyerPercent = propertyModel?.lawyerPercent,
-            lawyerCustom = propertyModel?.lawyerCustom,
-            lawyer = propertyModel?.lawyer,
-            realEstateAgentPercent = propertyModel?.realEstateAgentPercent,
-            realEstateAgentCustom = propertyModel?.realEstateAgentCustom,
-            realEstateAgent = propertyModel?.realEstateAgent,
-            brokerMortgage = propertyModel?.brokerMortgage,
-            repairing = propertyModel?.repairing,
-            rentPercent = propertyModel?.rentPercent,
-            rentCustom = propertyModel?.rentCustom,
-            rent = propertyModel?.rent,
-            rentCleaningExpenses = propertyModel?.rentCleaningExpenses,
-            lifeInsurance = propertyModel?.lifeInsurance,
-            structureInsurance = propertyModel?.structureInsurance,
-            incidentalsTotal = propertyModel?.incidentalsTotal,
-            equityCleaningExpenses = propertyModel?.equityCleaningExpenses,
-            mortgageRequired = propertyModel?.mortgageRequired,
-            mortgageMonthlyRepayment = propertyModel?.mortgageMonthlyRepayment,
-            mortgagePeriod = propertyModel?.mortgagePeriod,
-            maxPercentOfFinancing = propertyModel?.maxPercentOfFinancing,
-            actualPercentOfFinancing = propertyModel?.actualPercentOfFinancing,
-            showInterestsContainer = propertyModel?.showInterestsContainer,
-            indexPercent = propertyModel?.indexPercent,
-            defaultIndexPercent = propertyModel?.defaultIndexPercent,
-            interestPercent = propertyModel?.interestPercent,
-            defaultInterestPercent = propertyModel?.defaultInterestPercent,
-            interestIn5YearsDeltaPercent = propertyModel?.interestIn5YearsDeltaPercent,
-            defaultInterestIn5YearsDeltaPercent = propertyModel?.defaultInterestIn5YearsDeltaPercent,
-            interestIn10YearsDeltaPercent = propertyModel?.interestIn10YearsDeltaPercent,
-            defaultInterestIn10YearsDeltaPercent = propertyModel?.defaultInterestIn10YearsDeltaPercent,
-            averageInterestAtTakingPercent = propertyModel?.averageInterestAtTakingPercent,
-            defaultAverageInterestAtTakingPercent = propertyModel?.defaultAverageInterestAtTakingPercent,
-            averageInterestAtMaturityPercent = propertyModel?.averageInterestAtMaturityPercent,
-            defaultAverageInterestAtMaturityPercent = propertyModel?.defaultAverageInterestAtMaturityPercent,
-            interestToCapitalizePercent = propertyModel?.interestToCapitalizePercent,
-            defaultInterestToCapitalizePercent = propertyModel?.defaultInterestToCapitalizePercent,
-            forecastAnnualPriceIncreasePercent = propertyModel?.forecastAnnualPriceIncreasePercent,
-            defaultForecastAnnualPriceIncreasePercent = propertyModel?.defaultForecastAnnualPriceIncreasePercent,
-            salesCostsPercent = propertyModel?.salesCostsPercent,
-            defaultSalesCostsPercent = propertyModel?.defaultSalesCostsPercent,
-            depreciationForTaxPurposesPercent = propertyModel?.depreciationForTaxPurposesPercent,
-            defaultDepreciationForTaxPurposesPercent = propertyModel?.defaultDepreciationForTaxPurposesPercent,
-            taxOnSale = propertyModel?.taxOnSale,
-            defaultTaxOnSale = propertyModel?.defaultTaxOnSale,
-            saleYearsPeriod = propertyModel?.saleYearsPeriod,
-            defaultSaleYearsPeriod = propertyModel?.defaultSaleYearsPeriod,
-            archive = propertyModel?.archive,
-        )
-    }*/
-    //endregion == model to entity ====
 
 }

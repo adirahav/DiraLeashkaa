@@ -2,30 +2,22 @@ package com.adirahav.diraleashkaa.ui.signup
 
 import android.app.Dialog
 import android.os.Bundle
+import android.text.InputType
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
-import android.view.View.GONE
-import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.view.WindowManager
-import android.widget.Button
-import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.core.view.GravityCompat
-import androidx.recyclerview.widget.RecyclerView
+import androidx.core.content.ContextCompat
+import androidx.core.text.HtmlCompat
 import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.*
-import com.adirahav.diraleashkaa.common.Utilities.findStringByName
-import com.adirahav.diraleashkaa.data.network.entities.APIResponseErrorEntity
-import com.adirahav.diraleashkaa.data.network.entities.SMSCodeValidationEntity
-import com.adirahav.diraleashkaa.data.network.entities.UserEntity
-import com.adirahav.diraleashkaa.data.network.models.SMSCodeValidationModel
+import com.adirahav.diraleashkaa.common.Utilities.setInputDisable
+import com.adirahav.diraleashkaa.data.network.response.UserResponse
 import com.adirahav.diraleashkaa.databinding.FragmentSignupPersonalInfoBinding
+import com.adirahav.diraleashkaa.ui.login.LoginActivity
 import com.adirahav.diraleashkaa.ui.user.UserActivity
-import kotlinx.coroutines.runBlocking
-import java.util.Calendar
 
 
 class SignUpPersonalInfoFragment : Fragment() {
@@ -47,10 +39,10 @@ class SignUpPersonalInfoFragment : Fragment() {
     private var isSignUpActivity: Boolean? = null
 
     // user data
-    var userData: UserEntity? = null
+    var userData: UserResponse? = null
 
     // layout
-    private var layout: FragmentSignupPersonalInfoBinding? = null
+    internal var layout: FragmentSignupPersonalInfoBinding? = null
 
     // sms
     var smsDialog: Dialog? = null
@@ -79,9 +71,6 @@ class SignUpPersonalInfoFragment : Fragment() {
         _signupActivity = if (isSignUpActivity!!) activity as SignUpActivity else null
         _userActivity = if (!isSignUpActivity!!) activity as UserActivity else null
 
-        // user data
-        userData = if (isSignUpActivity!!) _signupActivity?.userData else _userActivity?.userData
-
         // hide keyboard
         Utilities.hideKeyboard(requireContext())
 
@@ -96,70 +85,134 @@ class SignUpPersonalInfoFragment : Fragment() {
         }
 
         // strings
-        setRoomStrings()
+        setPhrases()
     }
 
     fun initData() {
 
-        // name
-        layout?.name?.setText(userData?.userName)
-        layout?.name?.contentDescription = Utilities.getRoomString("signup_name_label")
-
-        // phone number
-        layout?.phone?.setText(
-            if (userData?.phoneNumber?.length ?: 0 > 3)
-                "${userData?.phoneNumber?.substring(0,3)}-${userData?.phoneNumber?.substring(3)}"
-            else
-                userData?.phoneNumber
+        // fullname
+        layout?.fullname?.setText(
+                if (isSignUpActivity!!)
+                    _signupActivity?.loggingUser?.fullname ?: ""
+                else
+                    _userActivity?.loggedinUser?.fullname ?: ""
         )
-        layout?.phone?.contentDescription = Utilities.getRoomString("signup_phone_label")
-
-        if (isSignUpActivity == false) {
-            layout?.phone?.isEnabled = false
-        }
+        layout?.fullname?.contentDescription = Utilities.getLocalPhrase("signup_name_label")
 
         // email
-        layout?.email?.setText(userData?.email)
-        layout?.email?.contentDescription = Utilities.getRoomString("signup_email_label")
+        layout?.email?.setText(
+                if (isSignUpActivity!!)
+                    _signupActivity?.loggingUser?.email ?: ""
+                else
+                    _userActivity?.loggedinUser?.email ?: ""
+        )
+        layout?.email?.contentDescription = Utilities.getLocalPhrase("signup_email_label")
+
+        if (!isSignUpActivity!!) {
+            setInputDisable(layout?.email)
+        }
+
+        // password
+        if (isSignUpActivity!!) {
+            layout?.password?.setText("")
+            layout?.password?.contentDescription = Utilities.getLocalPhrase("signup_password_label")
+        }
+        else {
+            layout?.passwordLabel?.visibility = View.GONE
+            layout?.password?.visibility = View.GONE
+            layout?.passwordError?.visibility = View.GONE
+        }
 
         // year of birth
-        layout?.yearOfBirth?.setText((userData?.yearOfBirth ?: "").toString())
-        layout?.yearOfBirth?.contentDescription = Utilities.getRoomString("signup_year_of_birth_hint")
+        layout?.yearOfBirth?.setText(
+                if (isSignUpActivity!!)
+                    (_signupActivity?.loggingUser?.yearOfBirth ?: "").toString()
+                else
+                    (_userActivity?.loggedinUser?.yearOfBirth ?: "").toString()
+        )
+        layout?.yearOfBirth?.contentDescription = Utilities.getLocalPhrase("signup_year_of_birth_hint")
 
+        if (!isSignUpActivity!!) {
+            layout?.login?.visibility = View.GONE
+        }
         // TO DELETE
-        /*layout.name.setText("adi")
-        layout.phone.setText("054-6789966")
-        layout.email.setText("adi_rahav@yahoo.com")
-        layout.yearOfBirth.setText("1976")*/
+        /*layout?.fullname?.setText("עדי 20")
+        layout?.password?.setText("Aa123456!")
+        layout?.email?.setText("adi20@gmail.com")
+        layout?.yearOfBirth?.setText("1976")*/
         // TO DELETE
     }
 
     fun initEvents() {
 
         // name
-        layout?.name?.requestFocus()
+        layout?.fullname?.requestFocus()
 
-        // phone
-        layout?.phone?.addTextChangedListener(PhoneNumber(layout?.phone))
+        // password
+        if (isSignUpActivity!!) {
+            var isShowPasswordIcon = true
 
+            val paddingExtra = resources.getDimensionPixelOffset(R.dimen.padding)
+
+            val showPasswordIcon = ContextCompat.getDrawable(requireContext(), R.drawable.icon_show_password)
+            showPasswordIcon!!.setBounds(0, 0, showPasswordIcon.intrinsicWidth + paddingExtra, showPasswordIcon.intrinsicHeight)
+
+            val hidePasswordIcon = ContextCompat.getDrawable(requireContext(), R.drawable.icon_hide_password)
+            hidePasswordIcon!!.setBounds(0, 0, hidePasswordIcon.intrinsicWidth + paddingExtra, hidePasswordIcon.intrinsicHeight)
+
+            layout?.password?.setCompoundDrawablesWithIntrinsicBounds(null, null, showPasswordIcon, null)
+            layout?.password?.setOnTouchListener { _, event ->
+                if (event.action == MotionEvent.ACTION_UP && event.rawX >= requireView().width - requireView().paddingRight - layout?.password!!.compoundDrawables[2]!!.intrinsicWidth) {
+
+                    if (isShowPasswordIcon) {
+                        layout?.password?.setCompoundDrawablesWithIntrinsicBounds(null, null, hidePasswordIcon, null)
+                        layout?.password?.inputType = InputType.TYPE_CLASS_TEXT
+                    }
+                    else {
+                        layout?.password?.setCompoundDrawablesWithIntrinsicBounds(null, null, showPasswordIcon, null)
+                        layout?.password?.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                    }
+
+                    isShowPasswordIcon = !isShowPasswordIcon
+
+                    true
+                } else {
+                    false
+                }
+
+            }
+
+
+        }
+
+        // sign up
+        if (isSignUpActivity!!) {
+            layout?.login?.setOnClickListener {
+                goToLogin()
+            }
+        }
     }
 
     //region == strings ============
 
-    private fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    private fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        Utilities.setLabelViewString(layout?.nameLabel, "signup_name_label")
-        Utilities.setTextViewString(layout?.nameError, "signup_name_error")
-
-        Utilities.setLabelViewString(layout?.phoneLabel, "signup_phone_label")
-        Utilities.setTextViewString(layout?.phoneError, "signup_phone_error")
+        Utilities.setLabelViewString(layout?.fullnameLabel, "signup_fullname_label")
+        Utilities.setTextViewString(layout?.fullnameError, "signup_fullname_error")
 
         Utilities.setLabelViewString(layout?.emailLabel, "signup_email_label")
         Utilities.setTextViewString(layout?.emailError, "signup_email_error")
 
+        Utilities.setLabelViewString(layout?.passwordLabel, "signup_password_label")
+        Utilities.setTextViewString(layout?.passwordError, "signup_password_error")
+
         Utilities.setLabelViewString(layout?.yearOfBirthLabel, "signup_year_of_birth_hint")
         Utilities.setTextViewString(layout?.yearOfBirthError, "signup_year_of_birth_error")
+
+        layout?.login?.text = HtmlCompat.fromHtml(
+                Utilities.getLocalPhrase("signup_goto_login"),
+                HtmlCompat.FROM_HTML_MODE_LEGACY)
 
     }
 
@@ -168,35 +221,37 @@ class SignUpPersonalInfoFragment : Fragment() {
     fun submitForm(): Map<String, Any?> {
         var isValid = true
 
-        // name
-        if (layout?.name?.text.toString().trim().isEmpty()) {
-            layout?.nameError?.visibility = View.VISIBLE
+        // fullname
+        if (layout?.fullname?.text.toString().trim().isEmpty()) {
+            layout?.fullnameError?.visibility = View.VISIBLE
 
             if (isValid) {
-                layout?.name?.requestFocus()
+                layout?.fullname?.requestFocus()
                 isValid = false
             }
         }
         else {
-            layout?.nameError?.visibility = View.GONE
+            layout?.fullnameError?.visibility = View.GONE
         }
 
-        // phone
-        if (!Utilities.isPhoneValid(layout?.phone?.text.toString().trim())) {
-            layout?.phoneError?.visibility = View.VISIBLE
+        // password
+        if (isSignUpActivity!!) {
+            if (!Utilities.isPasswordValid(layout?.password?.text.toString().trim())) {
+                layout?.passwordError?.visibility = View.VISIBLE
 
-            if (isValid) {
-                layout?.phone?.requestFocus()
-                isValid = false
+                if (isValid) {
+                    layout?.password?.requestFocus()
+                    isValid = false
+                }
+            } else {
+                layout?.passwordError?.visibility = View.GONE
             }
-        }
-        else {
-            layout?.phoneError?.visibility = View.GONE
         }
 
         // email
         if (!Utilities.isEmailValid(layout?.email?.text.toString().trim())) {
             layout?.emailError?.visibility = View.VISIBLE
+            Utilities.setTextViewString(layout?.emailError, "signup_email_error")
 
             if (isValid) {
                 layout?.email?.requestFocus()
@@ -225,14 +280,10 @@ class SignUpPersonalInfoFragment : Fragment() {
         val entities = mutableMapOf<String, Any?>()
 
         if (isValid) {
-            entities["name"] = layout?.name?.text.toString().trim()
+            entities["fullname"] = layout?.fullname?.text.toString().trim()
             entities["email"] = layout?.email?.text.toString().trim()
-            entities["phone_number"] = layout?.phone?.text.toString().replace("-", "")
-            entities["year_of_birth"] = layout?.yearOfBirth?.text.toString().trim()
-
-            if (isSignUpActivity!! && _signupActivity?.showSMSNotification == false) {
-                entities["phone_number_sms_verified"] = false
-            }
+            entities["password"] = layout?.password?.text.toString().replace("-", "")
+            entities["yearOfBirth"] = layout?.yearOfBirth?.text.toString().trim()
         }
 
         map["isValid"] = isValid
@@ -242,7 +293,7 @@ class SignUpPersonalInfoFragment : Fragment() {
     }
 
     //region == sms ================
-
+/*
     internal fun openSMSDialog() {
         smsDialog = Dialog(requireContext())
 
@@ -251,7 +302,7 @@ class SignUpPersonalInfoFragment : Fragment() {
 
         // title
         val formLabel = smsDialog?.findViewById<TextView>(R.id.formLabel)
-        formLabel?.text = Utilities.getRoomString("sms_title")
+        formLabel?.text = Utilities.getRoomPhrase("sms_title")
 
         // code list
         val codeAdapter = SignUpSMSCodeAdapter(this@SignUpPersonalInfoFragment)
@@ -266,14 +317,14 @@ class SignUpPersonalInfoFragment : Fragment() {
 
         // send again
         val sendAgain = smsDialog?.findViewById<TextView>(R.id.sendAgain)
-        sendAgain?.text = Utilities.getRoomString("sms_link_send_again")
+        sendAgain?.text = Utilities.getRoomPhrase("sms_link_send_again")
         sendAgain?.setOnClickListener {
             sendSMSCodeAgain()
         }
 
         // send
         val send = smsDialog?.findViewById<Button>(R.id.send)
-        send?.text = Utilities.getRoomString("sms_button_send")
+        send?.text = Utilities.getRoomPhrase("sms_button_send")
         Utilities.setButtonDisable(send)
 
         send?.setOnClickListener {
@@ -322,7 +373,7 @@ class SignUpPersonalInfoFragment : Fragment() {
         if (isValid) {
             runBlocking {
                 val send = smsDialog?.findViewById<Button>(R.id.send)
-                send?.text = Utilities.getRoomString("sms_button_send")
+                send?.text = Utilities.getRoomPhrase("sms_button_send")
                 Utilities.setButtonDisable(send)
                 _signupActivity?.viewModel?.smsCodeValidation(
                     _signupActivity?.userData,
@@ -391,7 +442,10 @@ class SignUpPersonalInfoFragment : Fragment() {
             _signupActivity?.insertUpdateUser(map)
         }
     }
-
+*/
     //endregion == sms ================
 
+    fun goToLogin() {
+        LoginActivity.start(requireContext(), null)
+    }
 }

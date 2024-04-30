@@ -31,16 +31,16 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
 
     companion object {
         private const val TAG = "PropertyActivity"
+        private const val EXTRA_PROPERTY_ROOMID = "EXTRA_PROPERTY_ROOMID"
         private const val EXTRA_PROPERTY_ID = "EXTRA_PROPERTY_ID"
-        private const val EXTRA_PROPERTY_UUID = "EXTRA_PROPERTY_UUID"
         private const val EXTRA_PROPERTY_CITY = "EXTRA_PROPERTY_CITY"
         private const val EXTRA_PROPERTY_EMPTY = "EXTRA_PROPERTY_EMPTY"
 
-        fun start(context: Context, roomPID: Long, propertyUUID: String, city: String?) {
-            Utilities.log(Enums.LogType.Debug, TAG, "start(): roomPID = ${roomPID}, : propertyUUID = ${propertyUUID}", showToast = false)
+        fun start(context: Context, roomPID: Long, propertyId: String, city: String?) {
+            Utilities.log(Enums.LogType.Debug, TAG, "start(): roomPID = ${roomPID}, : propertyId = ${propertyId}", showToast = false)
             val intent = Intent(context, PropertyActivity::class.java)
-            intent.putExtra(EXTRA_PROPERTY_ID, roomPID)
-            intent.putExtra(EXTRA_PROPERTY_UUID, propertyUUID)
+            intent.putExtra(EXTRA_PROPERTY_ROOMID, roomPID)
+            intent.putExtra(EXTRA_PROPERTY_ID, propertyId)
             intent.putExtra(EXTRA_PROPERTY_CITY, city)
             context.startActivity(intent)
         }
@@ -56,24 +56,25 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
     // shared preferences
     var preferences: AppPreferences? = null
 
-    // room/server data loaded
-    var isRoomFixedParametersLoaded: Boolean = false
-    var isRoomPropertyLoaded: Boolean = false
-    var isRoomUserLoaded: Boolean = false
+    // loggedin user
+    var userToken: String? = null
 
-    var isServerFixedParametersLoaded: Boolean = false
-    private var isServerPropertyLoaded: Boolean = false
-    var isServerUserLoaded: Boolean = false
+    // room/server data loaded
+    var isLocalFixedParametersLoaded: Boolean = false
+    var isLocalPropertyLoaded: Boolean = false
+    var isLocalUserLoaded: Boolean = false
+
+    private var isPropertyLoaded: Boolean = false
 
     var isDataInit: Boolean = false
 
     // user id
     var roomUID: Long? = 0L
-    var userUUID: String? = null
+    var userId: String? = null
 
     // property id
     var roomPID: Long? = 0L
-    var propertyUUID: String? = null
+    var propertyId: String? = null
 
     // property city
     var argPropertyCity: String? = null
@@ -141,8 +142,8 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         setContentView(layout?.root)
 
         initGlobal()
-        initViews()
         initEvents()
+        initViews()
 
         if (savedInstanceState == null) {
             lifecycleOwner = this
@@ -152,7 +153,7 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
 
     override fun createViewModel(): PropertyViewModel {
         Utilities.log(Enums.LogType.Debug, TAG, "createViewModel()", showToast = false)
-        val factory = PropertyViewModelFactory(DataManager.instance!!.propertyService)
+        val factory = PropertyViewModelFactory(this@PropertyActivity, DataManager.instance!!.propertyService)
         return ViewModelProvider(this, factory)[PropertyViewModel::class.java]
     }
 
@@ -189,7 +190,7 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         super.onSaveInstanceState(savedInstanceState)
         Utilities.log(Enums.LogType.Debug, TAG, "onSaveInstanceState()", showToast = false)
         savedInstanceState.putLong("roomPID", propertyData?.roomID ?: 0)
-        savedInstanceState.putString("uuid", propertyData?.uuid)
+        savedInstanceState.putString("_id", propertyData?._id)
         savedInstanceState.putString(Const.CITY, propertyData?.city)
         savedInstanceState.putString(Const.ADDRESS, propertyData?.address)
         savedInstanceState.putString("apartmentType", propertyData?.apartmentType)
@@ -238,12 +239,10 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
 
         savedInstanceState.putString("visibleFragment", visibleFragment)
 
-        savedInstanceState.putBoolean("isRoomFixedParametersLoaded", isRoomFixedParametersLoaded)
-        savedInstanceState.putBoolean("isRoomPropertyLoaded", isRoomPropertyLoaded)
-        savedInstanceState.putBoolean("isRoomUserLoaded", isRoomUserLoaded)
-        savedInstanceState.putBoolean("isServerFixedParametersLoaded", isServerFixedParametersLoaded)
-        savedInstanceState.putBoolean("isServerPropertyLoaded", isServerPropertyLoaded)
-        savedInstanceState.putBoolean("isServerUserLoaded", isServerUserLoaded)
+        savedInstanceState.putBoolean("isLocalFixedParametersLoaded", isLocalFixedParametersLoaded)
+        savedInstanceState.putBoolean("isLocalPropertyLoaded", isLocalPropertyLoaded)
+        savedInstanceState.putBoolean("isLocalUserLoaded", isLocalUserLoaded)
+        savedInstanceState.putBoolean("isPropertyLoaded", isPropertyLoaded)
         savedInstanceState.putBoolean("isDataInit", isDataInit)
 
         super.onSaveInstanceState(savedInstanceState)
@@ -253,7 +252,7 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         super.onRestoreInstanceState(savedInstanceState)
         Utilities.log(Enums.LogType.Debug, TAG, "onRestoreInstanceState()", showToast = false)
         propertyData?.roomID = savedInstanceState.getLong("roomPID")
-        propertyData?.uuid = savedInstanceState.getString("propertyUUID")
+        propertyData?._id = savedInstanceState.getString("propertyId")
         propertyData?.city = savedInstanceState.getString(Const.CITY)
         propertyData?.address = savedInstanceState.getString(Const.ADDRESS)
         propertyData?.apartmentType = savedInstanceState.getString("apartmentType")
@@ -302,12 +301,10 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
 
         visibleFragment = savedInstanceState.getString("visibleFragment").toString()
 
-        isRoomFixedParametersLoaded = savedInstanceState.getBoolean("isRoomFixedParametersLoaded")
-        isRoomPropertyLoaded = savedInstanceState.getBoolean("isRoomPropertyLoaded")
-        isRoomUserLoaded = savedInstanceState.getBoolean("isRoomUserLoaded")
-        isServerFixedParametersLoaded = savedInstanceState.getBoolean("isServerFixedParametersLoaded")
-        isServerPropertyLoaded = savedInstanceState.getBoolean("isServerPropertyLoaded")
-        isServerUserLoaded = savedInstanceState.getBoolean("isServerUserLoaded")
+        isLocalFixedParametersLoaded = savedInstanceState.getBoolean("isLocalFixedParametersLoaded")
+        isLocalPropertyLoaded = savedInstanceState.getBoolean("isLocalPropertyLoaded")
+        isLocalUserLoaded = savedInstanceState.getBoolean("isLocalUserLoaded")
+        isPropertyLoaded = savedInstanceState.getBoolean("isPropertyLoaded")
         isDataInit = savedInstanceState.getBoolean("isDataInit")
 
         if (didCalcAmortizationSchedule) {
@@ -357,11 +354,11 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
 
         // user id
         roomUID = preferences?.getLong("roomUID", 0L)
-        userUUID = preferences?.getString("userUUID", null)
+        userId = preferences?.getString("userId", null)
 
         // property id
-        roomPID = intent.getLongExtra(EXTRA_PROPERTY_ID, 0)
-        propertyUUID = intent.getStringExtra(EXTRA_PROPERTY_UUID)
+        roomPID = intent.getLongExtra(EXTRA_PROPERTY_ROOMID, 0)
+        propertyId = intent.getStringExtra(EXTRA_PROPERTY_ID)
 
         // property city
         argPropertyCity = intent.getStringExtra(EXTRA_PROPERTY_CITY)
@@ -369,14 +366,12 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         // property data
         propertyData = PropertyEntity()
 
-        // room/server data loaded
-        isRoomFixedParametersLoaded = false
-        isRoomPropertyLoaded = false
-        isRoomUserLoaded = false
+        // local/server data loaded
+        isLocalFixedParametersLoaded = false
+        isLocalPropertyLoaded = false
+        isLocalUserLoaded = false
 
-        isServerFixedParametersLoaded = false
-        isServerPropertyLoaded = false
-        isServerUserLoaded = false
+        isPropertyLoaded = false
 
         isDataInit = false
     }
@@ -395,6 +390,7 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         Utilities.log(Enums.LogType.Debug, TAG, "initData()", showToast = false)
 
         isDataInit = true
+        userToken = preferences!!.getString("token", "")
 
         loadInfoFragment()
     }
@@ -446,24 +442,24 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
 
     fun initObserver() {
         Utilities.log(Enums.LogType.Debug, TAG, "initObserver()", showToast = false)
-        if (!viewModel!!.roomFixedParametersGet.hasObservers()) viewModel!!.roomFixedParametersGet.observe(this@PropertyActivity, RoomFixedParametersObserver(Enums.ObserverAction.GET_ROOM))
-        if (!viewModel!!.roomUserGet.hasObservers()) viewModel!!.roomUserGet.observe(this@PropertyActivity, RoomUserObserver(Enums.ObserverAction.GET_ROOM))
-        if (!viewModel!!.serverPropertyGet.hasObservers()) viewModel!!.serverPropertyGet.observe(this@PropertyActivity, ServerPropertyObserver(Enums.ObserverAction.GET_SERVER))
-        if (!viewModel!!.serverPropertyInsert.hasObservers()) viewModel!!.serverPropertyInsert.observe(this@PropertyActivity, ServerPropertyObserver(Enums.ObserverAction.INSERT_SERVER))
-        if (!viewModel!!.serverPropertyUpdate.hasObservers()) viewModel!!.serverPropertyUpdate.observe(this@PropertyActivity, ServerPropertyObserver(Enums.ObserverAction.UPDATE_SERVER))
-        if (!viewModel!!.roomPropertyGet.hasObservers()) viewModel!!.roomPropertyGet.observe(this@PropertyActivity, RoomPropertyObserver(Enums.ObserverAction.GET_ROOM))
-        if (!viewModel!!.roomPropertyInsertRoom.hasObservers()) viewModel!!.roomPropertyInsertRoom.observe(this@PropertyActivity, RoomPropertyObserver(Enums.ObserverAction.INSERT_ROOM))
-        if (!viewModel!!.roomPropertyUpdateRoom.hasObservers()) viewModel!!.roomPropertyUpdateRoom.observe(this@PropertyActivity, RoomPropertyObserver(Enums.ObserverAction.UPDATE_ROOM))
+        if (!viewModel!!.fixedParametersCallback.hasObservers()) viewModel!!.fixedParametersCallback.observe(this@PropertyActivity, LocalFixedParametersObserver(Enums.ObserverAction.GET_LOCAL))
+        if (!viewModel!!.roomUserGet.hasObservers()) viewModel!!.roomUserGet.observe(this@PropertyActivity, LocalUserObserver(Enums.ObserverAction.GET_LOCAL))
+        if (!viewModel!!.propertyGet.hasObservers()) viewModel!!.propertyGet.observe(this@PropertyActivity, ServerPropertyObserver(Enums.ObserverAction.GET))
+        if (!viewModel!!.propertyInsert.hasObservers()) viewModel!!.propertyInsert.observe(this@PropertyActivity, ServerPropertyObserver(Enums.ObserverAction.CREATE))
+        if (!viewModel!!.propertyUpdate.hasObservers()) viewModel!!.propertyUpdate.observe(this@PropertyActivity, ServerPropertyObserver(Enums.ObserverAction.UPDATE))
+        if (!viewModel!!.localPropertyGet.hasObservers()) viewModel!!.localPropertyGet.observe(this@PropertyActivity, LocalPropertyObserver(Enums.ObserverAction.GET_LOCAL))
+        if (!viewModel!!.localPropertyInsert.hasObservers()) viewModel!!.localPropertyInsert.observe(this@PropertyActivity, LocalPropertyObserver(Enums.ObserverAction.INSERT_LOCAL))
+        if (!viewModel!!.localPropertyUpdate.hasObservers()) viewModel!!.localPropertyUpdate.observe(this@PropertyActivity, LocalPropertyObserver(Enums.ObserverAction.UPDATE_LOCAL))
 
-        if (!isRoomFixedParametersLoaded && !isRoomUserLoaded && !isServerFixedParametersLoaded && !isServerUserLoaded && !isDataInit) {
+        if (!isLocalFixedParametersLoaded && !isLocalUserLoaded && !isDataInit) {
             viewModel!!.getRoomFixedParameters(applicationContext)
             viewModel!!.getRoomUser(applicationContext, roomUID)
-            viewModel!!.getRoomProperty(applicationContext, propertyUUID)
+            viewModel!!.getLocalProperty(applicationContext, propertyId)
         }
     }
 
-    override fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    override fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         Utilities.setPropertyPercentViewString(layout?.interest, "property_interest_label")
         Utilities.setPropertyPercentViewString(layout?.interestIn5Years, "property_interest_in_5_years_label")
@@ -476,14 +472,14 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         Utilities.setPropertyPercentViewString(layout?.depreciationForTaxPurposes, "property_depreciation_for_tax_purposes_label")
         Utilities.setPropertyPercentViewString(layout?.saleYearsPeriod, "property_sale_years_period_label")
 
-        layout?.actionsMenuYieldForecastBottomText?.text = Utilities.getRoomString("property_yield_forecast_label")
-        layout?.actionsMenuAmortizationScheduleBottomText?.text = Utilities.getRoomString("property_amortization_schedule_label")
-        layout?.actionsMenuChartBottomText?.text = Utilities.getRoomString("property_actions_menu_graph_label")
-        layout?.actionsMenuYieldForecastSideText?.text = Utilities.getRoomString("property_yield_forecast_label")
-        layout?.actionsMenuAmortizationScheduleSideText?.text = Utilities.getRoomString("property_amortization_schedule_label")
-        layout?.actionsMenuChartSideText?.text = Utilities.getRoomString("property_actions_menu_graph_label")
+        layout?.actionsMenuYieldForecastBottomText?.text = Utilities.getLocalPhrase("property_yield_forecast_label")
+        layout?.actionsMenuAmortizationScheduleBottomText?.text = Utilities.getLocalPhrase("property_amortization_schedule_label")
+        layout?.actionsMenuChartBottomText?.text = Utilities.getLocalPhrase("property_actions_menu_graph_label")
+        layout?.actionsMenuYieldForecastSideText?.text = Utilities.getLocalPhrase("property_yield_forecast_label")
+        layout?.actionsMenuAmortizationScheduleSideText?.text = Utilities.getLocalPhrase("property_amortization_schedule_label")
+        layout?.actionsMenuChartSideText?.text = Utilities.getLocalPhrase("property_actions_menu_graph_label")
 
-        super.setRoomStrings()
+        super.setPhrases()
     }
 
     fun initIndexesAndInterests() {
@@ -771,52 +767,52 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
     //region == interests input updates ==
     private fun updateIndex() {
         propertyData?.calcIndexPercent = layout?.index?.numberPickerActualValue
-        insertUpdateProperty(Const.INDEX_PERCENT, propertyData?.calcIndexPercent)
+        saveProperty(Const.INDEX_PERCENT, propertyData?.calcIndexPercent)
     }
 
     private fun updateInterest() {
         propertyData?.calcInterestPercent = layout?.interest?.numberPickerActualValue
-        insertUpdateProperty(Const.INTEREST_PERCENT, propertyData?.calcInterestPercent)
+        saveProperty(Const.INTEREST_PERCENT, propertyData?.calcInterestPercent)
     }
 
     private fun updateInterestIn5Years() {
         propertyData?.calcInterestIn5YearsPercent = layout?.interestIn5Years?.numberPickerActualValue
-        insertUpdateProperty(Const.INTEREST_IN_5_YEARS_PERCENT, propertyData?.calcInterestIn5YearsPercent)
+        saveProperty(Const.INTEREST_IN_5_YEARS_PERCENT, propertyData?.calcInterestIn5YearsPercent)
     }
 
     private fun updateInterestIn10Years() {
         propertyData?.calcInterestIn10YearsPercent = layout?.interestIn10Years?.numberPickerActualValue
-        insertUpdateProperty(Const.INTEREST_IN_10_YEARS_PERCENT, propertyData?.calcInterestIn10YearsPercent)
+        saveProperty(Const.INTEREST_IN_10_YEARS_PERCENT, propertyData?.calcInterestIn10YearsPercent)
     }
 
     private fun updateAverageInterestAtTaking() {
         propertyData?.calcAverageInterestAtTakingPercent = layout?.averageInterestAtTaking?.numberPickerActualValue
-        insertUpdateProperty(Const.AVERAGE_INTEREST_AT_TAKING_PERCENT, propertyData?.calcAverageInterestAtTakingPercent)
+        saveProperty(Const.AVERAGE_INTEREST_AT_TAKING_PERCENT, propertyData?.calcAverageInterestAtTakingPercent)
     }
 
     private fun updateAverageInterestAtMaturity() {
         propertyData?.calcAverageInterestAtMaturityPercent = layout?.averageInterestAtMaturity?.numberPickerActualValue
-        insertUpdateProperty(Const.AVERAGE_INTEREST_AT_MATURITY_PERCENT, propertyData?.calcAverageInterestAtMaturityPercent)
+        saveProperty(Const.AVERAGE_INTEREST_AT_MATURITY_PERCENT, propertyData?.calcAverageInterestAtMaturityPercent)
     }
 
     private fun updateForecastAnnualPriceIncrease() {
         propertyData?.calcForecastAnnualPriceIncreasePercent = layout?.forecastAnnualPriceIncrease?.numberPickerActualValue
-        insertUpdateProperty(Const.FORECAST_ANNUAL_PRICE_INCREASE_PERCENT, propertyData?.calcForecastAnnualPriceIncreasePercent)
+        saveProperty(Const.FORECAST_ANNUAL_PRICE_INCREASE_PERCENT, propertyData?.calcForecastAnnualPriceIncreasePercent)
     }
 
     private fun updateSalesCosts() {
         propertyData?.calcSalesCostsPercent = layout?.salesCosts?.numberPickerActualValue
-        insertUpdateProperty(Const.SALES_COSTS_PERCENT, propertyData?.calcSalesCostsPercent)
+        saveProperty(Const.SALES_COSTS_PERCENT, propertyData?.calcSalesCostsPercent)
     }
 
     private fun updateDepreciationForTaxPurposes() {
         propertyData?.calcDepreciationForTaxPurposesPercent = layout?.depreciationForTaxPurposes?.numberPickerActualValue
-        insertUpdateProperty(Const.DEPRECIATION_FOR_TAX_PURPOSES_PERCENT, propertyData?.calcDepreciationForTaxPurposesPercent)
+        saveProperty(Const.DEPRECIATION_FOR_TAX_PURPOSES_PERCENT, propertyData?.calcDepreciationForTaxPurposesPercent)
     }
 
     private fun updateSaleYearsPeriod() {
         propertyData?.calcSaleYearsPeriod = layout?.saleYearsPeriod?.numberPickerActualValue?.toInt()
-        insertUpdateProperty(Const.SALE_YEARS_PERIOD, propertyData?.calcSaleYearsPeriod)
+        saveProperty(Const.SALE_YEARS_PERIOD, propertyData?.calcSaleYearsPeriod)
     }
     //endregion == interests input updates ==
 
@@ -1002,7 +998,7 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         layout?.actionsMenuYieldForecastSideIcon?.setImageDrawable(ContextCompat.getDrawable(context, if (selectedButton == ActionsMenuButtonType.YIELD_FORECAST) R.drawable.icon_yield_forecast_on else R.drawable.icon_yield_forecast_off))
         layout?.actionsMenuYieldForecastSideText?.setTextColor(ContextCompat.getColor(context, if (selectedButton == ActionsMenuButtonType.YIELD_FORECAST) R.color.textActionsMenuSelected else R.color.textActionsMenu))
 
-        if (propertyData?.showMortgagePrepayment == false || userData?.canTakeMortgage == false) {
+        if (propertyData?.showMortgagePrepayment == false || userData?.calcCanTakeMortgage == false) {
             layout?.actionsMenuAmortizationScheduleSide?.visibility = GONE
         }
         else {
@@ -1027,7 +1023,7 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         layout?.interestsHide?.visibility = VISIBLE
 
         propertyData?.showInterestsContainer = true
-        insertUpdateProperty("show_interests_container", propertyData?.showInterestsContainer)
+        saveProperty("showInterestsContainer", propertyData?.showInterestsContainer)
     }
 
     private fun onHideInterests() {
@@ -1035,19 +1031,19 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         layout?.interestsHide?.visibility = GONE
 
         propertyData?.showInterestsContainer = false
-        insertUpdateProperty("show_interests_container", propertyData?.showInterestsContainer)
+        saveProperty("showInterestsContainer", propertyData?.showInterestsContainer)
     }
     //endregion == interests ================
 
     //region == observers ================
-    private inner class RoomFixedParametersObserver(action: Enums.ObserverAction) : Observer<FixedParametersEntity?> {
+    private inner class LocalFixedParametersObserver(action: Enums.ObserverAction) : Observer<FixedParametersEntity?> {
         val _action = action
         override fun onChanged(fixedParameters: FixedParametersEntity?) {
             when (_action) {
-                Enums.ObserverAction.GET_ROOM -> {
-                    Utilities.log(Enums.LogType.Debug, TAG, "FixedParametersObserver(): onChanged. GET_ROOM")
+                Enums.ObserverAction.GET_LOCAL -> {
+                    Utilities.log(Enums.LogType.Debug, TAG, "LocalFixedParametersObserver(): onChanged. GET_ROOM")
 
-                    isRoomFixedParametersLoaded = true
+                    isLocalFixedParametersLoaded = true
 
                     if (fixedParameters == null) {
                         return
@@ -1056,7 +1052,7 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
                     // fixed parameters
                     fixedParametersData = FixedParameters.init(fixedParameters)
 
-                    if (isRoomFixedParametersLoaded && isRoomUserLoaded && isRoomPropertyLoaded && !isDataInit) {
+                    if (isLocalFixedParametersLoaded && isLocalUserLoaded && isLocalPropertyLoaded && !isDataInit) {
                         initData()
                     }
                 }
@@ -1066,20 +1062,20 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         }
     }
 
-    private inner class RoomUserObserver(action: Enums.ObserverAction) : Observer<UserEntity?> {
+    private inner class LocalUserObserver(action: Enums.ObserverAction) : Observer<UserEntity?> {
         val _action = action
         override fun onChanged(user: UserEntity?) {
             when (_action) {
-                Enums.ObserverAction.GET_ROOM -> {
-                    Utilities.log(Enums.LogType.Debug, TAG, "UserObserver(): GET_ROOM. onChanged")
+                Enums.ObserverAction.GET_LOCAL -> {
+                    Utilities.log(Enums.LogType.Debug, TAG, "LocalUserObserver(): GET_LOCAL. onChanged")
 
-                    isRoomUserLoaded = true
+                    isLocalUserLoaded = true
 
                     if (user != null) {
                         userData = user
                     }
 
-                    if (isRoomFixedParametersLoaded && isRoomUserLoaded && isRoomPropertyLoaded && !isDataInit) {
+                    if (isLocalFixedParametersLoaded && isLocalUserLoaded && isLocalPropertyLoaded && !isDataInit) {
                         initData()
                     }
                 }
@@ -1092,7 +1088,7 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
     private inner class ServerPropertyObserver(action: Enums.ObserverAction) : Observer<PropertyEntity?> {
         val _action = action
         override fun onChanged(property: PropertyEntity?) {
-            Utilities.log(Enums.LogType.Debug, TAG, "ServerPropertyObserver(): ${if (_action == Enums.ObserverAction.GET_SERVER) "GET_SERVER" else if (_action == Enums.ObserverAction.INSERT_SERVER) "INSERT_SERVER" else "UPDATE_SERVER"}. property.uuid = ${property?.uuid}")
+            Utilities.log(Enums.LogType.Debug, TAG, "ServerPropertyObserver(): ${if (_action == Enums.ObserverAction.GET) "GET_SERVER" else if (_action == Enums.ObserverAction.CREATE) "INSERT_SERVER" else "UPDATE_SERVER"}. property._id = ${property?._id}")
 
             GlobalScope.launch {
 
@@ -1102,7 +1098,7 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
                 propertyData = property
                 propertyData?.roomID = if (roomPID == 0L) null else  roomPID
 
-                viewModel!!.actionRoomProperty(
+                viewModel!!.actionLocalProperty(
                     applicationContext,
                     propertyData,
                 )
@@ -1112,26 +1108,26 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         }
     }
 
-    private inner class RoomPropertyObserver(action: Enums.ObserverAction) : Observer<PropertyEntity?> {
+    private inner class LocalPropertyObserver(action: Enums.ObserverAction) : Observer<PropertyEntity?> {
         val _action = action
         override fun onChanged(property: PropertyEntity?) {
             when (_action) {
-                Enums.ObserverAction.GET_ROOM -> {
-                    Utilities.log(Enums.LogType.Debug, TAG, "RoomPropertyObserver(): GET_ROOM. onChanged. property")
+                Enums.ObserverAction.GET_LOCAL -> {
+                    Utilities.log(Enums.LogType.Debug, TAG, "LocalPropertyObserver(): GET_LOCAL. onChanged. property")
 
-                    isRoomPropertyLoaded = true
+                    isLocalPropertyLoaded = true
 
                     if (property != null) {
                         propertyData = property
                     }
 
-                    if (isRoomFixedParametersLoaded && isRoomUserLoaded && isRoomPropertyLoaded && !isDataInit) {
+                    if (isLocalFixedParametersLoaded && isLocalUserLoaded && isLocalPropertyLoaded && !isDataInit) {
                         initData()
                     }
                 }
 
-                Enums.ObserverAction.INSERT_ROOM, Enums.ObserverAction.UPDATE_ROOM -> {
-                    Utilities.log(Enums.LogType.Debug, TAG, "RoomPropertyObserver(): ${if (_action == Enums.ObserverAction.INSERT_ROOM) "INSERT_ROOM" else "UPDATE_ROOM"}. onChanged. property?.roomID = ${property?.roomID}")
+                Enums.ObserverAction.INSERT_LOCAL, Enums.ObserverAction.UPDATE_LOCAL -> {
+                    Utilities.log(Enums.LogType.Debug, TAG, "LocalPropertyObserver(): ${if (_action == Enums.ObserverAction.INSERT_LOCAL) "INSERT_LOCAL" else "UPDATE_LOCAL"}. onChanged. property?.roomID = ${property?.roomID}")
 
                     propertyData?.roomID = property?.roomID
                     roomPID = property?.roomID
@@ -1149,19 +1145,19 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
     //endregion == observers ================
 
     //region == general ==================
-    fun insertUpdateProperty(fieldName: String? = "", fieldValue: Boolean? =  null) {
-        insertUpdateProperty(fieldName, fieldValue.toString())
+    fun saveProperty(fieldName: String? = "", fieldValue: Boolean? =  null) {
+        saveProperty(fieldName, fieldValue.toString())
     }
 
-    fun insertUpdateProperty(fieldName: String? = "", fieldValue: Int? =  null) {
-        insertUpdateProperty(fieldName, fieldValue.toString())
+    fun saveProperty(fieldName: String? = "", fieldValue: Int? =  null) {
+        saveProperty(fieldName, fieldValue.toString())
     }
 
-    fun insertUpdateProperty(fieldName: String? = "", fieldValue: Float? =  null) {
-        insertUpdateProperty(fieldName, fieldValue.toString())
+    fun saveProperty(fieldName: String? = "", fieldValue: Float? =  null) {
+        saveProperty(fieldName, fieldValue.toString())
     }
 
-    fun insertUpdateProperty(fieldName: String? = "", fieldValue: String? =  null) {
+    fun saveProperty(fieldName: String? = "", fieldValue: String? =  null) {
         val nowUTC = Calendar.getInstance()
         nowUTC.timeZone = TimeZone.getTimeZone("UTC")
 
@@ -1170,13 +1166,13 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
 
             //if (!isAnyRequireFieldNotEmpty(ignoreCity)) {
                 freezeScreen()
-                viewModel!!.actionServerProperty(propertyData?.uuid, userUUID, fieldName, if (fieldValue.isNullOrEmpty() || fieldValue.equals("null")) null else fieldValue)
+                viewModel!!.actionProperty(propertyData?._id, fieldName, if (fieldValue.isNullOrEmpty() || fieldValue.equals("null")) null else fieldValue)
             //}
         }
         else {
             freezeScreen()
             propertyData?.roomID = roomPID
-            viewModel!!.actionServerProperty(propertyData?.uuid, userUUID, fieldName, if (fieldValue.isNullOrEmpty() || fieldValue.equals("null")) null else fieldValue)
+            viewModel!!.actionProperty(propertyData?._id, fieldName, if (fieldValue.isNullOrEmpty() || fieldValue.equals("null")) null else fieldValue)
         }
     }
 

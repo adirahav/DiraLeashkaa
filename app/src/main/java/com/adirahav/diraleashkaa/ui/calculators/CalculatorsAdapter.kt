@@ -9,7 +9,6 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -21,7 +20,6 @@ import com.adirahav.diraleashkaa.common.AppApplication
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.data.network.entities.CalculatorEntity
 import kotlinx.coroutines.*
-import pl.droidsonroids.gif.GifImageView
 import java.util.*
 
 
@@ -130,7 +128,7 @@ class CalculatorsAdapter(
         // data container - coming soon
         if (calculator.isComingSoon == true) {
             holder.comingSoonMask!!.visibility = VISIBLE
-            holder.comingSoonText!!.text = Utilities.getRoomString("calculator_coming_soon")
+            holder.comingSoonText!!.text = Utilities.getLocalPhrase("calculator_coming_soon")
         }
         else {
             holder.comingSoonMask!!.visibility = GONE
@@ -140,7 +138,7 @@ class CalculatorsAdapter(
         holder.picture!!.setImageResource(Utilities.findDrawableByName("icon_calculator_${calculator.type}"))
 
         // data container - title
-        holder.title!!.text = Utilities.getRoomString("calculator_title_${calculator.type}")
+        holder.title!!.text = Utilities.getLocalPhrase("calculator_title_${calculator.type}")
     }
 
     override fun getItemCount(): Int {

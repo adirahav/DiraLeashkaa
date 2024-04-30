@@ -11,20 +11,20 @@ object Enums {
     }
 
     enum class ObserverAction {
-        GET_SERVER,
-        GET_ROOM,
-        INSERT_ROOM,apartment_type,
-        INSERT_SERVER,
-        UPDATE_ROOM,
-        UPDATE_SERVER,
+        GET,
+        GET_LOCAL,
+        INSERT_LOCAL,apartment_type,
+        CREATE,
+        UPDATE_LOCAL,
+        UPDATE,
         INSERT_UPDATE_ROOM,
-        INSERT_UPDATE_SERVER,
+        SAVE_SERVER,
         RESTORE_ROOM,
         RESTORE_PROPERTIES
     }
 
     enum class DBCaller {
-        ROOM,
+        LOCAL,
         SERVER
     }
 
@@ -74,8 +74,7 @@ object Enums {
 
     enum class RegistrationPageType {
         PAY_PROGRAM,
-        COUPON_CODE,
-        BETA_CODE
+        COUPON_CODE
     }
 
     enum class ContactUsPageType {

@@ -33,7 +33,7 @@ class EmailService private constructor() {
         @FormUrlEncoded
         @POST("email/send")
         fun sendEmail(
-            @Field("user_uuid") userUUID: String?,
+            @Field("userEmail") userEmail: String?,
             @Field("type") type: String,
             @Field("subject") subject: String,
             @Field("message") message: String?,

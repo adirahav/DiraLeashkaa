@@ -3,31 +3,22 @@ package com.adirahav.diraleashkaa.data.network.entities
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.adirahav.diraleashkaa.common.Configuration
-import com.adirahav.diraleashkaa.common.Const
 import com.google.gson.annotations.SerializedName
 
 @Entity
 data class UserEntity(
-    @PrimaryKey(autoGenerate = true) var roomUID: Long? = null,
-    @SerializedName("uuid") var uuid: String?,
-    @SerializedName("user_name") var userName: String?,
-    @SerializedName("email") var email: String?,
-    @SerializedName("calc_age") var calcAge: Int?,
-    @SerializedName("year_of_birth") var yearOfBirth: Int?,
-    @SerializedName("phone_number") var phoneNumber: String?,
-    @SerializedName("phone_number_sms_verified") var phoneNumberSMSVerified: Boolean?,
-    @SerializedName("device_id") var deviceID: String?,
-    @SerializedName("device_type") var deviceType: String?,
-    @SerializedName(Const.EQUITY) var equity: Int?,
-    @SerializedName(Const.INCOMES) var incomes: Int?,
-    @SerializedName(Const.COMMITMENTS) var commitments: Int?,
-    @SerializedName("terms_of_use_accept_time") var termsOfUseAcceptTime: Long?,
-    @SerializedName("subscriber_type") var subscriberType: String?,
-    //@SerializedName("registration_start_time") var registrationStartTime: Long?,
-    @SerializedName("registration_expired_time") var registrationExpiredTime: Long?,
-    @SerializedName("app_version") var appVersion: String?,
-    @SerializedName("is_first_login") var isFirstLogin: Boolean?,
-    @SerializedName("can_take_mortgage") var canTakeMortgage: Boolean?,
+        @PrimaryKey(autoGenerate = true) var roomUID: Long? = null,
+        @SerializedName("email") var email: String?,
+        @SerializedName("fullname") var fullname: String?,
+        @SerializedName("yearOfBirth") var yearOfBirth: Int?,
+        @SerializedName("equity") var equity: Int?,
+        @SerializedName("incomes") var incomes: Int?,
+        @SerializedName("commitments") var commitments: Int?,
+        @SerializedName("termsOfUseAccept") var termsOfUseAccept: Boolean?,
+        @SerializedName("registrationExpiredTime") var registrationExpiredTime: Long?,
+        @SerializedName("subscriberType") var subscriberType: String?,
+        @SerializedName("calcCanTakeMortgage") var calcCanTakeMortgage: Boolean?,
+        @SerializedName("calcAge") var calcAge: Int?
 ) {
     override fun toString(): String {
         val newLine = " ; "//"\n"
@@ -36,27 +27,14 @@ data class UserEntity(
             "null"
         else
             "roomUID = ${roomUID}${newLine}" +
-            "uuid = ${uuid}${newLine}" +
-            "userName = ${userName}${newLine}" +
-            "appVersion = ${appVersion}${newLine}" +
             "email = ${email}${newLine}" +
-            "calcAge = ${calcAge}${newLine}" +
+            "fullname = ${fullname}${newLine}" +
             "yearOfBirth = ${yearOfBirth}${newLine}" +
-            "phoneNumber = ${phoneNumber}${newLine}" +
-            "phoneNumberSMSVerified = ${phoneNumberSMSVerified}${newLine}" +
-            "deviceID = ${deviceID}${newLine}" +
-            "deviceType = ${deviceType}${newLine}" +
             "equity = ${equity}${newLine}" +
             "incomes = ${incomes}${newLine}" +
             "commitments = ${commitments}${newLine}" +
-            "termsOfUseAcceptTime = ${termsOfUseAcceptTime}${newLine}" +
-            //"insertTime = ${Configuration.dateTimeLogFormatter.format(insertTime ?: 0)} (${insertTime})${newLine}" +
-            //"updateTime = ${Configuration.dateTimeLogFormatter.format(updateTime ?: 0)} (${updateTime})${newLine}" +
-            //"serverUpdateTime = ${Configuration.dateTimeLogFormatter.format(serverUpdateTime ?: 0)} (${serverUpdateTime})${newLine}" +
-            "subscriberType = ${subscriberType}${newLine}" +
-            //"registrationStartTime = ${Configuration.dateTimeLogFormatter.format(registrationStartTime ?: 0)} (${registrationStartTime})${newLine}" +
+            "termsOfUseAccept = ${termsOfUseAccept}${newLine}" +
             "registrationExpiredTime = ${Configuration.dateTimeLogFormatter.format(registrationExpiredTime ?: 0)} (${registrationExpiredTime})${newLine}" +
-            "appVersion = ${appVersion}${newLine}" +
-            "isFirstLogin = ${isFirstLogin}${newLine}"
+            "subscriberType = ${subscriberType}${newLine}"
     }
 }

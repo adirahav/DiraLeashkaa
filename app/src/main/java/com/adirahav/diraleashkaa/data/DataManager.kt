@@ -4,8 +4,8 @@ import com.adirahav.diraleashkaa.data.network.services.*
 
 class DataManager private constructor() {
 
-    val fixedParametersService: FixedParametersService
-        get() = FixedParametersService.instance!!
+    val authService: AuthService
+        get() = AuthService.instance!!
 
     val userService: UserService
         get() = UserService.instance!!
@@ -13,17 +13,11 @@ class DataManager private constructor() {
     val registrationService: RegistrationService
         get() = RegistrationService.instance!!
 
-    val homeService: HomeService
-        get() = HomeService.instance!!
-
     val propertyService: PropertyService
         get() = PropertyService.instance!!
 
-    val splashService: SplashService
-        get() = SplashService.instance!!
-
-    val stringsService: StringsService
-        get() = StringsService.instance!!
+    val phraseService: PhraseService
+        get() = PhraseService.instance!!
 
     val announcementService: AnnouncementService
         get() = AnnouncementService.instance!!

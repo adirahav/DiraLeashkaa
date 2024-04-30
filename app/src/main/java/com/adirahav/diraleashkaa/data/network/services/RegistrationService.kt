@@ -2,12 +2,16 @@ package com.adirahav.diraleashkaa.data.network.services
 
 import com.adirahav.diraleashkaa.BuildConfig.BASE_URL
 import com.adirahav.diraleashkaa.data.network.models.RegistrationModel
+import com.adirahav.diraleashkaa.data.network.response.UserResponse
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
+import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 class RegistrationService private constructor() {
     val registrationAPI: RegistrationAPI
@@ -29,31 +33,16 @@ class RegistrationService private constructor() {
     }
 
     interface RegistrationAPI {
-        @FormUrlEncoded
-        @POST("registration/coupon")
+        @PUT("registration/{code}/coupon")
         fun coupon(
-            @Field("coupon_code") couponCode: String?,
-            @Field("user_uuid") userUUID: String?
-        ): Call<RegistrationModel?>?
+            @Header("Authorization") token: String?,
+            @Path("code") code: String
+        ): Call<UserResponse?>?
 
-        @FormUrlEncoded
-        @POST("registration/trial")
-        fun trial(
-            @Field("user_uuid") userUUID: String?
-        ): Call<RegistrationModel?>?
-
-        @FormUrlEncoded
-        @POST("registration/beta")
-        fun beta(
-            @Field("beta_code") couponCode: String?,
-            @Field("user_uuid") userUUID: String?
-        ): Call<RegistrationModel?>?
-
-        @FormUrlEncoded
-        @POST("registration/payProgram")
+        @PUT("registration/{payProgramId}/payProgram")
         fun payProgram(
-                @Field("pay_program_uuid") payUUID: String?,
-                @Field("user_uuid") userUUID: String?
-        ): Call<RegistrationModel?>?
+            @Header("Authorization") token: String?,
+            @Field("payProgramId") payProgramId: String
+        ): Call<UserResponse?>?
     }
 }

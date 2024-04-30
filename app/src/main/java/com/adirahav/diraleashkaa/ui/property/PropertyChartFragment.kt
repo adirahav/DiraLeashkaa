@@ -23,6 +23,7 @@ import com.adirahav.diraleashkaa.data.DataManager
 import com.adirahav.diraleashkaa.data.network.entities.YieldForecastEntity
 import com.adirahav.diraleashkaa.ui.base.BaseFragment
 import com.adirahav.diraleashkaa.ui.base.BaseViewModel
+import com.adirahav.diraleashkaa.ui.home.HomeActivity
 import com.adirahav.diraleashkaa.ui.home.HomeViewModelFactory
 import com.github.angads25.toggle.widget.LabeledSwitch
 import com.github.mikephil.charting.charts.LineChart
@@ -280,12 +281,12 @@ class PropertyChartFragment(
         else {
             // total return
             setTotalReturn = initLineDataSet(
-                Utilities.getRoomString("chart_legend_total_return"),
+                Utilities.getLocalPhrase("chart_legend_total_return"),
                 arrTotalReturn, ColorTemplate.getHoloBlue())
 
             // return on equity
             setReturnOnEquity = initLineDataSet(
-                Utilities.getRoomString("chart_legend_return_on_equity"),
+                Utilities.getLocalPhrase("chart_legend_return_on_equity"),
                 arrReturnOnEquity, ColorTemplate.getHoloRed())
 
             // create a data object with the data sets
@@ -429,14 +430,14 @@ class PropertyChartFragment(
             // total return
             setTotalReturn = BarDataSet(
                 arrTotalReturn,
-                Utilities.getRoomString("chart_legend_total_return")
+                Utilities.getLocalPhrase("chart_legend_total_return")
             )
             setTotalReturn.setColor(ColorTemplate.getHoloBlue())
 
             // return on equity
             setReturnOnEquity = BarDataSet(
                 arrReturnOnEquity,
-                Utilities.getRoomString("chart_legend_return_on_equity")
+                Utilities.getLocalPhrase("chart_legend_return_on_equity")
             )
             setReturnOnEquity.setColor(ColorTemplate.getHoloRed())
 
@@ -474,9 +475,9 @@ class PropertyChartFragment(
     override fun createViewModel(): BaseViewModel? {
         val factory =
             if (_activity?.localClassName?.endsWith("ui.home.HomeActivity") == true)
-                HomeViewModelFactory(DataManager.instance!!.propertyService, DataManager.instance!!.homeService)
+                HomeViewModelFactory(_activity as HomeActivity, DataManager.instance!!.propertyService, DataManager.instance!!.userService)
             else
-                PropertyViewModelFactory(DataManager.instance!!.propertyService)
+                PropertyViewModelFactory(_activity as PropertyActivity, DataManager.instance!!.propertyService)
 
         return ViewModelProvider(this, factory).get(BaseViewModel::class.java)
     }

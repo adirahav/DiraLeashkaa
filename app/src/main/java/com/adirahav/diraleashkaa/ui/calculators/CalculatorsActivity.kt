@@ -3,7 +3,6 @@ package com.adirahav.diraleashkaa.ui.calculators
 import android.content.*
 import android.net.ConnectivityManager
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
@@ -13,14 +12,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.adirahav.diraleashkaa.common.*
 import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
-import com.adirahav.diraleashkaa.common.Utilities.await
 import com.adirahav.diraleashkaa.common.Utilities.getNetworkStatus
 import com.adirahav.diraleashkaa.data.DataManager
-import com.adirahav.diraleashkaa.data.network.dataClass.CalculatorDataClass
 import com.adirahav.diraleashkaa.data.network.entities.*
 import com.adirahav.diraleashkaa.databinding.ActivityCalculatorsBinding
 import com.adirahav.diraleashkaa.ui.base.BaseActivity
-import java.util.*
 
 
 class CalculatorsActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculatorsBinding>(),
@@ -57,7 +53,7 @@ class CalculatorsActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculat
     var isDataInit: Boolean = false
 
     // user data
-    var userUUID: String? = null
+    var userId: String? = null
 
     // calculators
     private var calculatorsAdapter: CalculatorsAdapter? = null
@@ -87,7 +83,7 @@ class CalculatorsActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculat
         setDrawer(layout?.drawer, layout?.menu)
 
         // title text
-        titleText?.text = Utilities.getRoomString("actionbar_title_calculators")
+        titleText?.text = Utilities.getLocalPhrase("actionbar_title_calculators")
 
 
     }
@@ -103,8 +99,8 @@ class CalculatorsActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculat
         preferences = AppPreferences.instance
 
         // user id
-        userUUID = preferences?.getString("userUUID", null)
-        Utilities.log(Enums.LogType.Debug, TAG, "preferences userUUID = ${userUUID}")
+        userId = preferences?.getString("userId", null)
+        Utilities.log(Enums.LogType.Debug, TAG, "preferences userId = ${userId}")
 
         // data loaded
         isDataInit = false
@@ -123,7 +119,7 @@ class CalculatorsActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculat
 
             if (!isDataInit) {
                 Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): getServerCalculators")
-                viewModel!!.getRoomCalculators(applicationContext, userUUID)
+                viewModel!!.getRoomCalculators(applicationContext, userId)
             }
         }
         else {
@@ -132,9 +128,9 @@ class CalculatorsActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculat
     }
 
     //strings
-    override fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
-        super.setRoomStrings()
+    override fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
+        super.setPhrases()
     }
     //strings
 

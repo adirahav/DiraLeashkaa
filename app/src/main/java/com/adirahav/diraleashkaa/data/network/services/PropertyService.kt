@@ -1,8 +1,11 @@
 package com.adirahav.diraleashkaa.data.network.services
 
 import com.adirahav.diraleashkaa.BuildConfig.BASE_URL
+import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
 import com.adirahav.diraleashkaa.data.network.models.HomeModel
-import com.adirahav.diraleashkaa.data.network.models.PropertyModel
+import com.adirahav.diraleashkaa.data.network.requests.PropertyArchiveRequest
+import com.adirahav.diraleashkaa.data.network.requests.PropertyRequest
+import com.google.gson.GsonBuilder
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -24,41 +27,34 @@ class PropertyService private constructor() {
 
 
     init {
-        val retrofit: Retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create()).baseUrl(BASE_URL).build()
+        val retrofit: Retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create(GsonBuilder().serializeNulls().create())).baseUrl(BASE_URL).build()
         propertyAPI = retrofit.create(PropertyAPI::class.java)
     }
 
     interface PropertyAPI {
-        @FormUrlEncoded
-        @POST("properties/insert")
-        fun insertProperty(
-            @Field("user_uuid") userUUID: String?,
-            @Field("field_name") fieldName: String?,
-            @Field("field_value") fieldValue: String?,
-        ): Call<PropertyModel?>?
+        @POST("property")
+        fun createProperty(
+            @Header("Authorization") token: String?,
+            @Body request: PropertyRequest
+        ): Call<PropertyEntity?>?
 
-        @FormUrlEncoded
-        @POST("properties/update")
+        @PUT("property")
         fun updateProperty(
-            @Field("uuid") UUID: String?,
-            @Field("user_uuid") userUUID: String?,
-            @Field("field_name") fieldName: String?,
-            @Field("field_value") fieldValue: String?,
-        ): Call<PropertyModel?>?
+            @Header("Authorization") token: String?,
+            @Body request: PropertyRequest
+        ): Call<PropertyEntity?>?
 
-        @FormUrlEncoded
-        @POST("properties/get")
+        @GET("property/{_id}")
         fun getProperty(
-            @Field("uuid") UUID: String?,
-            @Field("user_uuid") userUUID: String?
-        ): Call<PropertyModel?>?
+            @Header("Authorization") token: String?,
+            @Path("_id") _id: String
+        ): Call<PropertyEntity?>?
 
-        @FormUrlEncoded
-        @POST("properties/delete")
+        @PUT("property/{propertyId}/archive")
         fun deleteFromHome(
-            @Field("uuid") uuid: String?,
-            @Field("user_uuid") userUUID: String?,
-            @Field("return_data") returnData: String = "home",
+            @Header("Authorization") token: String?,
+            @Body request: PropertyArchiveRequest,
+            @Path("propertyId") propertyId: String
         ): Call<HomeModel?>?
     }
 }

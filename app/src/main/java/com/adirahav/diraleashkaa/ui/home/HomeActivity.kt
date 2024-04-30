@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Rect
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -23,15 +22,13 @@ import com.adirahav.diraleashkaa.common.Utilities.await
 import com.adirahav.diraleashkaa.common.Utilities.percentFormat
 import com.adirahav.diraleashkaa.common.Utilities.toNIS
 import com.adirahav.diraleashkaa.data.DataManager
-import com.adirahav.diraleashkaa.data.network.dataClass.HomeDataClass
 import com.adirahav.diraleashkaa.data.network.entities.*
-import com.adirahav.diraleashkaa.data.network.models.*
+import com.adirahav.diraleashkaa.data.network.models.HomeModel
 import com.adirahav.diraleashkaa.databinding.ActivityHomeBinding
 import com.adirahav.diraleashkaa.ui.base.BaseActivity
 import com.adirahav.diraleashkaa.ui.property.PropertyActivity
 import com.adirahav.diraleashkaa.ui.property.PropertyChartFragment
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.*
 import java.lang.reflect.Type
 import java.util.*
 
@@ -80,8 +77,8 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
     // room user id
     var roomUID: Long? = 0L
 
-    // server user uuid
-    var userUUID: String? = null
+    // loggedin user
+    var userToken: String? = null
 
     // shared preferences
     var preferences: AppPreferences? = null
@@ -114,7 +111,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
     private var isBestYieldNeedToRefresh: Boolean = true
 
     // home
-    var homeData: HomeDataClass? = null
+    var homeData: HomeModel? = null
 
     //endregion == variables ==========
 
@@ -137,6 +134,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
 
         initGlobal()
         initEvents()
+        initData()
 
         lifecycleOwner = this
         initObserver()
@@ -145,7 +143,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
         setDrawer(layout.drawer, layout.menu)
 
         // title text
-        titleText?.text = Utilities.getRoomString("actionbar_title_home")
+        titleText?.text = Utilities.getLocalPhrase("actionbar_title_home")
 
         // track user
         //Log.d("ADITEST6", "GET ${preferences?.getBoolean("isTrackUser", false).toString()} [home]")
@@ -174,8 +172,6 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
 
         // user id
         roomUID = preferences?.getLong("roomUID", 0L)
-        userUUID = preferences?.getString("userUUID", null)
-        Utilities.log(Enums.LogType.Debug, TAG, "preferences userUUID = ${userUUID}")
 
         // actions maskonRe
         maskHolder = null
@@ -197,10 +193,14 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
         // swipe to refresh
         layout.swipeToRefresh.setOnRefreshListener {
             Utilities.log(Enums.LogType.Debug, TAG, "swipeToRefresh refresh")
-            viewModel!!.getServerHome(applicationContext, userUUID)
+            viewModel!!.getServerHome(applicationContext)
             selectedCityPosition = null
             preferences?.setString("homeSelectedCity", null, false)
         }
+    }
+
+    private fun initData() {
+        userToken = preferences!!.getString("token", "")
     }
 
     fun initObserver() {
@@ -223,14 +223,14 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
         else {
             if (!isServerHomeLoaded && !isDataInit) {
                 Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): getServerHome")
-                viewModel!!.getServerHome(applicationContext, userUUID)
+                viewModel!!.getServerHome(applicationContext)
             }
 
         }
     }
 
     override fun createViewModel(): HomeViewModel {
-        val factory = HomeViewModelFactory(DataManager.instance!!.propertyService, DataManager.instance!!.homeService)
+        val factory = HomeViewModelFactory(this@HomeActivity, DataManager.instance!!.propertyService, DataManager.instance!!.userService)
         return ViewModelProvider(this, factory)[HomeViewModel::class.java]
     }
 
@@ -312,7 +312,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
         val city = fixedParametersData?.citiesArray?.find { it.key == property.city ?: "else" }
 
         layout.cityPropertiesTitle.text = HtmlCompat.fromHtml(String.format(
-            Utilities.getRoomString("home_properties_title"),
+            Utilities.getLocalPhrase("home_properties_title"),
             city?.value ?: property.city
         ), HtmlCompat.FROM_HTML_MODE_LEGACY)
 
@@ -330,7 +330,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
 
         bestYieldArray = ArrayList()
 
-        val yearsPeriod = fixedParametersData?.bestYieldArray?.find { it.key == "years_period" }?.value?.toInt() ?: BEST_YIELD_YEARS_PERIOD_DEFAULT
+        val yearsPeriod = fixedParametersData?.bestYieldArray?.find { it.key == "yearsPeriod" }?.value?.toInt() ?: BEST_YIELD_YEARS_PERIOD_DEFAULT
 
         if (bestYieldData != null && bestYieldData!!.size > 0) {
 
@@ -340,7 +340,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
         }
 
         layout.bestYieldTitle.text = HtmlCompat.fromHtml(String.format(
-            Utilities.getRoomString("home_best_yield_title"),
+            Utilities.getLocalPhrase("home_best_yield_title"),
             yearsPeriod
         ), HtmlCompat.FROM_HTML_MODE_LEGACY)
 
@@ -362,7 +362,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
                     }?.value ?: bestYield.city
                 else
                     String.format(
-                        Utilities.getRoomString("home_best_yield_address"),
+                        Utilities.getLocalPhrase("home_best_yield_address"),
                         bestYield.address,
                         if (bestYield.city.equals("else"))
                             bestYield.cityElse
@@ -446,7 +446,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
 
     override fun onPropertyClicked(property: PropertyEntity) {
         if (maskHolder == null) {
-            PropertyActivity.start(this, property.roomID!!, property.uuid!!, property.city)
+            PropertyActivity.start(this, property.roomID!!, property._id!!, property.city)
         }
     }
 
@@ -457,7 +457,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
     override fun onDeletedPropertyClicked(property: PropertyEntity) {
         freezeScreen()
         deleteStartTime = Date()
-        viewModel!!.deleteServerProperty(applicationContext, property, userUUID)
+        viewModel!!.deleteServerProperty(applicationContext, property)
     }
 
     //
@@ -487,13 +487,13 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
             }
 
             if (isRoomFixedParametersLoaded && isRoomMyCitiesLoaded && isRoomBestYieldLoaded && !isServerHomeLoaded) {
-                viewModel!!.getServerHome(applicationContext, userUUID)
+                viewModel!!.getServerHome(applicationContext)
             }
         }
     }
 
-    private inner class ContentObserver : Observer<java.util.ArrayList<StringEntity>?> {
-        override fun onChanged(content: java.util.ArrayList<StringEntity>?) {
+    private inner class ContentObserver : Observer<java.util.ArrayList<PhraseEntity>?> {
+        override fun onChanged(content: java.util.ArrayList<PhraseEntity>?) {
             Utilities.log(Enums.LogType.Debug, TAG, "ContentObserver(): onChanged")
 
             if (content == null) {
@@ -514,7 +514,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
             }
 
             if (isRoomFixedParametersLoaded && isRoomMyCitiesLoaded && isRoomBestYieldLoaded && !isServerHomeLoaded) {
-                viewModel!!.getServerHome(applicationContext, userUUID)
+                viewModel!!.getServerHome(applicationContext)
             }
         }
     }
@@ -545,7 +545,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
             }
 
             if (isRoomFixedParametersLoaded && isRoomMyCitiesLoaded && isRoomBestYieldLoaded && !isServerHomeLoaded) {
-                viewModel!!.getServerHome(applicationContext, userUUID)
+                viewModel!!.getServerHome(applicationContext)
             }
         }
     }
@@ -555,12 +555,12 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
             Utilities.log(Enums.LogType.Debug, TAG, "ServerDeletePropertyObserver(): onChanged")
 
             isServerHomeLoaded = false
-            viewModel!!.getServerHome(applicationContext, userUUID)
+            viewModel!!.getServerHome(applicationContext)
         }
     }
 
-    private inner class ServerHomeObserver : Observer<HomeDataClass> {
-        override fun onChanged(home: HomeDataClass) {
+    private inner class ServerHomeObserver : Observer<HomeModel> {
+        override fun onChanged(home: HomeModel) {
             Utilities.log(Enums.LogType.Debug, TAG, "ServerHomeObserver(): onChanged")
             isServerHomeLoaded = true
             isPropertiesNeedToRefresh = home.isPropertiesNeedToRefresh == true
@@ -588,17 +588,17 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
     //endregion observers
 
     //strings
-    override fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    override fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        layout.firstLoginText.text = Utilities.getRoomString("home_lets_start")
-        layout.myCitiesTitle.text = Utilities.getRoomString("home_cities_title")
-        layout.bestYieldAverageReturn.text = Utilities.getRoomString("home_best_yield_average_return")
-        layout.bestYieldAverageReturnOnEquity.text = Utilities.getRoomString("home_best_yield_average_return_on_equity")
-        layout.bestYieldTotalProfit.text = Utilities.getRoomString("home_best_yield_total_profit")
-        layout.bestYieldTotalProfitNPV.text = Utilities.getRoomString("home_best_yield_total_profit_npv")
+        layout.firstLoginText.text = Utilities.getLocalPhrase("home_lets_start")
+        layout.myCitiesTitle.text = Utilities.getLocalPhrase("home_cities_title")
+        layout.bestYieldAverageReturn.text = Utilities.getLocalPhrase("home_best_yield_average_return")
+        layout.bestYieldAverageReturnOnEquity.text = Utilities.getLocalPhrase("home_best_yield_average_return_on_equity")
+        layout.bestYieldTotalProfit.text = Utilities.getLocalPhrase("home_best_yield_total_profit")
+        layout.bestYieldTotalProfitNPV.text = Utilities.getLocalPhrase("home_best_yield_total_profit_npv")
 
-        super.setRoomStrings()
+        super.setPhrases()
     }
     //strings
 

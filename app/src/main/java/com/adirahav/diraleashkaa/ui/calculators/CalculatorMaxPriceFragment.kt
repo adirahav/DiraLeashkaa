@@ -2,7 +2,6 @@ package com.adirahav.diraleashkaa.ui.property
 
 import android.content.Context
 import android.os.Bundle
-import android.provider.Settings
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -21,21 +20,10 @@ import androidx.lifecycle.Observer
 import com.adirahav.diraleashkaa.common.*
 import com.adirahav.diraleashkaa.common.Utilities.toFormatNumber
 import com.adirahav.diraleashkaa.common.Utilities.toNumber
-import com.adirahav.diraleashkaa.data.network.dataClass.PropertyDataClass
-import com.adirahav.diraleashkaa.data.network.dataClass.SplashDataClass
-import com.adirahav.diraleashkaa.data.network.entities.AmortizationScheduleEntity
-import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
 import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
-import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.databinding.FragmentCalculatorMaxPriceBinding
 import com.adirahav.diraleashkaa.ui.calculators.CalculatorActivity
-import com.adirahav.diraleashkaa.ui.calculators.CalculatorsActivity
-import com.adirahav.diraleashkaa.ui.goodbye.GoodbyeActivity
-import com.adirahav.diraleashkaa.ui.home.HomeActivity
-import com.adirahav.diraleashkaa.ui.splash.SplashActivity
-import java.util.Calendar
 import java.util.Date
-import java.util.TimeZone
 
 class CalculatorMaxPriceFragment : Fragment() {
 
@@ -192,7 +180,7 @@ class CalculatorMaxPriceFragment : Fragment() {
         _context = context
 
         // strings
-        setRoomStrings()
+        setPhrases()
 
         // room/server data loaded
         isRoomDataInit = false
@@ -266,7 +254,7 @@ class CalculatorMaxPriceFragment : Fragment() {
 
     fun initData() {
 
-        Utilities.log(Enums.LogType.Debug, TAG, "initData():uuid = ${maxPriceData?.uuid} ; maxPriceData = ${maxPriceData}")
+        Utilities.log(Enums.LogType.Debug, TAG, "initData():_id = ${maxPriceData?._id} ; maxPriceData = ${maxPriceData}")
 
         isFieldFieldChangedByUser = false
 
@@ -335,7 +323,7 @@ class CalculatorMaxPriceFragment : Fragment() {
 
         if (isServerDataInit == false) {
             callServerStartTime = Date()
-            _activity?.viewModel!!.calcServerMaxPrice(_activity!!.userUUID, null, null)
+            _activity?.viewModel!!.calcServerMaxPrice(null, null)
         }
     }
 
@@ -763,8 +751,8 @@ class CalculatorMaxPriceFragment : Fragment() {
         }
     }
 
-    private fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    private fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         Utilities.setPropertyInputString(layout?.apartmentType, "property_apartment_type_label")
         Utilities.setTextViewString(layout?.propertyPriceLabel, "calculator_maxprice_price_label")
@@ -989,7 +977,7 @@ class CalculatorMaxPriceFragment : Fragment() {
             if (maxPriceData?.price != null) {
                 propertyPriceInputView?.setText(
                         String.format(
-                                Utilities.getRoomString("calculator_maxprice_price_nis"),
+                                Utilities.getLocalPhrase("calculator_maxprice_price_nis"),
                                 maxPriceData?.price.toFormatNumber())
                 )
             }
@@ -1278,7 +1266,7 @@ class CalculatorMaxPriceFragment : Fragment() {
 
     fun calcMaxPrice(fieldName: String? = "", fieldValue: String? =  null) {
         _activity?.freezeScreen()
-        _activity?.viewModel!!.calcServerMaxPrice(_activity?.userUUID, fieldName, if (fieldValue.isNullOrEmpty() || fieldValue.equals("null")) null else fieldValue)
+        _activity?.viewModel!!.calcServerMaxPrice(fieldName, if (fieldValue.isNullOrEmpty() || fieldValue.equals("null")) null else fieldValue)
     }
 
     //endregion == general ==================

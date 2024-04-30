@@ -17,13 +17,11 @@ import com.adirahav.diraleashkaa.common.*
 import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
 import com.adirahav.diraleashkaa.common.Configuration.dateFormatter
 import com.adirahav.diraleashkaa.common.Configuration.timeFormatter
-import com.adirahav.diraleashkaa.common.Utilities.getMapStringValue
 import com.adirahav.diraleashkaa.common.Utilities.log
 import com.adirahav.diraleashkaa.common.Utilities.setButtonDisable
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
-import com.adirahav.diraleashkaa.data.network.entities.StringEntity
+import com.adirahav.diraleashkaa.data.network.entities.PhraseEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
-import com.adirahav.diraleashkaa.data.network.models.RegistrationModel
 import com.adirahav.diraleashkaa.data.network.models.UnsubscribeModel
 import com.adirahav.diraleashkaa.data.network.models.UserModel
 import com.adirahav.diraleashkaa.databinding.ActivityRegistrationBinding
@@ -63,6 +61,9 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
     // shared preferences
     var preferences: AppPreferences? = null
 
+    // loggedin user
+    var userToken: String? = null
+
     // user id
     var roomUID: Long? = 0
 
@@ -75,10 +76,9 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
     // fragments
     val payProgramFragment = RegistrationPayProgramFragment()
     val couponCodeFragment = RegistrationCouponCodeFragment()
-    val betaCodeFragment = RegistrationBetaCodeFragment()
 
     // strings
-    var _roomStrings: ArrayList<StringEntity>? = null
+    var _roomPhrases: ArrayList<PhraseEntity>? = null
 
     // lifecycle owner
     var lifecycleOwner: LifecycleOwner? = null
@@ -88,9 +88,6 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
     var isRoomUserLoaded: Boolean = false
     var isServerUserLoaded: Boolean = false
     var isDataInit: Boolean = false
-
-    // beta
-    private var isBeta: Boolean = false
 
     // expired
     private var isExpired: Boolean = true
@@ -128,10 +125,8 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         setDrawer(layout.drawer, layout.menu)
 
         // title text
-        titleText?.text =   if (isBeta)
-                                Utilities.getRoomString("actionbar_title_beta")
-                            else
-                                Utilities.getRoomString("actionbar_title_registration_details")
+        titleText?.text = Utilities.getLocalPhrase("actionbar_title_registration_details")
+
 
         // track user
         //Log.d("ADITEST7", "GET ${preferences?.getBoolean("isTrackUser", false).toString()} [registration]")
@@ -161,18 +156,17 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
     fun initObserver() {
         log(Enums.LogType.Debug, TAG, "initObserver()", showToast = false)
-        if (!viewModel!!.roomFixedParameters_Get.hasObservers()) viewModel!!.roomFixedParameters_Get.observe(this@RegistrationActivity, RoomFixedParametersObserver(Enums.ObserverAction.GET_ROOM))
-        if (!viewModel!!.couponRegistration.hasObservers()) viewModel!!.couponRegistration.observe(this@RegistrationActivity, CouponRegistrationObserver())
-        if (!viewModel!!.betaRegistration.hasObservers()) viewModel!!.betaRegistration.observe(this@RegistrationActivity, BetaRegistrationObserver())
-        if (!viewModel!!.payProgramRegistration.hasObservers()) viewModel!!.payProgramRegistration.observe(this@RegistrationActivity, PayRegistrationObserver())
-        if (!viewModel!!.serverUser_InsertUpdateServer.hasObservers()) viewModel!!.serverUser_InsertUpdateServer.observe(this@RegistrationActivity, ServerUserObserver(Enums.ObserverAction.INSERT_UPDATE_SERVER))
-        if (!viewModel!!.roomUser_Get.hasObservers()) viewModel!!.roomUser_Get.observe(this@RegistrationActivity, RoomUserObserver(Enums.ObserverAction.GET_ROOM))
-        if (!viewModel!!.roomUser_UpdateRoom.hasObservers()) viewModel!!.roomUser_UpdateRoom.observe(this@RegistrationActivity, RoomUserObserver(Enums.ObserverAction.UPDATE_ROOM))
-        if (!viewModel!!.roomUser_UpdateServer.hasObservers()) viewModel!!.roomUser_UpdateServer.observe(this@RegistrationActivity, RoomUserObserver(Enums.ObserverAction.UPDATE_SERVER))
-        if (!viewModel!!.unsubscribe.hasObservers()) viewModel!!.unsubscribe.observe(this@RegistrationActivity, UnsubscribeObserver())
+        if (!viewModel!!.getLocalFixedParameters.hasObservers()) viewModel!!.getLocalFixedParameters.observe(this@RegistrationActivity, LocalFixedParametersObserver(Enums.ObserverAction.GET_LOCAL))
+        if (!viewModel!!.couponRegistrationCallback.hasObservers()) viewModel!!.couponRegistrationCallback.observe(this@RegistrationActivity, CouponRegistrationObserver())
+        if (!viewModel!!.payProgramRegistrationCallback.hasObservers()) viewModel!!.payProgramRegistrationCallback.observe(this@RegistrationActivity, PayRegistrationObserver())
+        if (!viewModel!!.saveUserCallback.hasObservers()) viewModel!!.saveUserCallback.observe(this@RegistrationActivity, UserObserver(Enums.ObserverAction.SAVE_SERVER))
+        if (!viewModel!!.getLocalUserCallback.hasObservers()) viewModel!!.getLocalUserCallback.observe(this@RegistrationActivity, LocalUserObserver(Enums.ObserverAction.GET_LOCAL))
+        if (!viewModel!!.updateLocalUserCallback.hasObservers()) viewModel!!.updateLocalUserCallback.observe(this@RegistrationActivity, LocalUserObserver(Enums.ObserverAction.UPDATE_LOCAL))
+        if (!viewModel!!.updateServerUserCallback.hasObservers()) viewModel!!.updateServerUserCallback.observe(this@RegistrationActivity, LocalUserObserver(Enums.ObserverAction.UPDATE))
+        if (!viewModel!!.unsubscribeCallback.hasObservers()) viewModel!!.unsubscribeCallback.observe(this@RegistrationActivity, UnsubscribeObserver())
 
         if (!isRoomFixedParametersLoaded && !isRoomUserLoaded && !isDataInit) {
-            viewModel!!.getRoomFixedParameters(applicationContext)
+            viewModel!!.getLocalFixedParameters(applicationContext)
             viewModel!!.getRoomUser(applicationContext, roomUID)
         }
     }
@@ -203,38 +197,39 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
     }
 
     private fun initData() {
-        // beta
-        isBeta = pageType == Enums.RegistrationPageType.BETA_CODE
-
         // unsubscribe
-        Utilities.setTextViewHtml(layout?.unsubscribe, "signup_unsubscribe")
+        Utilities.setTextViewHtml(layout.unsubscribe, "signup_unsubscribe")
+
+        // loggedin user
+        userToken = preferences!!.getString("token", "")
     }
 
     private fun initEvents() {
         // unsubscribe
-        layout?.unsubscribe?.setOnClickListener {
+        /*layout.unsubscribe.setOnClickListener {
             Utilities.openFancyDialog(this@RegistrationActivity, Enums.DialogType.UNSUBSCRIBE, ::responseAfterUnsubscribePositivePress, ::responseAfterUnsubscribeNegativePress, emptyArray())
             return@setOnClickListener
-        }
+        }*/
+        layout.unsubscribe.visibility = GONE // TODO
     }
 
     //endregion == initialize =========
 
     //region == strings ============
 
-    override fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    override fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        layout.buttons.back.text = Utilities.getRoomString("button_back")
-        layout.buttons.next.text = Utilities.getRoomString("button_next")
-        layout.buttons.save.text = Utilities.getRoomString("button_save")
-        layout.buttons.send.text = Utilities.getRoomString("button_send")
-        layout.buttons.pay.text = Utilities.getRoomString("button_pay")
+        layout.buttons.back.text = Utilities.getLocalPhrase("button_back")
+        layout.buttons.next.text = Utilities.getLocalPhrase("button_next")
+        layout.buttons.save.text = Utilities.getLocalPhrase("button_save")
+        layout.buttons.send.text = Utilities.getLocalPhrase("button_send")
+        layout.buttons.pay.text = Utilities.getLocalPhrase("button_pay")
 
-        layout.goHome.text = Utilities.getRoomString("button_home")
+        layout.goHome.text = Utilities.getLocalPhrase("button_home")
         Utilities.setTextViewHtml(layout?.unsubscribe, "signup_unsubscribe")
 
-        super.setRoomStrings()
+        super.setPhrases()
     }
 
     //endregion == strings ============
@@ -267,7 +262,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         // FIX LOCK DRAWER SWIPE ERROR - START
 
         activity.runOnUiThread {
-            if (isExpired || isBeta) {
+            if (isExpired) {
                 layout.drawer.removeView(layout.container)
                 layout.drawer.removeView(layout.navigation)
                 layout.root.removeView(layout.drawer)
@@ -284,46 +279,39 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
             setDrawer(layout.drawer, layout.menu)
 
             layout.expiredRegistrationTitle.text =
-                if (isBeta)
-                    Utilities.getRoomString("registration_beta_title")
-                else if (isExpired)
-                    Utilities.getRoomString("registration_expired_title")
+                if (isExpired)
+                    Utilities.getLocalPhrase("registration_expired_title")
                 else
-                    Utilities.getRoomString("registration_not_expired_title")
+                    Utilities.getLocalPhrase("registration_not_expired_title")
 
             layout.expiredRegistrationTitle.style(
-                if (isExpired && !isBeta)
+                if (isExpired)
                     R.style.messageTitleNegative
                 else
                     R.style.messageTitlePositive
             )
 
-            if (isBeta) {
-                layout.expiredRegistrationMessage.visibility = GONE
-            }
-            else {
-                layout.expiredRegistrationMessage.visibility = VISIBLE
+            layout.expiredRegistrationMessage.visibility = VISIBLE
 
-                layout.expiredRegistrationMessage.text =
-                    if (isUnlimited) {
-                        Utilities.getRoomString("registration_not_expired_unlimited_message")
-                    }
-                    else if (isExpired)
-                        String.format(
-                            Utilities.getRoomString("registration_expired_message"),
-                            dateFormatter.format(userData?.registrationExpiredTime),
-                            timeFormatter.format(userData?.registrationExpiredTime)
-                        )
-                    else
-                        String.format(
-                            Utilities.getRoomString("registration_not_expired_message"),
-                            dateFormatter.format(userData?.registrationExpiredTime),
-                            timeFormatter.format(userData?.registrationExpiredTime)
-                        )
-            }
+            layout.expiredRegistrationMessage.text =
+                if (isUnlimited) {
+                    Utilities.getLocalPhrase("registration_not_expired_unlimited_message")
+                }
+                else if (isExpired)
+                    String.format(
+                        Utilities.getLocalPhrase("registration_expired_message"),
+                        dateFormatter.format(userData?.registrationExpiredTime),
+                        timeFormatter.format(userData?.registrationExpiredTime)
+                    )
+                else
+                    String.format(
+                        Utilities.getLocalPhrase("registration_not_expired_message"),
+                        dateFormatter.format(userData?.registrationExpiredTime),
+                        timeFormatter.format(userData?.registrationExpiredTime)
+                    )
 
             layout.goHome.visibility =
-                if (isExpired || isBeta)
+                if (isExpired)
                     GONE
                 else
                     VISIBLE
@@ -356,18 +344,6 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
                     layout.buttons.pay.visibility = GONE
                 }
             }
-
-            Enums.RegistrationPageType.BETA_CODE -> {
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.formFragment, betaCodeFragment)
-                    .commitAllowingStateLoss()
-
-                activity.runOnUiThread {
-                    layout.buttons.send.visibility = VISIBLE
-                    layout.buttons.pay.visibility = GONE
-                }
-            }
-
         }
 
     }
@@ -377,17 +353,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         log(Enums.LogType.Debug, TAG, "loadFragment()")
         //when (pageType) {
        //     Enums.RegistrationPageType.COUPON_CODE ->
-                if (isBeta) {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.formFragment, betaCodeFragment)
-                        .commitAllowingStateLoss()
-
-                    activity.runOnUiThread {
-                        layout.buttons.send.visibility = VISIBLE
-                        layout.buttons.pay.visibility = GONE
-                    }
-                }
-                else if (isExpired) {
+                if (isExpired) {
                     if (fixedParametersData?.payProgramsObject?.isAvailable == true) {
                         supportFragmentManager.beginTransaction()
                                 .replace(R.id.formFragment, payProgramFragment)
@@ -440,9 +406,6 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
             Enums.RegistrationPageType.COUPON_CODE -> {
                 couponCodeFragment.submitForm(false)
             }
-            Enums.RegistrationPageType.BETA_CODE -> {
-                betaCodeFragment.submitForm()
-            }
             else -> null
         }
 
@@ -472,55 +435,22 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
     //region == user data ==========
 
-    fun updateUser(result: Map<String, Any?>?) =
+    fun updateLocalUser(userData: UserEntity) =
         GlobalScope.launch {
-
-            val nowUTC = Calendar.getInstance()
-            nowUTC.timeZone = TimeZone.getTimeZone("UTC")
-
-            userData = UserEntity(
-                roomUID = roomUID,
-                uuid = userData?.uuid,
-                userName = userData?.userName,
-                email = userData?.email,
-                calcAge = userData?.calcAge,
-                yearOfBirth = userData?.yearOfBirth,
-                phoneNumber = userData?.phoneNumber,
-                phoneNumberSMSVerified = userData?.phoneNumberSMSVerified,
-                deviceID = userData?.deviceID,
-                deviceType = userData?.deviceType,
-                equity = userData?.equity,
-                incomes = userData?.incomes,
-                commitments = userData?.commitments,
-                termsOfUseAcceptTime = userData?.termsOfUseAcceptTime,
-
-                subscriberType =
-                    if (getMapStringValue(result, "subscriber_type") == null)
-                        userData?.subscriberType.toString()
-                    else
-                        getMapStringValue(result, "subscriber_type"),
-                registrationExpiredTime =
-                    if (Utilities.getMapLongValue(result, "registration_expired_time") == null)
-                        userData?.registrationExpiredTime
-                    else
-                        Utilities.getMapLongValue(result, "registration_expired_time"),
-                appVersion = userData?.appVersion,
-                isFirstLogin = userData?.isFirstLogin,
-                canTakeMortgage = userData?.canTakeMortgage
-            )
-
-            viewModel!!.updateRoomUser(applicationContext, lifecycleOwner!!, userData, Enums.DBCaller.ROOM)
+            //COUPON-6
+            //PAYPROGRAM-6
+            viewModel!!.updateLocalUser(applicationContext, userData, Enums.DBCaller.LOCAL)
         }
 
     //endregion == user data ==========
 
     //region == observers ==========
 
-    private inner class RoomFixedParametersObserver(action: Enums.ObserverAction) : Observer<FixedParametersEntity?> {
+    private inner class LocalFixedParametersObserver(action: Enums.ObserverAction) : Observer<FixedParametersEntity?> {
         val _action = action
         override fun onChanged(fixedParameters: FixedParametersEntity?) {
             when (_action) {
-                Enums.ObserverAction.GET_ROOM -> {
+                Enums.ObserverAction.GET_LOCAL -> {
                     log(Enums.LogType.Debug, TAG, "RoomFixedParametersObserver(): GET_ROOM")
                     isRoomFixedParametersLoaded = true
 
@@ -542,35 +472,25 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         }
     }
 
-    private inner class CouponRegistrationObserver : Observer<RegistrationModel?> {
-        override fun onChanged(registrationModel: RegistrationModel?) {
-            couponCodeFragment.couponCodeCallback(registrationModel)
+    private inner class CouponRegistrationObserver : Observer<UserEntity?> {
+        override fun onChanged(userData: UserEntity?) {
+            //COUPON-3
+            couponCodeFragment.couponCodeAfterResponse(userData)
         }
     }
 
-    private inner class BetaRegistrationObserver : Observer<RegistrationModel?> {
-        override fun onChanged(registrationModel: RegistrationModel?) {
-            if (registrationModel != null) {
-                betaCodeFragment.betaCodeCallback(registrationModel)
-            }
-            else {
-                betaCodeFragment.betaCodeCallback(registrationModel)
-            }
+    private inner class PayRegistrationObserver : Observer<UserEntity?> {
+        //PAYPROGRAM-3
+        override fun onChanged(userData: UserEntity?) {
+            payProgramFragment.payProgramAfterResponse(userData)
         }
     }
 
-
-    private inner class PayRegistrationObserver : Observer<RegistrationModel?> {
-        override fun onChanged(registrationModel: RegistrationModel?) {
-            payProgramFragment.payProgramCallback(registrationModel)
-        }
-    }
-
-    private inner class RoomUserObserver(action: Enums.ObserverAction) : Observer<UserEntity?> {
+    private inner class LocalUserObserver(action: Enums.ObserverAction) : Observer<UserEntity?> {
         val _action = action
         override fun onChanged(user: UserEntity?) {
             when (_action) {
-                Enums.ObserverAction.GET_ROOM -> {
+                Enums.ObserverAction.GET_LOCAL -> {
                     log(Enums.LogType.Debug, TAG, "RoomUserObserver(): GET_ROOM. user = $user")
 
                     isRoomUserLoaded = true
@@ -579,7 +499,19 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
                         return
                     }
 
-                    userData = user
+                    userData = UserEntity(
+                        email = user.email,
+                        fullname = user.fullname,
+                        yearOfBirth = user.yearOfBirth,
+                        equity = user.equity,
+                        incomes = user.incomes,
+                        commitments = user.commitments,
+                        termsOfUseAccept = user.termsOfUseAccept,
+                        registrationExpiredTime = user.registrationExpiredTime,
+                        subscriberType = user.subscriberType,
+                        calcCanTakeMortgage = user.calcCanTakeMortgage,
+                        calcAge = user.calcAge
+                    )
 
                     if (isRoomFixedParametersLoaded && isRoomUserLoaded) {
                         updatePreferences()
@@ -588,24 +520,24 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
                     }
                 }
 
-                Enums.ObserverAction.UPDATE_ROOM -> {
+                Enums.ObserverAction.UPDATE_LOCAL -> {
+                    //COUPON-9
+                    //PAYPROGRAM-9
                     log(Enums.LogType.Debug, TAG, "RoomUserObserver(): UPDATE_ROOM. user = $user")
 
                     roomUID = user?.roomUID
                     preferences?.setLong("roomUID", roomUID!!, false)
 
-                    activity.runOnUiThread {
-                        if (user?.uuid == null) {
-                            viewModel!!.insertServerUser(applicationContext, lifecycleOwner!!, userData)
-                        }
-                        else {
-                            viewModel!!.updateServerUser(applicationContext, lifecycleOwner!!, userData)
-                        }
+                    if (isTaskRoot) {
+                        SplashActivity.start(context)
+                    }
+                    else {
+                        HomeActivity.start(context)
                     }
 
                 }
 
-                Enums.ObserverAction.INSERT_UPDATE_SERVER -> {
+                Enums.ObserverAction.SAVE_SERVER -> {
                     log(Enums.LogType.Debug, TAG, "RoomUserObserver(): INSERT_UPDATE_SERVER. user = $user")
 
                     if (user == null) {
@@ -621,56 +553,25 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         }
     }
 
-    private inner class ServerUserObserver(action: Enums.ObserverAction) : Observer<UserModel?> {
+    private inner class UserObserver(action: Enums.ObserverAction) : Observer<UserModel?> {
         val _action = action
         override fun onChanged(user: UserModel?) {
             when (_action) {
-                Enums.ObserverAction.INSERT_UPDATE_SERVER -> {
-                    log(Enums.LogType.Debug, TAG, "ServerUserObserver(): INSERT_UPDATE_SERVER. user.uid = ${user?.data?.user?.uuid}")
+                Enums.ObserverAction.SAVE_SERVER -> {
+                    log(Enums.LogType.Debug, TAG, "ServerUserObserver(): INSERT_UPDATE_SERVER. user.email = ${user?.user?.email}")
 
                     GlobalScope.launch {
 
                         val nowUTC = Calendar.getInstance()
                         nowUTC.timeZone = TimeZone.getTimeZone("UTC")
 
-                        userData = UserEntity(
-                            roomUID = roomUID,
-                            uuid = user?.data?.user?.uuid,
-                            userName = userData?.userName,
-                            email = userData?.email,
-                            calcAge = userData?.calcAge,
-                            yearOfBirth = userData?.yearOfBirth,
-                            phoneNumber = userData?.phoneNumber,
-                            phoneNumberSMSVerified = userData?.phoneNumberSMSVerified,
-                            deviceID = userData?.deviceID,
-                            deviceType = userData?.deviceType,
-                            equity = userData?.equity,
-                            incomes = userData?.incomes,
-                            commitments = userData?.commitments,
-                            termsOfUseAcceptTime = userData?.termsOfUseAcceptTime,
-                            //insertTime = userData?.insertTime,
-                            //updateTime = userData?.updateTime,
-                            //serverUpdateTime = nowUTC.timeInMillis,
-                            subscriberType = userData?.subscriberType,
-                            //registrationStartTime = userData?.registrationStartTime,
-                            registrationExpiredTime = userData?.registrationExpiredTime,
-                            appVersion = userData?.appVersion,
-                            isFirstLogin = userData?.isFirstLogin,
-                            canTakeMortgage = userData?.canTakeMortgage
-                        )
-
-                        viewModel!!.updateRoomUser(applicationContext, lifecycleOwner!!, userData, Enums.DBCaller.SERVER)
+                        viewModel!!.updateLocalUser(applicationContext, userData, Enums.DBCaller.SERVER)
 
                         //
                         updatePreferences()
                         expiredRegistrationMessage()
 
-                        if (isBeta) {
-                            HomeActivity.start(context)
-                        }
-                        else {
-                            loadFragment()
-                        }
+                        loadFragment()
 
                         //displayActionSnackbar(activity, resources.getString(R.string.registration_save_success))
                     }

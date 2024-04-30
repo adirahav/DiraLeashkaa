@@ -39,8 +39,8 @@ interface PropertiesDao {
     @Query("SELECT * FROM propertyEntity WHERE roomID = :roomID LIMIT 1 ")
     fun findById(roomID: Long): PropertyEntity//LiveData<PropertyEntity>
 
-    @Query("SELECT * FROM propertyEntity WHERE uuid = :uuid LIMIT 1 ")
-    fun findByUUID(uuid: String): PropertyEntity//LiveData<PropertyEntity>
+    @Query("SELECT * FROM propertyEntity WHERE _id = :propertyId LIMIT 1 ")
+    fun findById(propertyId: String): PropertyEntity//LiveData<PropertyEntity>
 
     /*@Query("SELECT * FROM user WHERE uid IN (:userIds)")
     fun loadAllByIds(userIds: IntArray): List<User>

@@ -31,15 +31,14 @@ class CalculatorsService private constructor() {
         @FormUrlEncoded
         @POST("calculators/getList")
         fun getList(
-            @Field("user_uuid") userUUID: String?,
+
         ): Call<CalculatorModel?>?
 
         @FormUrlEncoded
         @POST("calculators/maxPrice")
         fun maxPrice(
-                @Field("user_uuid") userUUID: String?,
-                @Field("field_name") fieldName: String?,
-                @Field("field_value") fieldValue: String?,
+                @Field("fieldName") fieldName: String?,
+                @Field("fieldValue") fieldValue: String?,
         ): Call<PropertyModel?>?
     }
 }

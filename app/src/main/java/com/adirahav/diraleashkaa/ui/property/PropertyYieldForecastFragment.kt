@@ -95,7 +95,7 @@ class PropertyYieldForecastFragment : BaseFragment<PropertyViewModel?>() {
         _activity?.updateActionsMenuVisibility(PropertyActivity.ActionsMenuButtonType.YIELD_FORECAST)
 
         // strings
-        setRoomStrings()
+        setPhrases()
     }
 
     private fun initObserver() {
@@ -132,24 +132,24 @@ class PropertyYieldForecastFragment : BaseFragment<PropertyViewModel?>() {
     }
 
     override fun createViewModel(): PropertyViewModel {
-        val factory = PropertyViewModelFactory(DataManager.instance!!.propertyService)
+        val factory = PropertyViewModelFactory(_activity!!, DataManager.instance!!.propertyService)
         return ViewModelProvider(this, factory)[PropertyViewModel::class.java]
     }
 
     //region == strings ============
 
-    private fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    private fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        layout?.monthNo?.text = Utilities.getRoomString("yield_forecast_month_label")
-        layout?.propertyPrice?.text = Utilities.getRoomString("yield_forecast_property_price_label")
-        layout?.rent?.text = Utilities.getRoomString("yield_forecast_rent_label")
-        layout?.financingCosts?.text = Utilities.getRoomString("yield_forecast_financing_costs_label")
-        layout?.valuationInRealization?.text = Utilities.getRoomString("yield_forecast_valuation_in_realization_label")
-        layout?.commendationTax?.text = Utilities.getRoomString("yield_forecast_commendation_tax_label")
-        layout?.profit?.text = Utilities.getRoomString("yield_forecast_profit_label")
-        layout?.totalReturn?.text = Utilities.getRoomString("yield_forecast_total_return_label")
-        layout?.returnOnEquity?.text = Utilities.getRoomString("yield_forecast_return_on_equity_label")
+        layout?.monthNo?.text = Utilities.getLocalPhrase("yield_forecast_month_label")
+        layout?.propertyPrice?.text = Utilities.getLocalPhrase("yield_forecast_property_price_label")
+        layout?.rent?.text = Utilities.getLocalPhrase("yield_forecast_rent_label")
+        layout?.financingCosts?.text = Utilities.getLocalPhrase("yield_forecast_financing_costs_label")
+        layout?.valuationInRealization?.text = Utilities.getLocalPhrase("yield_forecast_valuation_in_realization_label")
+        layout?.commendationTax?.text = Utilities.getLocalPhrase("yield_forecast_commendation_tax_label")
+        layout?.profit?.text = Utilities.getLocalPhrase("yield_forecast_profit_label")
+        layout?.totalReturn?.text = Utilities.getLocalPhrase("yield_forecast_total_return_label")
+        layout?.returnOnEquity?.text = Utilities.getLocalPhrase("yield_forecast_return_on_equity_label")
 
     }
 }

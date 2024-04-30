@@ -6,33 +6,26 @@ import android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.lifecycle.*
 import androidx.lifecycle.Observer
-import com.adirahav.diraleashkaa.BuildConfig
 import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.*
-import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
 import com.adirahav.diraleashkaa.data.DataManager
 import com.adirahav.diraleashkaa.ui.base.BaseActivity
 
-import com.adirahav.diraleashkaa.common.Utilities.getMapBooleanValue
-import com.adirahav.diraleashkaa.common.Utilities.getMapIntValue
-import com.adirahav.diraleashkaa.common.Utilities.getMapLongValue
-import com.adirahav.diraleashkaa.common.Utilities.getMapStringValue
 import com.adirahav.diraleashkaa.common.Utilities.log
+import com.adirahav.diraleashkaa.data.network.DatabaseClient
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
+import com.adirahav.diraleashkaa.data.network.entities.PhraseEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.data.network.models.*
 import com.adirahav.diraleashkaa.databinding.ActivitySignupBinding
 import com.adirahav.diraleashkaa.ui.registration.*
 import com.kofigyan.stateprogressbar.StateProgressBar
 import kotlinx.coroutines.*
-import java.util.*
 
 class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
 
@@ -63,11 +56,10 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
     // shared preferences
     var preferences: AppPreferences? = null
 
-    // user id
-    var roomUID: Long? = null
-
-    // user data
-    var userData: UserEntity? = null
+    // logging user
+    var loggingUser: UserEntity? = null
+    var userToken: String? = null
+    var roomUID: Long? = 0
 
     // state progress bar
     var currentStepProgressBar: Int = 1
@@ -79,22 +71,12 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
     private val termsOfUseFragment = RegistrationTermsOfUseFragment()
     val payProgramFragment = RegistrationPayProgramFragment()
     val couponCodeFragment = RegistrationCouponCodeFragment()
-    val betaCodeFragment = RegistrationBetaCodeFragment()
     private val welcomeInfoFragment = SignUpWelcomeFragment()
 
     private var paymentPageType = Enums.RegistrationPageType.PAY_PROGRAM
 
     // lifecycle owner
     var lifecycleOwner: LifecycleOwner? = null
-
-    // room/server data loaded
-    var isRoomFixedParametersLoaded: Boolean = false
-    var isRoomUserLoaded: Boolean = false
-
-    var isServerFixedParametersLoaded: Boolean = false
-    var isServerUserLoaded: Boolean = false
-
-    var isDataInit: Boolean = false
 
     // fixed parameters data
     var fixedParametersData: FixedParameters? = null
@@ -104,8 +86,6 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
 
     // beta version
     var isBetaVersion: Boolean = false
-
-    var showSMSNotification = true
 
     //endregion == variables ==========
 
@@ -135,9 +115,10 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
     override fun createViewModel(): SignUpViewModel {
         val factory = SignUpViewModelFactory(
             this@SignUpActivity,
+            DataManager.instance!!.authService,
             DataManager.instance!!.userService,
             DataManager.instance!!.registrationService,
-            DataManager.instance!!.stringsService
+            DataManager.instance!!.phraseService
         )
         return ViewModelProvider(this, factory)[SignUpViewModel::class.java]
 
@@ -150,28 +131,16 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
 
     fun initObserver() {
         log(Enums.LogType.Debug, TAG, "initObserver()", showToast = false)
-        if (!viewModel!!.roomFixedParametersGet.hasObservers()) viewModel!!.roomFixedParametersGet.observe(this@SignUpActivity, RoomFixedParametersObserver(Enums.ObserverAction.GET_ROOM))
+        if (!viewModel!!.fixedParametersCallback.hasObservers()) viewModel!!.fixedParametersCallback.observe(this@SignUpActivity, FixedParametersObserver())
         if (!viewModel!!.couponRegistration.hasObservers()) viewModel!!.couponRegistration.observe(this@SignUpActivity, CouponRegistrationObserver())
-        if (!viewModel!!.betaRegistration.hasObservers()) viewModel!!.betaRegistration.observe(this@SignUpActivity, BetaRegistrationObserver())
         if (!viewModel!!.payProgramRegistration.hasObservers()) viewModel!!.payProgramRegistration.observe(this@SignUpActivity, PayRegistrationObserver())
-        if (!viewModel!!.skipRegistration.hasObservers()) viewModel!!.skipRegistration.observe(this@SignUpActivity, SkipRegistrationObserver())
-        if (!viewModel!!.smsCodeValidation.hasObservers()) viewModel!!.smsCodeValidation.observe(this@SignUpActivity, SMSCodeValidationObserver())
-        if (!viewModel!!.serverUserInsertUpdateServer.hasObservers()) viewModel!!.serverUserInsertUpdateServer.observe(this@SignUpActivity, ServerUserObserver(Enums.ObserverAction.INSERT_UPDATE_SERVER))
-        if (!viewModel!!.roomUserGet.hasObservers()) viewModel!!.roomUserGet.observe(this@SignUpActivity, RoomUserObserver(Enums.ObserverAction.GET_ROOM))
-        if (!viewModel!!.roomUserInsertUpdateRoom.hasObservers()) viewModel!!.roomUserInsertUpdateRoom.observe(this@SignUpActivity, RoomUserObserver(Enums.ObserverAction.INSERT_UPDATE_ROOM))
-        if (!viewModel!!.roomUserInsertUpdateServer.hasObservers()) viewModel!!.roomUserInsertUpdateServer.observe(this@SignUpActivity, RoomUserObserver(Enums.ObserverAction.INSERT_UPDATE_SERVER))
+        if (!viewModel!!.skipRegistrationCallback.hasObservers()) viewModel!!.skipRegistrationCallback.observe(this@SignUpActivity, SkipRegistrationObserver())
+        //if (!viewModel!!.smsCodeValidation.hasObservers()) viewModel!!.smsCodeValidation.observe(this@SignUpActivity, SMSCodeValidationObserver())
+        if (!viewModel!!.setSignupCallback.hasObservers()) viewModel!!.setSignupCallback.observe(this@SignUpActivity, SignupObserver())
         if (!viewModel!!.termsOfUse.hasObservers()) viewModel!!.termsOfUse.observe(this@SignUpActivity, TermsOfUseObserver())
 
-        if (!isRoomFixedParametersLoaded && !isRoomUserLoaded && !isDataInit) {
+        if (fixedParametersData == null) {
             viewModel!!.getRoomFixedParameters(applicationContext)
-
-            if (roomUID == 0L) {
-                isRoomUserLoaded = true
-            }
-            else {
-                viewModel!!.getRoomUser(applicationContext, roomUID)
-            }
-
         }
     }
 
@@ -183,17 +152,11 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
         // shared preferences
         preferences = AppPreferences.instance
 
-        // user id
-        roomUID = preferences?.getLong("roomUID", 0L)
-
-        // room/server data loaded
-        isRoomFixedParametersLoaded = false
-        isRoomUserLoaded = false
-
-        isServerFixedParametersLoaded = false
-        isServerUserLoaded = false
-
-        isDataInit = false
+        // logging user
+        CoroutineScope(Dispatchers.IO).launch {
+            val existLocalUser = DatabaseClient.getInstance(activity.applicationContext)?.appDatabase?.userDao()?.getFirst()
+            loggingUser = if (existLocalUser != null) existLocalUser else null
+        }
 
         // buttons
         layout.buttons.back.visibility = View.VISIBLE
@@ -241,22 +204,24 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
             ?.setLabelColorIndicator(ContextCompat.getColor(applicationContext, R.color.orange))
             ?.setCompletedPosition(3)
             ?.drawView();*/
+
+            userToken = preferences!!.getString("token", "")
     }
 
     //endregion == initialize =========
 
     //region == strings ============
 
-    override fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    override fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        layout.buttons.back.text = Utilities.getRoomString("button_back")
-        layout.buttons.next.text = Utilities.getRoomString("button_next")
-        layout.buttons.save.text = Utilities.getRoomString("button_save")
-        layout.buttons.send.text = Utilities.getRoomString("button_send")
-        layout.buttons.pay.text = Utilities.getRoomString("button_pay")
+        layout.buttons.back.text = Utilities.getLocalPhrase("button_back")
+        layout.buttons.next.text = Utilities.getLocalPhrase("button_next")
+        layout.buttons.save.text = Utilities.getLocalPhrase("button_save")
+        layout.buttons.send.text = Utilities.getLocalPhrase("button_send")
+        layout.buttons.pay.text = Utilities.getLocalPhrase("button_pay")
 
-        super.setRoomStrings()
+        super.setPhrases()
     }
 
     //endregion == strings ============
@@ -267,12 +232,9 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
         log(Enums.LogType.Debug, TAG, "loadFragment()")
         log(Enums.LogType.Debug, TAG, "updateStep3: currentStepProgressBar = $currentStepProgressBar")
 
-        if (userData == null ||
-            userData?.userName.isNullOrEmpty() ||
-            userData?.phoneNumber.isNullOrEmpty() ||
-            userData?.email.isNullOrEmpty() ||
-            (showSMSNotification && userData?.phoneNumberSMSVerified ?: false == false) ||
-            userData?.yearOfBirth == null) {
+        if (loggingUser?.fullname.isNullOrEmpty() ||
+            loggingUser?.email.isNullOrEmpty() ||
+            loggingUser?.yearOfBirth == null) {
 
             supportFragmentManager.beginTransaction()
                 .replace(R.id.formFragment, personalInfoFragment)
@@ -282,7 +244,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
 
             layout.buttons.pay.visibility = View.GONE
         }
-        else if (userData?.equity == null || userData?.incomes == null || userData?.commitments == null) {
+        else if (loggingUser?.equity == null || loggingUser?.incomes == null || loggingUser?.commitments == null) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.formFragment, financialInfoFragment)
                 .commitAllowingStateLoss()
@@ -291,7 +253,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
 
             currentStepProgressBar = 2
         }
-        else if (userData?.termsOfUseAcceptTime == null) {
+        else if (loggingUser?.termsOfUseAccept == null) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.formFragment, termsOfUseFragment)
                 .commitAllowingStateLoss()
@@ -299,15 +261,6 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
             layout.buttons.pay.visibility = View.GONE
 
             currentStepProgressBar = 3
-        }
-        else if (userData?.subscriberType == null) {
-            supportFragmentManager.beginTransaction()
-                .replace(
-                    R.id.formFragment,
-                    if (isBetaVersion) betaCodeFragment else payProgramFragment)
-                .commitAllowingStateLoss()
-
-            currentStepProgressBar = 4
         }
 
         updateStep()
@@ -353,19 +306,6 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
 
                 paymentPageType = Enums.RegistrationPageType.COUPON_CODE
             }
-
-            Enums.RegistrationPageType.BETA_CODE -> {
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.formFragment, betaCodeFragment)
-                    .commitAllowingStateLoss()
-
-                activity.runOnUiThread {
-                    layout.buttons.send.visibility = View.GONE
-                    layout.buttons.pay.visibility = View.GONE
-                }
-
-                paymentPageType = Enums.RegistrationPageType.BETA_CODE
-            }
         }
 
     }
@@ -375,15 +315,19 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
     //region == steps ==============
 
     fun submitNext(view: View?) {
-
+        //SKIP-2
         if (currentStepProgressBar == 4) {
+            if (view == null) {
+                currentStepProgressBar++
+                updateStep()
+                return
+            }
+
             when (paymentPageType) {
                 Enums.RegistrationPageType.COUPON_CODE ->
-                    couponCodeFragment.submitForm(skip = (view == null))
+                    couponCodeFragment.submitForm(false)
                 Enums.RegistrationPageType.PAY_PROGRAM ->
-                    payProgramFragment.submitForm(skip = (view == null))
-                Enums.RegistrationPageType.BETA_CODE ->
-                    betaCodeFragment.submitForm()
+                    payProgramFragment.submitForm(false)
             }
 
             return
@@ -404,7 +348,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
         if (isValid) {
             when (currentStepProgressBar) {
                 1, 2, 3 -> runBlocking {
-                    insertUpdateUser(result)
+                    signupLocalUser(result)
                 }
 
                 4 -> runBlocking {
@@ -467,29 +411,14 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
             4 ->  {
                 layout.stepsProgressBar.setCurrentStateNumber(StateProgressBar.StateNumber.FOUR)
 
-                if (isBetaVersion) {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.formFragment, betaCodeFragment)
-                        .commitAllowingStateLoss()
-
-                    activity.runOnUiThread {
-                        layout.buttons.back.visibility = View.VISIBLE
-                        layout.buttons.next.visibility = View.VISIBLE
-                        layout.buttons.pay.visibility = View.GONE
-                    }
-
-                    paymentPageType = Enums.RegistrationPageType.BETA_CODE
-                }
-                else {
-                    supportFragmentManager.beginTransaction()
+                supportFragmentManager.beginTransaction()
                         .replace(R.id.formFragment, payProgramFragment)
                         .commitAllowingStateLoss()
 
-                    activity.runOnUiThread {
-                        layout.buttons.back.visibility = View.GONE
-                        layout.buttons.next.visibility = View.GONE
-                        layout.buttons.pay.visibility = View.VISIBLE
-                    }
+                activity.runOnUiThread {
+                    layout.buttons.back.visibility = View.GONE
+                    layout.buttons.next.visibility = View.GONE
+                    layout.buttons.pay.visibility = View.VISIBLE
                 }
 
             }
@@ -511,60 +440,22 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
     }
 
     private fun updatePreferences() {
-        preferences?.setString("userUUID", userData?.uuid, false)
-        preferences?.setString("subscriberType", userData?.subscriberType, false)
-        preferences?.setLong("expiredTime", userData?.registrationExpiredTime ?: 0, false)
+        preferences?.setString("email", loggingUser?.email, false)
+        preferences?.setString("subscriberType", loggingUser?.subscriberType, false)
+        preferences?.setLong("expiredTime", loggingUser?.registrationExpiredTime ?: 0, false)
     }
 
     //endregion == steps ==============
 
     //region == user data ==========
 
-    fun insertUpdateUser(result: Map<String, Any?>?) =
+    fun signupLocalUser(result: Map<String, Any?>?) =
         GlobalScope.launch {
 
-            val nowUTC = Calendar.getInstance()
-            nowUTC.timeZone = TimeZone.getTimeZone("UTC")
-
-            userData = UserEntity(
-                roomUID = roomUID,
-                uuid = userData?.uuid,
-                userName = if (getMapStringValue(result, "name").isEmpty()) userData?.userName else getMapStringValue(result, "name"),
-                email = if (getMapStringValue(result, "email").isEmpty()) userData?.email else getMapStringValue(result, "email"),
-                calcAge = null,
-                yearOfBirth = if (getMapIntValue(result, "year_of_birth") == null) userData?.yearOfBirth else getMapIntValue(result, "year_of_birth"),
-                phoneNumber = if (getMapStringValue(result, "phone_number").isEmpty()) userData?.phoneNumber else getMapStringValue(result, "phone_number"),
-                phoneNumberSMSVerified =
-                    if (getMapBooleanValue(result, "phone_number_sms_verified") == null)
-                        userData?.phoneNumberSMSVerified
-                    else
-                        getMapBooleanValue(result, "phone_number_sms_verified"),
-                deviceID = if (userData?.deviceID == null) Settings.Secure.getString(AppApplication.context.contentResolver, Utilities.getDeviceID(context)) else userData?.deviceID,
-                deviceType = if (userData?.deviceType == null) Utilities.getDeviceType() else userData?.deviceType,
-                equity = if (getMapIntValue(result, Const.EQUITY) == null) userData?.equity else getMapIntValue(result, Const.EQUITY),
-                incomes = if (getMapIntValue(result, Const.INCOMES) == null) userData?.incomes else getMapIntValue(result, Const.INCOMES),
-                commitments = if (getMapIntValue(result, Const.COMMITMENTS) == null) userData?.commitments else getMapIntValue(result, Const.COMMITMENTS),
-               // termsOfUseAcceptTime = if (termsOfUseAcceptTime == 0L) userData?.termsOfUseAcceptTime else getMapLongValue(result, "termsOfUseAcceptTime"),
-                termsOfUseAcceptTime = if (getMapLongValue(result, "terms_of_use_accept_time") == 0L) userData?.termsOfUseAcceptTime else getMapLongValue(result, "terms_of_use_accept_time"),
-                subscriberType = if (getMapStringValue(result, "subscriber_type").isEmpty()) userData?.subscriberType else getMapStringValue(result, "subscriber_type"),
-                registrationExpiredTime = if (getMapLongValue(result, "registration_expired_time") == 0L) userData?.registrationExpiredTime else getMapLongValue(result, "registration_expired_time"),
-                appVersion = BuildConfig.VERSION_NAME,
-                isFirstLogin = true,
-                canTakeMortgage = userData?.canTakeMortgage
-            )
-
-            log(Enums.LogType.Debug, TAG, "insertUpdateUser(): userData = {${userData}}")
+            log(Enums.LogType.Debug, TAG, "signupUser(): userData = {${result!!.entries.toString()}}")
 
             activity.runOnUiThread {
-                if (userData?.uuid == null) {
-                    viewModel!!.insertServerUser(userData)
-                }
-                else {
-                    //if (getMapBooleanValue(result, "phone_number_sms_verified") != null) {
-                        viewModel!!.updateServerUser(userData)
-                    //}
-
-                }
+                viewModel!!.signupUser(result)
             }
         }
 
@@ -588,22 +479,9 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
 
     //region == skip registration ==
 
-    fun skipRegistrationCallback(trialRegistration: RegistrationModel?) {
-
-        // results
-        val map = mutableMapOf<String, Any?>()
-        val entities = mutableMapOf<String, Any?>()
-
-        entities["registration_expired_time"] = trialRegistration?.data?.registration?.registrationExpireDate
-        entities["subscriber_type"] = trialRegistration?.data?.registration?.subscriberType
-
-        map["isValid"] = true
-        map["entities"] = entities
-
-        Utilities.hideKeyboard(this@SignUpActivity)
-
+    fun skipRegistrationCallback(uerData: UserEntity?) {
         runBlocking {
-            insertUpdateUser(map)
+            submitNext(null)
         }
     }
 
@@ -629,190 +507,68 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
 
     //region == observers ==========
 
-    private inner class CouponRegistrationObserver : Observer<RegistrationModel?> {
-        override fun onChanged(registrationModel: RegistrationModel?) {
-            if (registrationModel != null) {
-                couponCodeFragment.couponCodeCallback(registrationModel)
-            }
-            else {
-                couponCodeFragment.couponCodeCallback(registrationModel)
-            }
-        }
-    }
-
-    private inner class BetaRegistrationObserver : Observer<RegistrationModel?> {
-        override fun onChanged(registrationModel: RegistrationModel?) {
-            if (registrationModel != null) {
-                betaCodeFragment.betaCodeCallback(registrationModel)
-            }
-            else {
-                betaCodeFragment.betaCodeCallback(registrationModel)
+    private inner class CouponRegistrationObserver : Observer<UserEntity?> {
+        override fun onChanged(userData: UserEntity?) {
+            if (userData != null) {
+                activity.runOnUiThread {
+                    currentStepProgressBar++
+                    updateStep()
+                }
             }
         }
     }
 
-    private inner class PayRegistrationObserver : Observer<RegistrationModel?> {
-        override fun onChanged(registrationModel: RegistrationModel?) {
-            if (registrationModel != null) {
-                payProgramFragment.payProgramCallback(registrationModel)
-            }
-            else {
-                payProgramFragment.payProgramCallback(registrationModel)
-            }
+    private inner class PayRegistrationObserver : Observer<UserEntity?> {
+        override fun onChanged(userData: UserEntity?) {
+            payProgramFragment.payProgramAfterResponse(userData)
         }
     }
 
-    private inner class SMSCodeValidationObserver : Observer<SMSCodeValidationModel?> {
-        override fun onChanged(smsCodeValidation: SMSCodeValidationModel?) {
-            if (smsCodeValidation != null) {
-                personalInfoFragment.afterCheckSMSCode(smsCodeValidation)
-            }
-            else {
-                personalInfoFragment.afterCheckSMSCode(null)
-            }
+    private inner class SkipRegistrationObserver : Observer<UserEntity?> {
+        override fun onChanged(userData: UserEntity?) {
+            skipRegistrationCallback(userData)
         }
     }
 
-    private inner class SkipRegistrationObserver : Observer<RegistrationModel?> {
-        override fun onChanged(registrationModel: RegistrationModel?) {
-            skipRegistrationCallback(registrationModel)
-        }
-    }
-
-    private inner class RoomFixedParametersObserver(action: Enums.ObserverAction) : Observer<FixedParametersEntity?> {
-        val _action = action
+    private inner class FixedParametersObserver : Observer<FixedParametersEntity?> {
         override fun onChanged(fixedParameters: FixedParametersEntity?) {
-            when (_action) {
-                Enums.ObserverAction.GET_ROOM -> {
-                    log(Enums.LogType.Debug, TAG, "RoomFixedParametersObserver(): GET_ROOM")
-                    isRoomFixedParametersLoaded = true
+            log(Enums.LogType.Debug, TAG, "FixedParametersObserver()")
 
-                    if (fixedParameters == null) {
-                        return
-                    }
-
-                    fixedParametersData = FixedParameters.init(fixedParameters)
-                    showSMSNotification = fixedParametersData?.smsArray?.find { it.key == "show_verification" }?.value?.toBoolean() ?: true
-
-
-                    if (isRoomFixedParametersLoaded && isRoomUserLoaded) {
-                        loadFragment()
-                    }
-                }
-
-                else -> {}
+            if (fixedParameters == null) {
+                return
             }
+
+            fixedParametersData = FixedParameters.init(fixedParameters)
+
+            loadFragment()
         }
     }
 
-    private inner class RoomUserObserver(action: Enums.ObserverAction) : Observer<UserEntity?> {
-        val _action = action
+    private inner class SignupObserver : Observer<UserEntity?> {
         override fun onChanged(user: UserEntity?) {
-            when (_action) {
-                Enums.ObserverAction.GET_ROOM -> {
-                    log(Enums.LogType.Debug, TAG, "RoomUserObserver(): GET_ROOM. user = $user")
+            log(Enums.LogType.Debug, TAG, "SignupObserver() user = {${user}}")
 
-                    isRoomUserLoaded = true
+            GlobalScope.launch {
+                if (user != null) {
+                    DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.deleteAll()!!
+                    roomUID = DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.insert(user)!!
+                    activity.preferences?.setLong("roomUID", roomUID!!, false)
 
-                    if (user == null) {
-                        return
-                    }
-
-                    userData = user
-
-                    if (isRoomFixedParametersLoaded && isRoomUserLoaded) {
-                        loadFragment()
-                    }
-
-                    loadFragment()
-                }
-
-                Enums.ObserverAction.INSERT_UPDATE_ROOM -> {
-                    log(Enums.LogType.Debug, TAG, "RoomUserObserver(): INSERT_UPDATE_ROOM. user = $user")
-
-                    roomUID = user?.roomUID
-                    preferences?.setLong("roomUID", roomUID!!, false)
+                    loggingUser = user
 
                     if (currentStepProgressBar <= stepsCount!!) {
                         activity.runOnUiThread {
-                            if (showSMSNotification && !(userData?.phoneNumberSMSVerified == true) && currentStepProgressBar == 1) {
-                                personalInfoFragment.openSMSDialog()
-                            }
+                            currentStepProgressBar++
+                            updateStep()
                         }
                     }
                 }
-
-                Enums.ObserverAction.INSERT_UPDATE_SERVER -> {
-                    log(Enums.LogType.Debug, TAG, "RoomUserObserver(): INSERT_UPDATE_SERVER. user = $user")
-
-                    if (user == null) {
-                        return
-                    }
-
-                    userData = user
-
-                    if (currentStepProgressBar <= stepsCount!!) {
-                        activity.runOnUiThread {
-                            log(Enums.LogType.Debug, TAG, "RoomUserObserver(): INSERT_UPDATE_SERVER. showSMSNotification = $showSMSNotification, currentStepProgressBar = $currentStepProgressBar, phoneNumberSMSVerified = ${userData?.phoneNumberSMSVerified}")
-
-                            log(Enums.LogType.Debug, TAG, "RoomUserObserver(): INSERT_UPDATE_SERVER. " +
-                                    "${currentStepProgressBar != 1}, ${showSMSNotification && userData?.phoneNumberSMSVerified == true && currentStepProgressBar == 1}, ${!showSMSNotification && (userData?.phoneNumberSMSVerified ?: false) && currentStepProgressBar == 1}")
-
-                            if (currentStepProgressBar == 1 && !showSMSNotification) {
-                                currentStepProgressBar++
-
-                                updateStep()
-                            }
-                            else if ( (currentStepProgressBar > 1) ||
-                                 (showSMSNotification && userData?.phoneNumberSMSVerified == true && currentStepProgressBar == 1)
-                               ) {
-                                log(Enums.LogType.Debug, TAG, "updateStep2: currentStepProgressBar = $currentStepProgressBar , userData?.phoneNumberSMSVerified = ${userData?.phoneNumberSMSVerified}")
-                                currentStepProgressBar++
-
-                                updateStep()
-                            }
-                        }
-                    }
-
-                }
-
-                else -> {}
-            }
-
-        }
-    }
-
-    private inner class ServerUserObserver(action: Enums.ObserverAction) : Observer<UserEntity?> {
-        val _action = action
-
-        override fun onChanged(user: UserEntity?) {
-            when (_action) {
-                Enums.ObserverAction.INSERT_UPDATE_SERVER -> {
-                    log(Enums.LogType.Debug, TAG, "ServerUserObserver(): INSERT_UPDATE_SERVER. user = {${user}}")
-
-                    GlobalScope.launch {
-
-                        val nowUTC = Calendar.getInstance()
-                        nowUTC.timeZone = TimeZone.getTimeZone("UTC")
-
-                        user?.roomUID = roomUID
-                        userData = user
-
-                        viewModel!!.updateRoomUser(
-                            applicationContext,
-                            userData,
-                            Enums.DBCaller.SERVER
-                        )
-                    }
-                }
-
-                else -> {}
             }
         }
     }
 
-    private inner class TermsOfUseObserver : Observer<StringModel?> {
-        override fun onChanged(termsOfUse: StringModel?) {
+    private inner class TermsOfUseObserver : Observer<PhraseEntity?> {
+        override fun onChanged(termsOfUse: PhraseEntity?) {
             termsOfUseFragment.termsOfUseCallback(termsOfUse)
         }
     }
@@ -826,23 +582,6 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
     }
 
     //endregion == base abstract ======
-
-    //region == permissions ========
-
-    /*fun grandPermissionsIfNeeded() {
-        // phone number
-        val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE), PERMISSION_CODE)
-        }
-
-        //Utilities.log(Enums.LogType.Debug, TAG, "telephonyManager.line1Number = ${telephonyManager.line1Number}")
-        //Utilities.log(Enums.LogType.Debug, TAG, "telephonyManager.allCellInfo = ${telephonyManager.allCellInfo}")
-        //Utilities.log(Enums.LogType.Debug, TAG, "telephonyManager.phoneType = ${telephonyManager.phoneType}")
-        //Utilities.log(Enums.LogType.Debug, TAG, "telephonyManager.simSerialNumber = ${telephonyManager.simSerialNumber}")
-    }*/
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String?>, grantResults: IntArray) {
         when (requestCode) {

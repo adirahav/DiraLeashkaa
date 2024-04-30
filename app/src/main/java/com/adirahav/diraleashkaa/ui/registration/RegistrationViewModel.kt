@@ -12,6 +12,7 @@ import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.data.network.models.RegistrationModel
 import com.adirahav.diraleashkaa.data.network.models.UnsubscribeModel
 import com.adirahav.diraleashkaa.data.network.models.UserModel
+import com.adirahav.diraleashkaa.data.network.response.UserResponse
 import com.adirahav.diraleashkaa.data.network.services.RegistrationService
 import com.adirahav.diraleashkaa.data.network.services.UserService
 import com.adirahav.diraleashkaa.ui.base.BaseViewModel
@@ -33,13 +34,13 @@ class RegistrationViewModel internal constructor(
     private val TAG = "RegistrationViewModel"
 
     // fixed parameters
-    val roomFixedParameters_Get: MutableLiveData<FixedParametersEntity> = MutableLiveData()
+    val getLocalFixedParameters: MutableLiveData<FixedParametersEntity> = MutableLiveData()
 
     // coupon registration
-    val couponRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
+    val couponRegistrationCallback: MutableLiveData<UserEntity> = MutableLiveData()
 
     // pay registration
-    val payProgramRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
+    val payProgramRegistrationCallback: MutableLiveData<UserEntity> = MutableLiveData()
 
     // trial registration
     val trialRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
@@ -48,158 +49,72 @@ class RegistrationViewModel internal constructor(
     val betaRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
 
     // user
-    val serverUser_InsertUpdateServer: MutableLiveData<UserModel> = MutableLiveData()
-    val roomUser_Get: MutableLiveData<UserEntity> = MutableLiveData()
-    val roomUser_UpdateRoom: MutableLiveData<UserEntity> = MutableLiveData()
-    val roomUser_UpdateServer: MutableLiveData<UserEntity> = MutableLiveData()
+    val saveUserCallback: MutableLiveData<UserModel> = MutableLiveData()
+    val getLocalUserCallback: MutableLiveData<UserEntity> = MutableLiveData()
+    val updateLocalUserCallback: MutableLiveData<UserEntity> = MutableLiveData()
+    val updateServerUserCallback: MutableLiveData<UserEntity> = MutableLiveData()
 
     // unsubscribe
-    val unsubscribe: MutableLiveData<UnsubscribeModel> = MutableLiveData()
+    val unsubscribeCallback: MutableLiveData<UnsubscribeModel> = MutableLiveData()
 
     //region == fixed parameters ==============
-    fun getRoomFixedParameters(applicationContext: Context) {
-        Utilities.log(Enums.LogType.Debug, TAG, "getRoomFixedParameters()")
+    fun getLocalFixedParameters(applicationContext: Context) {
+        Utilities.log(Enums.LogType.Debug, TAG, "getLocalFixedParameters()")
 
         CoroutineScope(Dispatchers.IO).launch {
             val fixedParameters = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
             Timer("FixedParameters", false).schedule(ROOM_AWAIT_MILLISEC) {
-                setRoomFixedParameters(fixedParameters?.first())
+                setLocalFixedParameters(fixedParameters?.first())
             }
         }
     }
 
-    private fun setRoomFixedParameters(fixedParameters: FixedParametersEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomFixedParameters()", showToast = false)
-        this.roomFixedParameters_Get.postValue(fixedParameters)
+    private fun setLocalFixedParameters(fixedParameters: FixedParametersEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setLocalFixedParameters()", showToast = false)
+        this.getLocalFixedParameters.postValue(fixedParameters)
     }
     //endregion == fixed parameters ==============
 
     //region == user ==========================
 
     // == SERER =====
-    fun insertServerUser(applicationContext: Context, lifecycleOwner: LifecycleOwner, userData: UserEntity?) {
+    fun insertServerUser(applicationContext: Context, lifecycleOwner: LifecycleOwner, userData: UserEntity?, password: String?) {
         Utilities.log(Enums.LogType.Debug, TAG, "insertServerUser()")
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val call: Call<UserModel?>? = userService.userAPI.insertUser(
-                userData?.userName,
-                userData?.email,
-                userData?.calcAge,
-                userData?.phoneNumber,
-                userData?.phoneNumberSMSVerified,
-                userData?.deviceID,
-                userData?.deviceType,
-                userData?.equity,
-                userData?.incomes,
-                userData?.commitments,
-                userData?.termsOfUseAcceptTime,
-                //userData?.insertTime,
-                //userData?.updateTime,
-                userData?.subscriberType,
-                //userData?.registrationStartTime,
-                userData?.registrationExpiredTime,
-                userData?.appVersion,
-                userData?.isFirstLogin)
-
-            call?.enqueue(object : Callback<UserModel?> {
-                override fun onResponse(call: Call<UserModel?>, response: Response<UserModel?>) {
-                    Utilities.log(Enums.LogType.Debug, TAG, "insertServerUser(): response = ${response}")
-
-                    val result: UserModel? = response.body()
-
-                    if (response.code() == 200) {
-                        setServerUser(result)
-                    }
-                    else {
-                        setServerUser(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "insertServerUser(): Error = ${response}", userData)
-                    }
-                }
-
-                override fun onFailure(call: Call<UserModel?>, t: Throwable) {
-                    setServerUser(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "insertServerUser(): onFailure = ${t}", userData)
-                    call.cancel()
-                }
-            })
         }
     }
 
-    fun updateServerUser(applicationContext: Context, lifecycleOwner: LifecycleOwner, userData: UserEntity?) {
+    fun updateServerUser(applicationContext: Context, lifecycleOwner: LifecycleOwner, userData: UserEntity?, password: String?) {
         Utilities.log(Enums.LogType.Debug, TAG, "updateServerUser()")
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val call: Call<UserModel?>? = userService.userAPI.updateUser(
-                userData?.uuid,
-                userData?.userName,
-                userData?.email,
-                userData?.calcAge,
-                userData?.phoneNumber,
-                userData?.phoneNumberSMSVerified,
-                userData?.deviceID,
-                userData?.deviceType,
-                userData?.equity,
-                userData?.incomes,
-                userData?.commitments,
-                userData?.termsOfUseAcceptTime,
-                //userData?.insertTime,
-                //userData?.updateTime,
-                userData?.subscriberType,
-                //userData?.registrationStartTime,
-                userData?.registrationExpiredTime,
-                userData?.appVersion,
-                userData?.isFirstLogin)
-
-            call?.enqueue(object : Callback<UserModel?> {
-                override fun onResponse(call: Call<UserModel?>, response: Response<UserModel?>) {
-                    Utilities.log(Enums.LogType.Debug, TAG, "updateServerNewUser(): response = ${response}")
-
-                    val result: UserModel? = response.body()
-
-                    if (response.code() == 200 && response.body()?.success == true) {
-                        setServerUser(result)
-                    }
-                    else {
-                        setServerUser(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "updateServerNewUser(): Error = ${response}", userData)
-                    }
-                }
-
-                override fun onFailure(call: Call<UserModel?>, t: Throwable) {
-                    setServerUser(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "updateServerNewUser(): onFailure = ${t}", userData)
-                    call.cancel()
-                }
-            })
         }
-    }
-
-    private fun setServerUser(response: UserModel?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setServerUser()", showToast = false)
-        this.serverUser_InsertUpdateServer.postValue(response)
-    }
-
-    private fun setRoomUser_Insert(user: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomUser_Insert()", showToast = false)
-        this.roomUser_UpdateRoom.postValue(user)
     }
 
     // update room user
-    fun updateRoomUser(applicationContext: Context, lifecycleOwner: LifecycleOwner, userData: UserEntity?, caller: Enums.DBCaller) {
-        Utilities.log(Enums.LogType.Debug, TAG, "updateRoomUser()")
-        DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.update(userData!!)!!
-        setRoomUser_Update(userData, caller)
+    fun updateLocalUser(applicationContext: Context, userData: UserEntity?, caller: Enums.DBCaller) {
+        //COUPON-7
+        //PAYPROGRAM-7
+        if (userData != null) {
+            Utilities.log(Enums.LogType.Debug, TAG, "updateLocalUser()")
+
+            DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.update(userData)!!
+            setUpdateLocalUser(userData, caller)
+        }
     }
 
-    private fun setRoomUser_Update(user: UserEntity?, caller: Enums.DBCaller) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomUser_Update()", showToast = false)
-        if (caller == Enums.DBCaller.ROOM) {
-            this.roomUser_UpdateRoom.postValue(user)
+    private fun setUpdateLocalUser(user: UserEntity?, caller: Enums.DBCaller) {
+        //COUPON-8
+        //PAYPROGRAM-8
+        Utilities.log(Enums.LogType.Debug, TAG, "setUpdateLocalUser()", showToast = false)
+        if (caller == Enums.DBCaller.LOCAL) {
+            this.updateLocalUserCallback.postValue(user)
         }
         else {
-            this.roomUser_UpdateServer.postValue(user)
+            this.updateServerUserCallback.postValue(user)
         }
     }
 
@@ -209,127 +124,113 @@ class RegistrationViewModel internal constructor(
         if (userID != null && userID > 0L) {
             CoroutineScope(Dispatchers.IO).launch {
                 val resultUser = DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.findById(userID)
-                setRoomUser_Get(resultUser)
+                setLocalUser_Get(resultUser)
             }
         }
         else {
-            setRoomUser_Get(null)
+            setLocalUser_Get(null)
         }
     }
 
-    private fun setRoomUser_Get(user: UserEntity?) {
+    private fun setLocalUser_Get(user: UserEntity?) {
         Utilities.log(Enums.LogType.Debug, TAG, "setRoomUser_Get()", showToast = false)
-        this.roomUser_Get.postValue(user)
+        this.getLocalUserCallback.postValue(user)
     }
-
-    /*private inner class UserServerCallback : Callback<UserEntity?> {
-        override fun onResponse(call: Call<UserEntity?>, response: Response<UserEntity?>) {
-            val user = response.body()
-            if (user != null) {
-                setRoomUser_Get(user)
-            }
-        }
-
-        override fun onFailure(call: Call<UserEntity?>, t: Throwable) {
-            Utilities.log(Enums.LogType.Error, TAG, "UserCallback(): onFailure = ${t.message}", userData)
-        }
-    }*/
 
     //endregion == user ==========================
 
     //region == coupon registration ===========
 
-    fun couponRegistration(userData: UserEntity?, code: String) {
+    fun couponRegistration(code: String) {
         Utilities.log(Enums.LogType.Debug, TAG, "couponRegistration()")
 
         CoroutineScope(Dispatchers.IO).launch {
+            //COUPON-1
+            val call: Call<UserResponse?>? = registrationService.registrationAPI.coupon(
+                    "Bearer ${activity.userToken}", code)
 
-            val call: Call<RegistrationModel?>? = registrationService.registrationAPI.coupon(code, userData?.uuid)
-
-            call?.enqueue(object : Callback<RegistrationModel?> {
-                override fun onResponse(call: Call<RegistrationModel?>, response: Response<RegistrationModel?>) {
+            call?.enqueue(object : Callback<UserResponse?> {
+                override fun onResponse(call: Call<UserResponse?>, response: Response<UserResponse?>) {
                     Utilities.log(Enums.LogType.Debug, TAG, "couponRegistration(): response = $response")
-                    val result: RegistrationModel? = response.body()
+                    val result: UserResponse? = response.body()
 
-                    if (response.code() == 200 && response.body()?.success == true) {
-                        setCouponRegistration(result)
+                    if (response.code() == 200) {
+                        activity.userToken = result?.token
+                        activity.preferences!!.setString("token", activity.userToken, false)
+
+                        val localUser = UserEntity(
+                            email = result?.email,
+                            fullname = result?.fullname,
+                            yearOfBirth = result?.yearOfBirth,
+                            equity = result?.equity,
+                            incomes = result?.incomes,
+                            commitments = result?.commitments,
+                            termsOfUseAccept = result?.termsOfUseAccept,
+                            registrationExpiredTime = result?.registrationExpiredTime,
+                            subscriberType = result?.subscriberType,
+                            calcCanTakeMortgage = result?.calcCanTakeMortgage,
+                            calcAge = result?.calcAge
+                        )
+
+                        setCouponRegistration(localUser)
                     }
                     else {
-                        setCouponRegistration(result)
-                        Utilities.log(Enums.LogType.Error, TAG, "couponRegistration(): Error = $response ; errorCode = ${result?.error?.errorCode} ; errorMessage = ${result?.error?.errorMessage}", userData)
+                        setCouponRegistration(null)
+                        Utilities.log(Enums.LogType.Error, TAG, "couponRegistration(): Error = $response ; errorCode = ${response.code()} ; errorMessage = ${response.message()}", activity.userData)
                     }
                 }
 
-                override fun onFailure(call: Call<RegistrationModel?>, t: Throwable) {
+                override fun onFailure(call: Call<UserResponse?>, t: Throwable) {
                     setCouponRegistration(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "couponRegistration(): onFailure = $t", userData)
+                    Utilities.log(Enums.LogType.Error, TAG, "couponRegistration(): onFailure = $t", activity.userData)
                     call.cancel()
                 }
             })
         }
     }
 
-    private fun setCouponRegistration(registrationModel: RegistrationModel?) {
+    private fun setCouponRegistration(userData: UserEntity?) {
+        //COUPON-2
         Utilities.log(Enums.LogType.Debug, TAG, "setCouponRegistration()", showToast = false)
-        this.couponRegistration.postValue(registrationModel)
+        this.couponRegistrationCallback.postValue(userData)
     }
 
     //endregion == coupon registration ===========
 
-    //region == beta registration =============
-
-    fun betaRegistration(userData: UserEntity?, code: String) {
-        Utilities.log(Enums.LogType.Debug, TAG, "betaRegistration()")
-
-        CoroutineScope(Dispatchers.IO).launch {
-
-            val call: Call<RegistrationModel?>? = registrationService.registrationAPI.beta(code, userData?.uuid)
-
-            call?.enqueue(object : Callback<RegistrationModel?> {
-                override fun onResponse(call: Call<RegistrationModel?>, response: Response<RegistrationModel?>) {
-                    Utilities.log(Enums.LogType.Debug, TAG, "betaRegistration(): response = $response")
-                    val result: RegistrationModel? = response.body()
-
-                    if (response.code() == 200 && response.body()?.success == true) {
-                        setBetaRegistration(result)
-                    }
-                    else {
-                        setBetaRegistration(result)
-                        Utilities.log(Enums.LogType.Error, TAG, "betaRegistration(): Error = $response ; errorCode = ${result?.error?.errorCode} ; errorMessage = ${result?.error?.errorMessage}", userData)
-                    }
-                }
-
-                override fun onFailure(call: Call<RegistrationModel?>, t: Throwable) {
-                    setBetaRegistration(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "betaRegistration(): onFailure = $t", userData)
-                    call.cancel()
-                }
-            })
-        }
-    }
-
-    private fun setBetaRegistration(registrationModel: RegistrationModel?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setBetaRegistration()", showToast = false)
-        this.betaRegistration.postValue(registrationModel)
-    }
-
-    //endregion == beta registration =============
-
     //region == pay program registration ===
-    fun payProgramRegistration(applicationContext: Context, userData: UserEntity?, payUUID: String?) {
+    fun payProgramRegistration(applicationContext: Context, userData: UserEntity?, programPayId: String?) {
+        //PAYPROGRAM-1
         Utilities.log(Enums.LogType.Debug, TAG, "payRegistration()")
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val call: Call<RegistrationModel?>? = registrationService.registrationAPI.payProgram(payUUID, userData?.uuid)
+            val call: Call<UserResponse?>? = registrationService.registrationAPI.payProgram(
+                    "Bearer ${activity.userToken}", programPayId!!)
 
-            call?.enqueue(object : Callback<RegistrationModel?> {
-                override fun onResponse(call: Call<RegistrationModel?>, response: Response<RegistrationModel?>) {
+            call?.enqueue(object : Callback<UserResponse?> {
+                override fun onResponse(call: Call<UserResponse?>, response: Response<UserResponse?>) {
                     Utilities.log(Enums.LogType.Debug, TAG, "payProgramRegistration(): response = ${response}")
-                    val result: RegistrationModel? = response.body()
+                    val result: UserResponse? = response.body()
 
                     if (response.code() == 200) {
-                        setPayProgramRegistration(result)
+                        activity.userToken = result?.token
+                        activity.preferences!!.setString("token", activity.userToken, false)
+
+                        val localUser = UserEntity(
+                                email = result?.email,
+                                fullname = result?.fullname,
+                                yearOfBirth = result?.yearOfBirth,
+                                equity = result?.equity,
+                                incomes = result?.incomes,
+                                commitments = result?.commitments,
+                                termsOfUseAccept = result?.termsOfUseAccept,
+                                registrationExpiredTime = result?.registrationExpiredTime,
+                                subscriberType = result?.subscriberType,
+                                calcCanTakeMortgage = result?.calcCanTakeMortgage,
+                                calcAge = result?.calcAge
+                        )
+
+                        setPayProgramRegistration(localUser)
                         Utilities.log(Enums.LogType.Notify, TAG, "payProgramRegistration(): Success", userData)
                     }
                     else {
@@ -338,7 +239,7 @@ class RegistrationViewModel internal constructor(
                     }
                 }
 
-                override fun onFailure(call: Call<RegistrationModel?>, t: Throwable) {
+                override fun onFailure(call: Call<UserResponse?>, t: Throwable) {
                     setPayProgramRegistration(null)
                     Utilities.log(Enums.LogType.Error, TAG, "payProgramRegistration(): onFailure = ${t}", userData)
                     call.cancel()
@@ -346,9 +247,10 @@ class RegistrationViewModel internal constructor(
             })
         }
     }
-    private fun setPayProgramRegistration(registrationModel: RegistrationModel?) {
+    private fun setPayProgramRegistration(userData: UserEntity?) {
+        //PAYPROGRAM-2
         Utilities.log(Enums.LogType.Debug, TAG, "setPayProgramRegistration()", showToast = false)
-        this.payProgramRegistration.postValue(registrationModel)
+        this.payProgramRegistrationCallback.postValue(userData)
     }
     //endregion == pay program registration =======
 
@@ -358,18 +260,13 @@ class RegistrationViewModel internal constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             Utilities.log(Enums.LogType.Debug, TAG,
-                    "getUnsubscribe(): uuid = ${userData?.uuid} ; userName = ${userData?.userName} ; email = ${userData?.email} ;  phoneNumber = ${userData?.phoneNumber} ;  deviceID = ${userData?.deviceID}")
+                    "getUnsubscribe(): email = ${userData?.email}")
 
             // room
             DatabaseClient.getInstance(applicationContext)?.appDatabase?.clearAllTables()
 
             // server
-            val call: Call<UnsubscribeModel?>? = userService.userAPI.deleteUser(
-                    userData?.uuid,
-                    userData?.userName,
-                    userData?.email,
-                    userData?.phoneNumber,
-                    userData?.deviceID)
+            val call: Call<UnsubscribeModel?>? = userService.userAPI.deleteUser()
 
             call?.enqueue(object : Callback<UnsubscribeModel?> {
                 override fun onResponse(call: Call<UnsubscribeModel?>, response: Response<UnsubscribeModel?>) {
@@ -397,7 +294,7 @@ class RegistrationViewModel internal constructor(
 
     private fun setUnsubscribe(response: UnsubscribeModel?) {
         Utilities.log(Enums.LogType.Debug, TAG, "setUnsubscribe()", showToast = false)
-        this.unsubscribe.postValue(response)
+        this.unsubscribeCallback.postValue(response)
     }
     //endregion == unsubscribe ===================
 }

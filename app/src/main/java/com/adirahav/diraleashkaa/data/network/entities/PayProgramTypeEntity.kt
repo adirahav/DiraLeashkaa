@@ -3,9 +3,9 @@ import com.adirahav.diraleashkaa.common.Const
 import com.google.gson.annotations.SerializedName
 
 data class PayProgramTypeEntity(
-        @SerializedName("uuid") var uuid: String?,
-        @SerializedName("program_id") val programID: String,
-        @SerializedName(Const.PRICE) val price: Float,
-        @SerializedName("duration_value") val durationValue: Int,
-        @SerializedName("duration_unit") val durationUnit: String
+        @SerializedName("_id") var _id: String?,
+        @SerializedName("programId") val programID: String,
+        @SerializedName("price") val price: Float,
+        @SerializedName("durationValue") val durationValue: Int,
+        @SerializedName("durationUnit") val durationUnit: String
 )

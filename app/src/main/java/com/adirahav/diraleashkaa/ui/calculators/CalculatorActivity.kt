@@ -5,8 +5,6 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View.GONE
-import android.view.View.NOT_FOCUSABLE
 import android.view.View.VISIBLE
 import android.view.WindowManager
 import androidx.lifecycle.LifecycleOwner
@@ -14,25 +12,12 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.*
-import com.adirahav.diraleashkaa.common.Utilities.floatFormat
 import com.adirahav.diraleashkaa.data.DataManager
 import com.adirahav.diraleashkaa.data.network.entities.*
 import com.adirahav.diraleashkaa.databinding.ActivityCalculatorBinding
 import com.adirahav.diraleashkaa.ui.base.BaseActivity
 import com.adirahav.diraleashkaa.ui.property.CalculatorMaxPriceFragment
-import com.adirahav.diraleashkaa.ui.property.PropertyActivity
-import com.adirahav.diraleashkaa.ui.property.PropertyAmortizationScheduleFragment
-import com.adirahav.diraleashkaa.ui.property.PropertyChartFragment
-import com.adirahav.diraleashkaa.ui.property.PropertyInfoFragment
 import com.adirahav.diraleashkaa.views.PropertyInput
-import com.adirahav.diraleashkaa.views.PropertyPercent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.util.Calendar
-import java.util.TimeZone
 
 class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculatorBinding>() {
 
@@ -72,7 +57,7 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
 
     // user id
     var roomUID: Long? = 0L
-    var userUUID: String? = null
+    var userId: String? = null
 
     // calculator type
     var argCalculatorType: String? = null
@@ -117,7 +102,7 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
         setDrawer(layout?.drawer, layout?.menu)
 
         // title text
-        titleText?.text = Utilities.getRoomString("actionbar_title_calculator_${argCalculatorType}")
+        titleText?.text = Utilities.getLocalPhrase("actionbar_title_calculator_${argCalculatorType}")
     }
     override fun createViewModel(): CalculatorsViewModel {
         Utilities.log(Enums.LogType.Debug, TAG, "createViewModel()", showToast = false)
@@ -184,7 +169,7 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
 
         // user id
         roomUID = preferences?.getLong("roomUID", 0L)
-        userUUID = preferences?.getString("userUUID", null)
+        userId = preferences?.getString("userId", null)
 
         // calculator type
         argCalculatorType = intent.getStringExtra(EXTRA_CALCULATOR_TYPE)

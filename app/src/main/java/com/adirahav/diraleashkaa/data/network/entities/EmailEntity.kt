@@ -8,7 +8,7 @@ import com.google.gson.annotations.SerializedName
 
 @Entity
 data class EmailEntity(
-    @SerializedName("user_uuid") var userUUID: String?,
+    @SerializedName("userId") var userId: String?,
     @SerializedName("type") var type: String?,
     @SerializedName("subject") var subject: String?,
     @SerializedName("message") var message: Int?

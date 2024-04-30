@@ -3,12 +3,10 @@ package com.adirahav.diraleashkaa.ui.user
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import androidx.core.text.HtmlCompat
 import androidx.lifecycle.*
 import androidx.lifecycle.Observer
 import com.adirahav.diraleashkaa.R
@@ -16,24 +14,16 @@ import com.adirahav.diraleashkaa.data.DataManager
 import com.adirahav.diraleashkaa.ui.base.BaseActivity
 
 import com.adirahav.diraleashkaa.common.*
-import com.adirahav.diraleashkaa.common.Utilities.getMapIntValue
 import com.adirahav.diraleashkaa.common.Utilities.getMapStringValue
 import com.adirahav.diraleashkaa.common.Utilities.log
-import com.adirahav.diraleashkaa.data.network.entities.StringEntity
+import com.adirahav.diraleashkaa.data.network.DatabaseClient
+import com.adirahav.diraleashkaa.data.network.entities.PhraseEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
-import com.adirahav.diraleashkaa.data.network.models.APIResponseModel
-import com.adirahav.diraleashkaa.data.network.models.StringModel
-import com.adirahav.diraleashkaa.data.network.models.UserModel
 import com.adirahav.diraleashkaa.databinding.ActivityUserBinding
-import com.adirahav.diraleashkaa.ui.goodbye.GoodbyeActivity
 import com.adirahav.diraleashkaa.ui.registration.RegistrationTermsOfUseFragment
-import com.adirahav.diraleashkaa.ui.signin.SignInActivity
-import com.adirahav.diraleashkaa.ui.signup.SignUpActivity
 import com.adirahav.diraleashkaa.ui.signup.SignUpFinancialInfoFragment
 import com.adirahav.diraleashkaa.ui.signup.SignUpPersonalInfoFragment
 import kotlinx.coroutines.*
-import java.net.CacheResponse
-import java.util.*
 
 class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
 
@@ -61,7 +51,9 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
     // shared preferences
     var preferences: AppPreferences? = null
 
-    // user id
+    // loggedin user
+    var loggedinUser: UserEntity? = null
+    var userToken: String? = null
     var roomUID: Long? = 0L
 
     // user data
@@ -111,7 +103,7 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
     }
 
     override fun createViewModel(): UserViewModel {
-        val factory = UserViewModelFactory(DataManager.instance!!.userService, DataManager.instance!!.stringsService)
+        val factory = UserViewModelFactory(this@UserActivity, DataManager.instance!!.userService, DataManager.instance!!.phraseService)
         return ViewModelProvider(this, factory)[UserViewModel::class.java]
     }
 
@@ -121,10 +113,10 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
 
     fun initObserver() {
         log(Enums.LogType.Debug, TAG, "initObserver()", showToast = false)
-        if (!viewModel!!.serverUserInsertUpdateServer.hasObservers()) viewModel!!.serverUserInsertUpdateServer.observe(this@UserActivity, ServerUserObserver(Enums.ObserverAction.INSERT_UPDATE_SERVER))
-        if (!viewModel!!.roomUserGet.hasObservers()) viewModel!!.roomUserGet.observe(this@UserActivity, RoomUserObserver(Enums.ObserverAction.GET_ROOM))
-        if (!viewModel!!.roomUserUpdateRoom.hasObservers()) viewModel!!.roomUserUpdateRoom.observe(this@UserActivity, RoomUserObserver(Enums.ObserverAction.UPDATE_ROOM))
-        if (!viewModel!!.roomUserUpdateServer.hasObservers()) viewModel!!.roomUserUpdateServer.observe(this@UserActivity, RoomUserObserver(Enums.ObserverAction.UPDATE_SERVER))
+        if (!viewModel!!.setUserCallback.hasObservers()) viewModel!!.setUserCallback.observe(this@UserActivity, ServerUserObserver(Enums.ObserverAction.SAVE_SERVER))
+        if (!viewModel!!.getLocalUserCallback.hasObservers()) viewModel!!.getLocalUserCallback.observe(this@UserActivity, LocalUserObserver(Enums.ObserverAction.GET_LOCAL))
+        if (!viewModel!!.roomUserUpdateRoom.hasObservers()) viewModel!!.roomUserUpdateRoom.observe(this@UserActivity, LocalUserObserver(Enums.ObserverAction.UPDATE_LOCAL))
+        if (!viewModel!!.roomUserUpdateServer.hasObservers()) viewModel!!.roomUserUpdateServer.observe(this@UserActivity, LocalUserObserver(Enums.ObserverAction.UPDATE))
         if (!viewModel!!.termsOfUse.hasObservers()) viewModel!!.termsOfUse.observe(this@UserActivity, TermsOfUseObserver())
 
         if (!isRoomUserLoaded && !isDataInit) {
@@ -139,6 +131,12 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
 
         // user id
         roomUID = preferences?.getLong("roomUID", 0L)
+
+        // loggein user
+        CoroutineScope(Dispatchers.IO).launch {
+            val existLocalUser = DatabaseClient.getInstance(activity.applicationContext)?.appDatabase?.userDao()?.getFirst()
+            loggedinUser = if (existLocalUser != null) existLocalUser else null
+        }
 
         // room/server data loaded
         isRoomUserLoaded = false
@@ -161,22 +159,22 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
     }
 
     private fun initData() {
-
+        userToken = preferences!!.getString("token", "")
     }
 
     //endregion == initialize =========
 
     //region == strings ============
 
-    override fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    override fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        layout.buttons.back.text = Utilities.getRoomString("button_back")
-        layout.buttons.next.text = Utilities.getRoomString("button_next")
-        layout.buttons.save.text = Utilities.getRoomString("button_save")
-        layout.buttons.send.text = Utilities.getRoomString("button_send")
-        layout.buttons.pay.text = Utilities.getRoomString("button_pay")
-        super.setRoomStrings()
+        layout.buttons.back.text = Utilities.getLocalPhrase("button_back")
+        layout.buttons.next.text = Utilities.getLocalPhrase("button_next")
+        layout.buttons.save.text = Utilities.getLocalPhrase("button_save")
+        layout.buttons.send.text = Utilities.getLocalPhrase("button_send")
+        layout.buttons.pay.text = Utilities.getLocalPhrase("button_pay")
+        super.setPhrases()
     }
 
     //endregion == strings ============
@@ -192,15 +190,8 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
                     .commitAllowingStateLoss()
 
                 // title text
-                titleText?.text = Utilities.getRoomString("actionbar_title_personal_details")
+                titleText?.text = Utilities.getLocalPhrase("actionbar_title_personal_details")
 
-                // track user
-                //Log.d("ADITEST1 [user]", "GET ${preferences?.getBoolean("isTrackUser", false).toString()}")
-                /*trackUser?.visibility =
-                    if (preferences?.getBoolean("isTrackUser", false) == true)
-                        VISIBLE
-                    else
-                        GONE*/
             }
 
 
@@ -210,15 +201,7 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
                     .commitAllowingStateLoss()
 
                 // title text
-                titleText?.text = Utilities.getRoomString("actionbar_title_financial_details")
-
-                // track user
-                //Log.d("ADITEST2 [user]", "GET ${preferences?.getBoolean("isTrackUser", false).toString()}")
-                /*trackUser?.visibility =
-                    if (preferences?.getBoolean("isTrackUser", false) == true)
-                        VISIBLE
-                    else
-                        GONE*/
+                titleText?.text = Utilities.getLocalPhrase("actionbar_title_financial_details")
             }
 
             Enums.UserPageType.TERMS_OF_USE -> {
@@ -227,7 +210,7 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
                     .commitAllowingStateLoss()
 
                 // title text
-                titleText?.text = Utilities.getRoomString("actionbar_title_terms_of_use")
+                titleText?.text = Utilities.getLocalPhrase("actionbar_title_terms_of_use")
 
                 // track user
                 //Log.d("ADITEST3 [user]", "GET ${preferences?.getBoolean("isTrackUser", false).toString()}")
@@ -271,51 +254,20 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
     //region == user data ==========
 
     fun updateUser(result: Map<String, Any?>?) {
-        if (getMapStringValue(result, "name").isNotEmpty()) {
-            preferences?.setString("userName", getMapStringValue(result, "name"), false)
+        if (getMapStringValue(result, "fullname")?.isNotEmpty() ?: true) {
+            preferences?.setString("fullname", getMapStringValue(result, "fullname"), false)
 
-            drawerUserName?.text =
-                    if (Utilities.getRoomString("drawer_user_name").isNotEmpty())
+            drawerFullname?.text =
+                    if (Utilities.getLocalPhrase("drawer_fullname").isNotEmpty())
                         String.format(
-                                Utilities.getRoomString("drawer_user_name"),
-                                preferences?.getString("userName", ""))
+                                Utilities.getLocalPhrase("drawer_fullname"),
+                                preferences?.getString("fullname", ""))
                     else
                         ""
         }
 
         GlobalScope.launch {
-
-            val nowUTC = Calendar.getInstance()
-            nowUTC.timeZone = TimeZone.getTimeZone("UTC")
-
-            userData = UserEntity(
-                    roomUID = roomUID,
-                    uuid = userData?.uuid,
-                    userName = if (getMapStringValue(result, "name").isEmpty()) userData?.userName else getMapStringValue(result, "name"),
-                    email = if (getMapStringValue(result, "email").isEmpty()) userData?.email else getMapStringValue(result, "email"),
-                    calcAge = if (getMapIntValue(result, "calc_age") == null) userData?.calcAge else getMapIntValue(result, "calc_age"),
-                    yearOfBirth = if (getMapIntValue(result, "year_of_birth") == null) userData?.yearOfBirth else getMapIntValue(result, "year_of_birth"),
-                    phoneNumber = userData?.phoneNumber,
-                    phoneNumberSMSVerified = userData?.phoneNumberSMSVerified,
-                    deviceID = userData?.deviceID,
-                    deviceType = userData?.deviceType,
-                    equity = if (getMapIntValue(result, Const.EQUITY) == null) userData?.equity else getMapIntValue(result, Const.EQUITY),
-                    incomes = if (getMapIntValue(result, Const.INCOMES) == null) userData?.incomes else getMapIntValue(result, Const.INCOMES),
-                    commitments = if (getMapIntValue(result, Const.COMMITMENTS) == null) userData?.commitments else getMapIntValue(result, Const.COMMITMENTS),
-                    termsOfUseAcceptTime = userData?.termsOfUseAcceptTime,
-                    //insertTime = userData?.insertTime,
-                    //updateTime = nowUTC.timeInMillis,
-                    //serverUpdateTime = userData?.serverUpdateTime,
-                    subscriberType = userData?.subscriberType.toString(),
-                    //registrationStartTime = userData?.registrationStartTime,
-                    registrationExpiredTime = userData?.registrationExpiredTime,
-                    appVersion = userData?.appVersion,
-                    isFirstLogin = userData?.isFirstLogin,
-                    canTakeMortgage = userData?.canTakeMortgage
-            )
-
-            viewModel!!.updateServerUser(userData)
-            //viewModel!!.updateRoomUser(applicationContext, userData, Enums.DBCaller.ROOM)
+            viewModel!!.updateUser(result)
         }
     }
 
@@ -330,11 +282,11 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
 
     //region == observers ==========
 
-    private inner class RoomUserObserver(action: Enums.ObserverAction) : Observer<UserEntity?> {
+    private inner class LocalUserObserver(action: Enums.ObserverAction) : Observer<UserEntity?> {
         val _action = action
         override fun onChanged(user: UserEntity?) {
             when (_action) {
-                Enums.ObserverAction.GET_ROOM -> {
+                Enums.ObserverAction.GET_LOCAL -> {
                     log(Enums.LogType.Debug, TAG, "RoomUserObserver(): GET_ROOM. user = $user")
 
                     isRoomUserLoaded = true
@@ -350,26 +302,17 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
                     }
                 }
 
-                Enums.ObserverAction.UPDATE_ROOM -> {
+                Enums.ObserverAction.UPDATE_LOCAL -> {
                     log(Enums.LogType.Debug, TAG, "RoomUserObserver(): UPDATE_ROOM. user = $user")
 
                     roomUID = user?.roomUID
                     preferences?.setLong("roomUID", roomUID!!, false)
 
-                    /*activity.runOnUiThread {
-                        if (user?.uuid == null) {
-                            viewModel!!.insertServerUser(userData)
-                        }
-                        else {
-                            viewModel!!.updateServerUser(userData)
-                        }
-                    }*/
-
                     //
-                    Utilities.displayActionSnackbar(activity, Utilities.getRoomString("user_save_success"))
+                    Utilities.displayActionSnackbar(activity, Utilities.getLocalPhrase("user_save_success"))
                 }
 
-                Enums.ObserverAction.UPDATE_SERVER -> {
+                Enums.ObserverAction.UPDATE -> {
                     log(Enums.LogType.Debug, TAG, "RoomUserObserver(): UPDATE_SERVER. user = $user")
 
                     if (user == null) {
@@ -381,7 +324,7 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
                     roomUID = user?.roomUID
                     preferences?.setLong("roomUID", roomUID!!, false)
 
-                    Utilities.displayActionSnackbar(activity, Utilities.getRoomString("user_save_success"))
+                    Utilities.displayActionSnackbar(activity, Utilities.getLocalPhrase("user_save_success"))
                 }
 
                 else -> {}
@@ -390,45 +333,16 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
         }
     }
 
-    private inner class ServerUserObserver(action: Enums.ObserverAction) : Observer<UserModel?> {
+    private inner class ServerUserObserver(action: Enums.ObserverAction) : Observer<UserEntity?> {
         val _action = action
-        override fun onChanged(user: UserModel?) {
+        override fun onChanged(user: UserEntity?) {
             when (_action) {
-                Enums.ObserverAction.INSERT_UPDATE_SERVER -> {
-                    log(Enums.LogType.Debug, TAG, "ServerUserObserver(): INSERT_UPDATE_SERVER. user.uid = ${user?.data?.user?.uuid}")
+                Enums.ObserverAction.SAVE_SERVER -> {
+                    log(Enums.LogType.Debug, TAG, "ServerUserObserver(): INSERT_UPDATE_SERVER. user.email = ${user?.email}")
 
                     GlobalScope.launch {
 
-                        val nowUTC = Calendar.getInstance()
-                        nowUTC.timeZone = TimeZone.getTimeZone("UTC")
-
-                        userData = UserEntity(
-                            roomUID = roomUID,
-                            uuid = user?.data?.user?.uuid,
-                            userName = userData?.userName,
-                            email = userData?.email,
-                            calcAge = userData?.calcAge,
-                            yearOfBirth = userData?.yearOfBirth,
-                            phoneNumber = userData?.phoneNumber,
-                            phoneNumberSMSVerified = userData?.phoneNumberSMSVerified,
-                            deviceID = userData?.deviceID,
-                            deviceType = userData?.deviceType,
-                            equity = userData?.equity,
-                            incomes = userData?.incomes,
-                            commitments = userData?.commitments,
-                            termsOfUseAcceptTime = userData?.termsOfUseAcceptTime,
-                            //insertTime = userData?.insertTime,
-                            //updateTime = userData?.updateTime,
-                            //serverUpdateTime = nowUTC.timeInMillis,
-                            subscriberType = userData?.subscriberType,
-                            //registrationStartTime = userData?.registrationStartTime,
-                            registrationExpiredTime = userData?.registrationExpiredTime,
-                            appVersion = userData?.appVersion,
-                            isFirstLogin = userData?.isFirstLogin,
-                            canTakeMortgage = userData?.canTakeMortgage
-                        )
-
-                        viewModel!!.updateRoomUser(
+                        viewModel!!.updateLocalUser(
                             applicationContext,
                             userData,
                             Enums.DBCaller.SERVER
@@ -441,8 +355,8 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
         }
     }
 
-    private inner class TermsOfUseObserver : Observer<StringModel?> {
-        override fun onChanged(termsOfUse: StringModel?) {
+    private inner class TermsOfUseObserver : Observer<PhraseEntity?> {
+        override fun onChanged(termsOfUse: PhraseEntity?) {
             termsOfUseFragment.termsOfUseCallback(termsOfUse)
         }
     }

@@ -9,7 +9,6 @@ import android.graphics.drawable.ColorDrawable
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.AttributeSet
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -35,8 +34,6 @@ import com.adirahav.diraleashkaa.common.NumberWithComma
 import com.adirahav.diraleashkaa.common.Utilities.getDecimalNumber
 import com.adirahav.diraleashkaa.common.Utilities.toNumber
 import com.adirahav.diraleashkaa.data.network.DatabaseClient
-import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
-import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.ui.calculators.CalculatorActivity
 import com.adirahav.diraleashkaa.ui.property.PropertyActivity
 import com.airbnb.paris.extensions.style

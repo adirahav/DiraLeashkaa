@@ -18,8 +18,8 @@ android {
         applicationId "com.adirahav.diraleashkaa"
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode 22
-        versionName "1.7"
+        versionCode 23
+        versionName "2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.release
     }
@@ -68,7 +68,7 @@ android {
         def BASE_URL = ""
 
         if (variant.getName().contains("developDebug")) {
-            BASE_URL = "http://100.115.5.138:3428/"
+            BASE_URL = "http://127.0.0.1:3032/api/"
             /* 1. On windows:
               - select taskbar wifi icon
               - selecte the properties of connected network
@@ -82,7 +82,7 @@ android {
             */
         }
         else {
-            BASE_URL = "https://api.diraleashkaa.com/main/"
+            BASE_URL = "https://diraleashkaabackendnpm-i.onrender.com/api/"
         }
 
         variant.buildConfigField "String", "BASE_URL", "\"${BASE_URL}\""

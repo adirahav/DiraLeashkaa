@@ -68,7 +68,7 @@ class SignUpFinancialInfoFragment : Fragment() {
         _userActivity = if (!isSignUpActivity!!) activity as UserActivity else null
 
         // user data
-        userData = if (isSignUpActivity!!) _signupActivity?.userData else _userActivity?.userData
+        userData = if (isSignUpActivity!!) _signupActivity?.loggingUser else _userActivity?.userData
 
         // hide keyboard
         Utilities.hideKeyboard(requireContext())
@@ -84,22 +84,22 @@ class SignUpFinancialInfoFragment : Fragment() {
         }
 
         // strings
-        setRoomStrings()
+        setPhrases()
     }
 
     fun initData() {
 
         // equity
         layout?.equity?.setText((userData?.equity.toFormatNumber()))
-        layout?.equity?.contentDescription = Utilities.getRoomString("signup_equity_label")
+        layout?.equity?.contentDescription = Utilities.getLocalPhrase("signup_equity_label")
 
         // incomes
         layout?.incomes?.setText((userData?.incomes.toFormatNumber()))
-        layout?.incomes?.contentDescription = Utilities.getRoomString("signup_incomes_label")
+        layout?.incomes?.contentDescription = Utilities.getLocalPhrase("signup_incomes_label")
 
         // commitments
         layout?.commitments?.setText((userData?.commitments.toFormatNumber()))
-        layout?.commitments?.contentDescription = Utilities.getRoomString("signup_commitments_label")
+        layout?.commitments?.contentDescription = Utilities.getLocalPhrase("signup_commitments_label")
 
         // TO DELETE
         /*layout.equity.setText("500,000")
@@ -127,8 +127,8 @@ class SignUpFinancialInfoFragment : Fragment() {
 
     //region == strings ============
 
-    private fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    private fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         Utilities.setLabelViewString(layout?.equityLabel, "signup_equity_label", "signup_equity_tooltip")
         Utilities.setTextViewString(layout?.equityError, "signup_equity_error")

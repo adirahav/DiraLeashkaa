@@ -31,8 +31,7 @@ class AnnouncementService private constructor() {
        @FormUrlEncoded
         @POST("announcements/confirm")
         fun confirm(
-            @Field("announcement_uuid") announcementUUID: String?,
-            @Field("user_uuid") userUUID: String?,
+            @Field("announcementId") announcementId: String?
         ): Call<AnnouncementModel?>?
     }
 }

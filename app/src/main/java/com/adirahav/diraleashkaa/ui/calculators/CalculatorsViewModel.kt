@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.data.network.DatabaseClient
-import com.adirahav.diraleashkaa.data.network.dataClass.CalculatorDataClass
 import com.adirahav.diraleashkaa.data.network.dataClass.PropertyDataClass
 import com.adirahav.diraleashkaa.data.network.entities.CalculatorEntity
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
@@ -40,7 +39,7 @@ class CalculatorsViewModel internal constructor(private val calculatorsService: 
 
     //region == calculators =============
 
-    fun getRoomCalculators(applicationContext: Context, userUUID: String?) {
+    fun getRoomCalculators(applicationContext: Context, _id: String?) {
 
         CoroutineScope(Dispatchers.IO).launch {
             val resultsCalculators = DatabaseClient.getInstance(applicationContext)?.appDatabase?.calculatorDao()?.getAll()
@@ -118,14 +117,13 @@ class CalculatorsViewModel internal constructor(private val calculatorsService: 
     }
 
     // == SERER =====
-    fun calcServerMaxPrice(userUUID: String?, fieldName: String?, fieldValue: String?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "calcServerMaxPrice(): userUUID = ${userUUID} ; fieldName = ${fieldName} ; fieldValue = ${fieldValue}")
+    fun calcServerMaxPrice(fieldName: String?, fieldValue: String?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "calcServerMaxPrice(): fieldName = ${fieldName} ; fieldValue = ${fieldValue}")
 
         CoroutineScope(Dispatchers.IO).launch {
 
             val call: Call<PropertyModel?>? =
                     calculatorsService.calculatorsAPI.maxPrice(
-                            userUUID = userUUID,
                             fieldName = fieldName,
                             fieldValue = fieldValue,
                     )
@@ -152,7 +150,7 @@ class CalculatorsViewModel internal constructor(private val calculatorsService: 
 
                 override fun onFailure(call: Call<PropertyModel?>, t: Throwable) {
                     setServerMaxPrice(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "calcServerMaxPrice(): onFailure = $t ; userUUID = ${userUUID} ; fieldName = ${fieldName} ; fieldValue = ${fieldValue}")
+                    Utilities.log(Enums.LogType.Error, TAG, "calcServerMaxPrice(): onFailure = $t ; fieldName = ${fieldName} ; fieldValue = ${fieldValue}")
                     call.cancel()
                 }
             })

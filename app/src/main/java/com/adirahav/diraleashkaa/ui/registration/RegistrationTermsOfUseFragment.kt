@@ -12,7 +12,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
-import com.adirahav.diraleashkaa.data.network.models.StringModel
+import com.adirahav.diraleashkaa.data.network.entities.PhraseEntity
 import com.adirahav.diraleashkaa.databinding.FragmentSignupTermsOfUseBinding
 import com.adirahav.diraleashkaa.ui.signup.SignUpActivity
 import com.adirahav.diraleashkaa.ui.user.UserActivity
@@ -60,7 +60,7 @@ class RegistrationTermsOfUseFragment : Fragment() {
             _userActivity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
 
         // strings
-        setRoomStrings()
+        setPhrases()
     }
 
     fun initViews() {
@@ -110,13 +110,13 @@ class RegistrationTermsOfUseFragment : Fragment() {
             _userActivity?.viewModel?.getTermsOfUse()
         }
 
-        layout?.agree?.contentDescription = Utilities.getRoomString("signup_terms_of_use_agree")
+        layout?.agree?.contentDescription = Utilities.getLocalPhrase("signup_terms_of_use_agree")
     }
 
     //region == strings ============
 
-    private fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    private fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         Utilities.setTextViewString(layout?.agreeLabel, "signup_terms_of_use_agree")
         Utilities.setTextViewString(layout?.agreeError, "signup_terms_of_use_agree_error")
@@ -146,7 +146,7 @@ class RegistrationTermsOfUseFragment : Fragment() {
         val entities = mutableMapOf<String, Any?>()
 
         if (isValid) {
-            entities["terms_of_use_accept_time"] = System.currentTimeMillis()
+            entities["termsOfUseAccept"] = true
         }
 
         map["isValid"] = isValid
@@ -155,9 +155,9 @@ class RegistrationTermsOfUseFragment : Fragment() {
         return map
     }
 
-    fun termsOfUseCallback(result: StringModel?) {
+    fun termsOfUseCallback(result: PhraseEntity?) {
 
-        if (result == null || !result.success) {
+        if (result == null) {
             Utilities.openFancyDialog(requireContext(),
                 Enums.DialogType.DATA_ERROR, ::responseAfterDataErrorPositivePress, null, emptyArray())
             return
@@ -175,22 +175,7 @@ class RegistrationTermsOfUseFragment : Fragment() {
                 _userActivity?.layout?.buttons?.back
         )
 
-        val isValid = result.success ?: false
-        val errorCode = if (result.error?.errorCode != null)
-            Enums.CodeError.valueOf(result.error!!.errorCode).errorCode
-        else
-            Enums.CodeError.SERVER_ERROR.errorCode
-
-        if (isValid) {
-            layout?.text?.text = Html.fromHtml(result.data?.strings?.value)
-        }
-        else {
-            Utilities.log(
-                Enums.LogType.Error,
-                TAG,
-                "termsOfUseCallback(): errorCode = ${errorCode}"
-            )
-        }
+        layout?.text?.text = Html.fromHtml(result.value)
 
         Utilities.hideKeyboard(requireContext())
     }

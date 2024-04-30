@@ -2,6 +2,7 @@ package com.adirahav.diraleashkaa.data.network.dao
 
 import androidx.room.*
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
+import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 
 @Dao
 interface FixedParametersDao {
@@ -17,6 +18,9 @@ interface FixedParametersDao {
     //@Query("SELECT * FROM fixedParametersEntity LIMIT 1 OFFSET 0")
     @Query("SELECT * FROM fixedParametersEntity /*ORDER BY register_time DESC */LIMIT 1")
     fun getAll(): List<FixedParametersEntity>//LiveData<List<FixedParametersEntity>>
+
+    @Query("SELECT * FROM fixedParametersEntity LIMIT 1")
+    fun getFirst(): FixedParametersEntity
 
     @Query("DELETE FROM fixedParametersEntity")
     fun deleteAll()

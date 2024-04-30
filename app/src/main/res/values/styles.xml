@@ -447,6 +447,11 @@
         <item name="android:background">@drawable/background_field_dark_round_corners</item>
     </style>
 
+    <style name="formFieldDarkDisable" parent="formFieldDark">
+        <item name="android:textColor">@color/formDisableText</item>
+        <item name="android:enabled">false</item>
+    </style>
+
     <style name="formError">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

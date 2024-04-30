@@ -1,5 +1,6 @@
 package com.adirahav.diraleashkaa.ui.registration
 
+import android.icu.text.DateTimePatternGenerator.PatternInfo.OK
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,27 +14,21 @@ import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.data.network.entities.PayProgramTypeEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
-import com.adirahav.diraleashkaa.data.network.models.RegistrationModel
 import com.adirahav.diraleashkaa.databinding.FragmentRegistrationPayProgramBinding
 import com.adirahav.diraleashkaa.ui.contactus.ContactUsActivity
 import com.adirahav.diraleashkaa.ui.signup.SignUpActivity
-import com.airbnb.paris.extensions.style
 import com.android.billingclient.api.BillingClient
+import com.android.billingclient.api.BillingClient.FeatureType.PRODUCT_DETAILS
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
-import com.android.billingclient.api.ConsumeParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
-import com.android.billingclient.api.consumePurchase
 import com.google.common.collect.ImmutableList
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 
@@ -60,7 +55,7 @@ class RegistrationPayProgramFragment : Fragment(),
     internal lateinit var layout: FragmentRegistrationPayProgramBinding
 
     // user data
-    var userData: UserEntity? = null
+    var registerUser: UserEntity? = null
 
     // in-app products
     private lateinit var billingClient: BillingClient
@@ -110,7 +105,7 @@ class RegistrationPayProgramFragment : Fragment(),
         _registrationActivity = if (!isSignUpActivity!!) activity as RegistrationActivity else null
 
         // user data
-        userData = if (isSignUpActivity!!) _signupActivity?.userData else _registrationActivity?.userData
+        registerUser = if (isSignUpActivity!!) _signupActivity?.loggingUser else _registrationActivity?.userData
 
         // hide keyboard
         //hideKeyboard(requireContext())
@@ -134,7 +129,7 @@ class RegistrationPayProgramFragment : Fragment(),
         }
 
         // strings
-        setRoomStrings()
+        setPhrases()
 
         // in-app products
         billingSetup()
@@ -149,12 +144,13 @@ class RegistrationPayProgramFragment : Fragment(),
                     _registrationActivity?.fixedParametersData?.payProgramsObject?.programTypes
 
         // contact us
-        if (isSignUpActivity!!) {
+        /*if (isSignUpActivity!!) {
             layout.contactUs.visibility = GONE
         }
         else {
             Utilities.setTextViewHtml(layout.contactUs, "signup_contact_us")
-        }
+        }*/
+        layout.contactUs.visibility = GONE  // TODO
 
         // skip
         if (isSignUpActivity!!) {
@@ -201,9 +197,9 @@ class RegistrationPayProgramFragment : Fragment(),
 
         val supportCoupons =
             if (isSignUpActivity!!)
-                _signupActivity?.fixedParametersData?.appVersionArray?.find { it.key == "support_coupons" }?.value?.toBoolean() ?: false
+                _signupActivity?.fixedParametersData?.appVersionArray?.find { it.key == "supportCoupons" }?.value?.toBoolean() ?: false
             else
-                _registrationActivity?.fixedParametersData?.appVersionArray?.find { it.key == "support_coupons" }?.value?.toBoolean() ?: false
+                _registrationActivity?.fixedParametersData?.appVersionArray?.find { it.key == "supportCoupons" }?.value?.toBoolean() ?: false
 
         if (isPayAvailable && supportCoupons) {
             layout.registerWithCoupon.visibility = VISIBLE
@@ -251,13 +247,14 @@ class RegistrationPayProgramFragment : Fragment(),
                     activity?.runOnUiThread {
                         val productList: MutableList<QueryProductDetailsParams.Product> = ArrayList()
 
-                        _programs?.forEach ({ program ->
+                        _programs?.forEach { program ->
                             val product = QueryProductDetailsParams.Product.newBuilder()
                                     .setProductId(program.programID)
-                                    .setProductType(BillingClient.SkuType.INAPP)
+                                    .setProductType(BillingClient.ProductType.INAPP)
                                     .build()
+                            Utilities.log(Enums.LogType.Debug, "ADITEST", program.programID)
                             productList.add(product)
-                        })
+                        }
 
                         queryProduct(productList)
 
@@ -288,43 +285,45 @@ class RegistrationPayProgramFragment : Fragment(),
     }
 
     private fun queryProduct(productList: List<QueryProductDetailsParams.Product>) {
-        val queryProductDetailsParams = QueryProductDetailsParams.newBuilder()
+        val params = QueryProductDetailsParams.newBuilder()
                 .setProductList(productList)
                 .build()
 
-        /*val queryProductDetailsParams = QueryProductDetailsParams.newBuilder()
-                .setProductList(
-                        ImmutableList.of(
-                                QueryProductDetailsParams.Product.newBuilder()
-                                        .setProductId("program_1_d_1.0,program_1_w_10.0,program_2_w_15.0,program_1_m_20.0")
-                                        .setProductType(
-                                                BillingClient.ProductType.INAPP
-                                        )
-                                        .build()
-                        )
-                )
-                .build()*/
-
-        billingClient.queryProductDetailsAsync(queryProductDetailsParams) { billingResult, consolePrograms ->
-            _consolePrograms = consolePrograms
-            /*if (consolePrograms.isNotEmpty()) {
-                consolePrograms?.forEach ({ consoleProgram ->
-                    _programs?.find { it.programID == consoleProgram.productId }?.price = consoleProgram.oneTimePurchaseOfferDetails?.formattedPrice
-                })
-            }
-            else {
-                Utilities.log(Enums.LogType.Debug, TAG, "queryProduct(): onProductDetailsResponse: No products")
-            }*/
-            if (consolePrograms.isEmpty()) {
-                Utilities.log(Enums.LogType.Debug, TAG, "queryProduct(): onProductDetailsResponse: No products")
+        if (billingClient.isFeatureSupported(PRODUCT_DETAILS).responseCode == OK) {
+             billingClient.queryProductDetailsAsync(params) { billingResult, consolePrograms ->
+                _consolePrograms = consolePrograms
+                /*if (consolePrograms.isNotEmpty()) {
+                    consolePrograms?.forEach ({ consoleProgram ->
+                        _programs?.find { it.programID == consoleProgram.productId }?.price = consoleProgram.oneTimePurchaseOfferDetails?.formattedPrice
+                    })
+                }
+                else {
+                    Utilities.log(Enums.LogType.Debug, TAG, "queryProduct(): onProductDetailsResponse: No products")
+                }*/
+                if (consolePrograms.isEmpty()) {
+                    activity?.runOnUiThread {
+                        Utilities.log(Enums.LogType.Debug, TAG, "queryProduct(): onProductDetailsResponse: No products")
+                        layout.payMessage.visibility = View.VISIBLE
+                        layout.payMessage.text = Utilities.getLocalPhrase("signup_pay_program_error")
+                    }
+                }
             }
         }
+        else {
+            activity?.runOnUiThread {
+                Utilities.log(Enums.LogType.Debug, TAG, "queryProduct(): onProductDetailsResponse: Device not supported")
+                layout.payMessage.visibility = View.VISIBLE
+                layout.payMessage.text = Utilities.getLocalPhrase("signup_pay_program_error")
+            }
+        }
+
+
     }
 
     fun makePurchase(programID: String) {
         val consoleProgram = _consolePrograms?.find { it.productId == programID }
 
-        Utilities.log(Enums.LogType.Notify, TAG, "makePurchase(): programID = ${programID}", userData)
+        Utilities.log(Enums.LogType.Notify, TAG, "makePurchase(): programID = ${programID}", registerUser)
 
         if (consoleProgram != null) {
             val billingFlowParams = BillingFlowParams.newBuilder()
@@ -373,7 +372,7 @@ class RegistrationPayProgramFragment : Fragment(),
     private fun completePurchase(item: Purchase) {
         purchase = item
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-            Utilities.log(Enums.LogType.Notify, TAG, "completePurchase()", userData)
+            Utilities.log(Enums.LogType.Notify, TAG, "completePurchase()", registerUser)
             activity?.runOnUiThread {
                 if (isSignUpActivity!!) {
                     _signupActivity?.layout?.buttons?.pay?.isEnabled = false
@@ -383,9 +382,9 @@ class RegistrationPayProgramFragment : Fragment(),
                 }
 
                 if (isSignUpActivity!!)
-                    _signupActivity?.viewModel?.payProgramRegistration(requireContext(), userData, _programs?.get(selectedPosition!!)?.uuid)
+                    _signupActivity?.viewModel?.payProgramRegistration(requireContext(), registerUser, _programs?.get(selectedPosition!!)?._id)
                 else
-                    _registrationActivity?.viewModel?.payProgramRegistration(requireContext(), userData, _programs?.get(selectedPosition!!)?.uuid)
+                    _registrationActivity?.viewModel?.payProgramRegistration(requireContext(), registerUser, _programs?.get(selectedPosition!!)?._id)
 
             }
         }
@@ -420,8 +419,8 @@ class RegistrationPayProgramFragment : Fragment(),
 
     //region == strings ============
 
-    private fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    private fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         Utilities.setTextViewString(layout.title, "signup_pay_program_label")
         Utilities.setTextViewString(layout.registerWithCoupon, "signup_register_with_coupon")
@@ -455,14 +454,14 @@ class RegistrationPayProgramFragment : Fragment(),
         if (isValid) {
             if (isSignUpActivity!!) {
                 if (skip) {
-                    _signupActivity?.viewModel?.skipRegistration(userData)
+                    _signupActivity?.viewModel?.skipRegistration(registerUser)
                 }
                 else {
-                    //_signupActivity?.viewModel?.couponRegistration(requireContext(), userData, String(_code))
+                    //_signupActivity?.viewModel?.couponRegistration(requireContext(), registerUser, String(_code))
                 }
             }
             else {
-                //_registrationActivity?.viewModel?.couponRegistration(requireContext(), userData, String(_code))
+                //_registrationActivity?.viewModel?.couponRegistration(requireContext(), registerUser, String(_code))
             }
         }
         else {
@@ -492,52 +491,37 @@ class RegistrationPayProgramFragment : Fragment(),
     }
 
     // server callback
-    fun payProgramCallback(registrationModel: RegistrationModel?) {
+    fun payProgramAfterResponse(userData: UserEntity?) {
+        //PAYPROGRAM-4
+        Utilities.hideKeyboard(requireContext())
 
-        // results
-        val map = mutableMapOf<String, Any?>()
-        val entities = mutableMapOf<String, Any?>()
+        if (userData != null) {
 
-        val isValid = registrationModel?.success ?: false
-        val errorCode = registrationModel?.error?.errorCode ?: Enums.CodeError.SERVER_ERROR.errorCode
-
-        if (isValid) {
-            entities["registration_expired_time"] = registrationModel?.data?.registration?.registrationExpireDate
-            entities["subscriber_type"] = registrationModel?.data?.registration?.subscriberType
-        }
-
-        map["isValid"] = isValid
-        map["entities"] = entities
-
-        runBlocking {
-            Utilities.hideKeyboard(context)
-        }
-
-        if (isValid) {
             runBlocking {
                 layout.payMessage.visibility = View.INVISIBLE
                 if (isSignUpActivity!!) {
-                    _signupActivity?.insertUpdateUser(map)
+                    userData.roomUID = _signupActivity?.roomUID
+                    //_signupActivity?.signupLocalUser(userData)
                 }
                 else {
-                    _registrationActivity?.updateUser(map)
+                    //PAYPROGRAM-5
+                    Utilities.setButtonDisable(_registrationActivity?.layout?.buttons?.send)
+                    userData.roomUID = _registrationActivity?.roomUID
+                    _registrationActivity?.updateLocalUser(userData)
                 }
             }
         }
         else {
-
-            layout.payMessage.visibility = VISIBLE
-            layout.payMessage.text = Utilities.getRoomString("signup_code_error_${errorCode}")
-            layout.payMessage.style(R.style.formError)
+            String.format(Utilities.getLocalPhrase("signup_code_error"))
 
             if (isSignUpActivity!!) {
-                Utilities.setButtonEnable(_signupActivity?.layout?.buttons?.pay)
+                Utilities.setButtonEnable(_signupActivity?.layout?.buttons?.next)
             }
             else {
-                Utilities.setButtonEnable(_registrationActivity?.layout?.buttons?.pay)
+                Utilities.setButtonEnable(_registrationActivity?.layout?.buttons?.send)
             }
 
-            Utilities.log(Enums.LogType.Warning, TAG, "payCallback(): errorCode = $errorCode ; errorDesc = ${layout.payMessage.text}", userData)
+            Utilities.log(Enums.LogType.Warning, TAG, "payProgramAfterResponse(): ${layout.payMessage.text}", registerUser)
         }
     }
 }

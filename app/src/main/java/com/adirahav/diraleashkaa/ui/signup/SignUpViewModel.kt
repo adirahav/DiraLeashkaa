@@ -1,17 +1,25 @@
 package com.adirahav.diraleashkaa.ui.signup
 
 import android.content.Context
+import android.provider.Settings
+import android.view.View
 import androidx.lifecycle.MutableLiveData
+import com.adirahav.diraleashkaa.BuildConfig
 import com.adirahav.diraleashkaa.common.AppApplication
+import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
 import com.adirahav.diraleashkaa.common.Configuration
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.data.network.DatabaseClient
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
+import com.adirahav.diraleashkaa.data.network.entities.PhraseEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.data.network.models.*
+import com.adirahav.diraleashkaa.data.network.requests.SignUpRequest
+import com.adirahav.diraleashkaa.data.network.response.UserResponse
+import com.adirahav.diraleashkaa.data.network.services.AuthService
 import com.adirahav.diraleashkaa.data.network.services.RegistrationService
-import com.adirahav.diraleashkaa.data.network.services.StringsService
+import com.adirahav.diraleashkaa.data.network.services.PhraseService
 import com.adirahav.diraleashkaa.data.network.services.UserService
 import com.adirahav.diraleashkaa.ui.base.BaseViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -24,43 +32,32 @@ import java.util.*
 import kotlin.concurrent.schedule
 
 class SignUpViewModel internal constructor(
-    private val activity: SignUpActivity,
-    private val userService: UserService,
-    private val registrationService: RegistrationService,
-    private val stringsService: StringsService,
+        private val activity: SignUpActivity,
+        private val authService: AuthService,
+        private val userService: UserService,
+        private val registrationService: RegistrationService,
+        private val phraseService: PhraseService,
 ) : BaseViewModel() {
 
     private val TAG = "SignUpViewModel"
 
     // fixed parameters
-    val roomFixedParametersGet: MutableLiveData<FixedParametersEntity> = MutableLiveData()
+    val fixedParametersCallback: MutableLiveData<FixedParametersEntity> = MutableLiveData()
 
     // coupon registration
-    val couponRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
+    val couponRegistration: MutableLiveData<UserEntity> = MutableLiveData()
 
     // skip registration
-    val skipRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
-
-    // beta registration
-    val betaRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
-
-    // sms code validation
-    val smsCodeValidation: MutableLiveData<SMSCodeValidationModel> = MutableLiveData()
+    val skipRegistrationCallback: MutableLiveData<UserEntity> = MutableLiveData()
 
     // pay registration
-    val payProgramRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
+    val payProgramRegistration: MutableLiveData<UserEntity> = MutableLiveData()
 
-    // trial registration
-    val trialRegistration: MutableLiveData<RegistrationModel> = MutableLiveData()
-
-    // user
-    val serverUserInsertUpdateServer: MutableLiveData<UserEntity> = MutableLiveData()
-    val roomUserGet: MutableLiveData<UserEntity> = MutableLiveData()
-    val roomUserInsertUpdateRoom: MutableLiveData<UserEntity> = MutableLiveData()
-    val roomUserInsertUpdateServer: MutableLiveData<UserEntity> = MutableLiveData()
+    // logging user
+    val setSignupCallback: MutableLiveData<UserEntity> = MutableLiveData()
 
     // terms of use
-    val termsOfUse: MutableLiveData<StringModel> = MutableLiveData()
+    val termsOfUse: MutableLiveData<PhraseEntity> = MutableLiveData()
 
 
     //region == fixed parameters ==============
@@ -77,387 +74,210 @@ class SignUpViewModel internal constructor(
 
     private fun setRoomFixedParameters(fixedParameters: FixedParametersEntity?) {
         Utilities.log(Enums.LogType.Debug, TAG, "setRoomFixedParameters()", showToast = false)
-        this.roomFixedParametersGet.postValue(fixedParameters)
+        this.fixedParametersCallback.postValue(fixedParameters)
     }
     //endregion == fixed parameters ==============
 
     //region == user ==========================
 
-    // == SERVER =====
-    fun insertServerUser(userData: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "insertServerUser()")
+    fun buildSignUpRequest(userData: Map<String, Any?>?) : SignUpRequest {
 
-        Utilities.log(Enums.LogType.Notify, TAG, "NEW USER SIGN UP: ${userData?.userName}")
+        return SignUpRequest(
+            platform = "android",
+            email = Utilities.getMapStringValue(userData, "email"),
+            password = Utilities.getMapStringValue(userData, "password"),
+            fullname = Utilities.getMapStringValue(userData, "fullname"),
+            yearOfBirth = Utilities.getMapIntValue(userData, "yearOfBirth"),
+            equity = Utilities.getMapIntValue(userData, "equity"),
+            incomes = Utilities.getMapIntValue(userData, "incomes"),
+            commitments = Utilities.getMapIntValue(userData, "commitments"),
+            termsOfUseAccept = Utilities.getMapBooleanValue(userData, "termsOfUseAccept"),
+            appDeviceId = Settings.Secure.getString(AppApplication.context.contentResolver, Utilities.getDeviceID(context)),
+            appDeviceType = Utilities.getDeviceType(),
+            appVersion = BuildConfig.VERSION_NAME
+        )
+    }
+
+    fun signupUser(userData: Map<String, Any?>?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "signupUser()")
+
+        Utilities.log(Enums.LogType.Notify, TAG, "NEW USER SIGN UP: ${Utilities.getMapStringValue(userData, "email")}")
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val call: Call<UserModel?>? = userService.userAPI.insertUser(
-                userData?.userName,
-                userData?.email,
-                userData?.yearOfBirth,
-                userData?.phoneNumber,
-                userData?.phoneNumberSMSVerified,
-                userData?.deviceID,
-                userData?.deviceType,
-                userData?.equity,
-                userData?.incomes,
-                userData?.commitments,
-                userData?.termsOfUseAcceptTime,
-                userData?.subscriberType,
-                userData?.registrationExpiredTime,
-                userData?.appVersion,
-                userData?.isFirstLogin)
+            val call: Call<UserResponse?>? =
+                    if (activity.loggingUser?.email.isNullOrEmpty() || activity.userToken.isNullOrEmpty()) {
+                        authService.authAPI.signup(buildSignUpRequest(userData))
+                    }
+                    else {
+                        userService.userAPI.update("Bearer ${activity.userToken}", buildSignUpRequest(userData))
+                    }
+            call?.enqueue(object : Callback<UserResponse?> {
+                override fun onResponse(call: Call<UserResponse?>, response: Response<UserResponse?>) {
+                    Utilities.log(Enums.LogType.Debug, TAG, "signupUser(): response = $response")
 
-            call?.enqueue(object : Callback<UserModel?> {
-                override fun onResponse(call: Call<UserModel?>, response: Response<UserModel?>) {
-                    Utilities.log(Enums.LogType.Debug, TAG, "insertServerUser(): response = $response")
+                    val result: UserResponse? = response.body()
 
-                    val result: UserModel? = response.body()
-
-                    if (response.code() == 200 && response.body()?.success == true) {
+                    if (response.code() == 200) {
                         try {
-                            Utilities.log(Enums.LogType.Debug, TAG, "insertServerUser(): result = $result")
-
-                            CoroutineScope(Dispatchers.IO).launch {
-                                userData?.uuid = result?.data?.user?.uuid
-                                deleteOldRoomUsers(AppApplication.application!!.applicationContext)
-                                insertRoomUser(AppApplication.application!!.applicationContext, userData)
-                                setServerUser(result?.data?.user)
+                            if (!result?.token.isNullOrEmpty()) {
+                                activity.userToken = result?.token
+                                activity.preferences!!.setString("token", activity.userToken, false)
                             }
+
+                            val localUser = UserEntity(
+                                email = result?.email,
+                                fullname = result?.fullname,
+                                yearOfBirth = result?.yearOfBirth,
+                                equity = result?.equity,
+                                incomes = result?.incomes,
+                                commitments = result?.commitments,
+                                termsOfUseAccept = result?.termsOfUseAccept,
+                                registrationExpiredTime = result?.registrationExpiredTime,
+                                subscriberType = result?.subscriberType,
+                                calcCanTakeMortgage = result?.calcCanTakeMortgage,
+                                calcAge = result?.calcAge
+                            )
+
+                            setSignup(localUser)
                         } catch (e: Exception) {
-                            setServerUser(null)
-                            Utilities.log(Enums.LogType.Error, TAG, "insertServerUser(): e = ${e.message} ; result.data = ${result?.data.toString()}")
+                            setSignup(null)
+                            Utilities.log(Enums.LogType.Error, TAG, "signupUser(): e = ${e.message} ; result.data = ${result?.toString()}")
                         }
                     }
+                    else if (response.code() == 400 && activity.currentStepProgressBar == 1) {
+                        activity.personalInfoFragment.layout?.emailError?.visibility = View.VISIBLE
+                        Utilities.setTextViewString(activity.personalInfoFragment.layout?.emailError, "signup_email_taken_error")
+                        setSignup(null)
+                    }
                     else {
-                        setServerUser(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "insertServerUser(): Error = $response ; errorCode = ${result?.error?.errorCode} ; errorMessage = ${result?.error?.errorMessage}", userData)
+                        setSignup(null)
+                        Utilities.log(Enums.LogType.Error, TAG, "signupUser(): Error = $response ; errorCode = ${response.code()} ; errorMessage = ${response.message()}")
                     }
                 }
 
-                override fun onFailure(call: Call<UserModel?>, t: Throwable) {
-                    setServerUser(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "insertServerUser(): onFailure = $t", userData)
+                override fun onFailure(call: Call<UserResponse?>, t: Throwable) {
+                    setSignup(null)
+                    Utilities.log(Enums.LogType.Error, TAG, "signupUser(): onFailure = $t")
                     call.cancel()
                 }
             })
         }
     }
 
-    fun updateServerUser(userData: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "updateServerUser()")
-
-        CoroutineScope(Dispatchers.IO).launch {
-
-            val call: Call<UserModel?>? = userService.userAPI.updateUser(
-                userData?.uuid,
-                userData?.userName,
-                userData?.email,
-                userData?.yearOfBirth,
-                userData?.phoneNumber,
-                userData?.phoneNumberSMSVerified,
-                userData?.deviceID,
-                userData?.deviceType,
-                userData?.equity,
-                userData?.incomes,
-                userData?.commitments,
-                userData?.termsOfUseAcceptTime,
-                //userData?.insertTime,
-                //userData?.updateTime,
-                userData?.subscriberType,
-                //userData?.registrationStartTime,
-                userData?.registrationExpiredTime,
-                userData?.appVersion,
-                userData?.isFirstLogin)
-
-            call?.enqueue(object : Callback<UserModel?> {
-                override fun onResponse(call: Call<UserModel?>, response: Response<UserModel?>) {
-                    Utilities.log(Enums.LogType.Debug, TAG, "updateServerUser(): response = $response")
-
-                    val result: UserModel? = response.body()
-
-                    if (response.code() == 200 && response.body()?.success == true) {
-                        try {
-                            //setServerUser(response.body()?.data)
-                            setServerUser(userData)
-                            Utilities.log(Enums.LogType.Debug, TAG, "updateServerUser(): result = $result")
-                        } catch (e: Exception) {
-                            setServerUser(null)
-                            Utilities.log(Enums.LogType.Error, TAG, "updateServerUser(): e = ${e.message} ; result.data = ${result?.data.toString()}")
-                        }
-                    }
-                    else {
-                        setServerUser(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "updateServerUser(): Error = $response ; errorCode = ${result?.error?.errorCode} ; errorMessage = ${result?.error?.errorMessage}", userData)
-                    }
-                }
-
-                override fun onFailure(call: Call<UserModel?>, t: Throwable) {
-                    setServerUser(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "updateServerUser(): onFailure = $t", userData)
-                    call.cancel()
-                }
-            })
-        }
-    }
-
-    private fun setServerUser(response: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setServerUser()", showToast = false)
-        this.serverUserInsertUpdateServer.postValue(response)
-    }
-
-    // == ROOM =====
-
-    // delete room user
-    fun deleteOldRoomUsers(applicationContext: Context) {
-        Utilities.log(Enums.LogType.Debug, TAG, "deleteOldRoomUsers()")
-
-        DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.deleteAll()!!
-    }
-
-    // insert room user
-    fun insertRoomUser(applicationContext: Context, userData: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "insertRoomUser()")
-
-        DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.deleteAll()!!
-
-        val roomUID = DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.insert(userData!!)!!
-
-        setRoomUserInsert(UserEntity(
-            roomUID,
-            userData?.uuid,
-            userName = userData?.userName,
-            email = userData?.email,
-            calcAge = userData?.calcAge,
-            yearOfBirth = userData?.yearOfBirth,
-            phoneNumber = userData?.phoneNumber,
-            phoneNumberSMSVerified = userData?.phoneNumberSMSVerified,
-            deviceID = userData?.deviceID,
-            deviceType = userData?.deviceType,
-            equity = userData?.equity,
-            incomes = userData?.incomes,
-            commitments = userData?.commitments,
-            termsOfUseAcceptTime = userData?.termsOfUseAcceptTime,
-            //insertTime = userData?.insertTime,
-            //updateTime = userData?.updateTime,
-            //serverUpdateTime = userData?.serverUpdateTime,
-            subscriberType = userData?.subscriberType,
-            //registrationStartTime = userData?.registrationStartTime,
-            registrationExpiredTime = userData?.registrationExpiredTime,
-            appVersion = userData?.appVersion,
-            isFirstLogin = userData?.isFirstLogin,
-            canTakeMortgage = userData?.canTakeMortgage
-        ))
-    }
-
-    private fun setRoomUserInsert(user: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomUserInsert()", showToast = false)
-        this.roomUserInsertUpdateRoom.postValue(user)
-    }
-
-    // update room user
-    fun updateRoomUser(applicationContext: Context, userData: UserEntity?, caller: Enums.DBCaller) {
-        Utilities.log(Enums.LogType.Debug, TAG, "updateRoomUser()")
-        DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.update(userData!!)!!
-        setRoomUserUpdate(userData, caller)
-    }
-
-    private fun setRoomUserUpdate(user: UserEntity?, caller: Enums.DBCaller) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomUserUpdate()", showToast = false)
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomUserUpdate(): caller = ${caller}", showToast = false)
-        if (caller == Enums.DBCaller.ROOM) {
-            this.roomUserInsertUpdateRoom.postValue(user)
-        }
-        else {
-            this.roomUserInsertUpdateServer.postValue(user)
-        }
-    }
-
-    // get room user
-    fun getRoomUser(applicationContext: Context, userID: Long?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "getRoomUser()")
-        if (userID != null && userID > 0L) {
-            CoroutineScope(Dispatchers.IO).launch {
-                val resultUser = DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.findById(userID)
-                setRoomUserGet(resultUser)
-            }
-        }
-        else {
-            setRoomUserGet(null)
-        }
-    }
-
-    private fun setRoomUserGet(user: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomUserGet()", showToast = false)
-        this.roomUserGet.postValue(user)
+    private fun setSignup(userData: UserEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setSignup()", showToast = false)
+        this.setSignupCallback.postValue(userData)
     }
 
     //endregion == user ==========================
 
     //region == registration ==================
 
-    fun couponRegistration(userData: UserEntity?, code: String) {
+    fun couponRegistration(code: String) {
         Utilities.log(Enums.LogType.Debug, TAG, "couponRegistration()")
 
         CoroutineScope(Dispatchers.IO).launch {
+            //COUPON-1
+            val call: Call<UserResponse?>? = registrationService.registrationAPI.coupon(
+                    "Bearer ${activity.userToken}", code)
 
-            val call: Call<RegistrationModel?>? = registrationService.registrationAPI.coupon(code, userData?.uuid)
-
-            call?.enqueue(object : Callback<RegistrationModel?> {
-                override fun onResponse(call: Call<RegistrationModel?>, response: Response<RegistrationModel?>) {
+            call?.enqueue(object : Callback<UserResponse?> {
+                override fun onResponse(call: Call<UserResponse?>, response: Response<UserResponse?>) {
                     Utilities.log(Enums.LogType.Debug, TAG, "couponRegistration(): response = $response")
-                    val result: RegistrationModel? = response.body()
+                    val result: UserResponse? = response.body()
 
-                    if (response.code() == 200 && response.body()?.success == true) {
-                        setCouponRegistration(result)
+                    if (response.code() == 200) {
+                        activity.userToken = result?.token
+                        activity.preferences!!.setString("token", activity.userToken, false)
+
+                        val localUser = UserEntity(
+                                email = result?.email,
+                                fullname = result?.fullname,
+                                yearOfBirth = result?.yearOfBirth,
+                                equity = result?.equity,
+                                incomes = result?.incomes,
+                                commitments = result?.commitments,
+                                termsOfUseAccept = result?.termsOfUseAccept,
+                                registrationExpiredTime = result?.registrationExpiredTime,
+                                subscriberType = result?.subscriberType,
+                                calcCanTakeMortgage = result?.calcCanTakeMortgage,
+                                calcAge = result?.calcAge
+                        )
+
+                        setCouponRegistration(localUser)
                     }
                     else {
-                        setCouponRegistration(result)
-                        Utilities.log(Enums.LogType.Error, TAG, "couponRegistration(): Error = $response ; errorCode = ${result?.error?.errorCode} ; errorMessage = ${result?.error?.errorMessage}", userData)
+                        Utilities.log(Enums.LogType.Error, TAG, "couponRegistration(): Error = $response ; errorCode = ${response.code()} ; errorMessage = ${response.message()}")
+                        activity.couponCodeFragment.layout?.codeError?.visibility = View.VISIBLE
+                        activity.couponCodeFragment.layout?.codeError?.text = Utilities.getLocalPhrase("signup_code_error")
+
+                        setCouponRegistration(null)
                     }
                 }
 
-                override fun onFailure(call: Call<RegistrationModel?>, t: Throwable) {
+                override fun onFailure(call: Call<UserResponse?>, t: Throwable) {
                     setCouponRegistration(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "couponRegistration(): onFailure = $t", userData)
+                    Utilities.log(Enums.LogType.Error, TAG, "couponRegistration(): onFailure = $t")
                     call.cancel()
                 }
             })
         }
     }
 
-    private fun setCouponRegistration(couponCode: RegistrationModel?) {
+    private fun setCouponRegistration(userData: UserEntity?) {
         Utilities.log(Enums.LogType.Debug, TAG, "setCouponRegistration()", showToast = false)
-        this.couponRegistration.postValue(couponCode)
+        this.couponRegistration.postValue(userData)
     }
 
     fun skipRegistration(userData: UserEntity?) {
         Utilities.log(Enums.LogType.Debug, TAG, "skipRegistration()")
-
-        CoroutineScope(Dispatchers.IO).launch {
-
-            val call: Call<RegistrationModel?>? = registrationService.registrationAPI.trial(userData?.uuid)
-
-            call?.enqueue(object : Callback<RegistrationModel?> {
-                override fun onResponse(call: Call<RegistrationModel?>, response: Response<RegistrationModel?>) {
-                    Utilities.log(Enums.LogType.Debug, TAG, "skipRegistration(): response = $response")
-                    val result: RegistrationModel? = response.body()
-
-                    if (response.code() == 200 && response.body()?.success == true) {
-                        setSkipRegistration(result)
-                    }
-                    else {
-                        setSkipRegistration(result)
-                        Utilities.log(Enums.LogType.Error, TAG, "skipRegistration(): Error = $response ; errorCode = ${result?.error?.errorCode} ; errorMessage = ${result?.error?.errorMessage}", userData)
-                    }
-                }
-
-                override fun onFailure(call: Call<RegistrationModel?>, t: Throwable) {
-                    setSkipRegistration(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "skipRegistration(): onFailure = $t", userData)
-                    call.cancel()
-                }
-            })
-        }
+        //SKIP-5
+        setSkipRegistration(userData)
     }
 
-    private fun setSkipRegistration(registrationModel: RegistrationModel?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setSkipRegistration(): registrationModel = ${registrationModel.toString()}", showToast = false)
-        this.skipRegistration.postValue(registrationModel)
-    }
-
-    fun betaRegistration(userData: UserEntity?, code: String) {
-        Utilities.log(Enums.LogType.Debug, TAG, "betaRegistration()")
-
-        CoroutineScope(Dispatchers.IO).launch {
-
-            val call: Call<RegistrationModel?>? = registrationService.registrationAPI.beta(code, userData?.uuid)
-
-            call?.enqueue(object : Callback<RegistrationModel?> {
-                override fun onResponse(call: Call<RegistrationModel?>, response: Response<RegistrationModel?>) {
-                    Utilities.log(Enums.LogType.Debug, TAG, "betaRegistration(): response = $response")
-                    val result: RegistrationModel? = response.body()
-
-                    if (response.code() == 200 && response.body()?.success == true) {
-                        setBetaRegistration(result)
-                    }
-                    else {
-                        setBetaRegistration(result)
-                        Utilities.log(Enums.LogType.Error, TAG, "betaRegistration(): Error = $response ; errorCode = ${result?.error?.errorCode} ; errorMessage = ${result?.error?.errorMessage}", userData)
-                    }
-                }
-
-                override fun onFailure(call: Call<RegistrationModel?>, t: Throwable) {
-                    setBetaRegistration(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "betaRegistration(): onFailure = $t", userData)
-                    call.cancel()
-                }
-            })
-        }
-    }
-
-    private fun setBetaRegistration(registrationModel: RegistrationModel?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setBetaRegistration(): registrationModel = ${registrationModel.toString()}", showToast = false)
-        this.betaRegistration.postValue(registrationModel)
+    private fun setSkipRegistration(userData: UserEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setSkipRegistration(): userData = ${userData.toString()}", showToast = false)
+        //SKIP-6
+        this.skipRegistrationCallback.postValue(userData)
     }
 
     //endregion == registration ==================
 
-    //region == sms code validation ===========
-    fun smsCodeValidation(userData: UserEntity?, code: String) {
-        Utilities.log(Enums.LogType.Debug, TAG, "smsCodeValidation()")
-
-        CoroutineScope(Dispatchers.IO).launch {
-
-            val call: Call<SMSCodeValidationModel?>? = userService.userAPI.smsCodeValidation(userData?.uuid, code, userData?.phoneNumber)
-
-            call?.enqueue(object : Callback<SMSCodeValidationModel?> {
-                override fun onResponse(call: Call<SMSCodeValidationModel?>, response: Response<SMSCodeValidationModel?>) {
-                    Utilities.log(Enums.LogType.Debug, TAG, "smsCodeValidation(): response = $response")
-                    val result: SMSCodeValidationModel? = response.body()
-
-                    if (response.code() == 200 && response.body()?.success == true) {
-                        try {
-                            setSMSCodeValidation(result)
-                            Utilities.log(Enums.LogType.Debug, TAG, "smsCodeValidation(): result = $result")
-                        } catch (e: Exception) {
-                            setSMSCodeValidation(null)
-                            Utilities.log(Enums.LogType.Error, TAG, "smsCodeValidation(): e = ${e.message} ; result.data = ${result?.data.toString()}")
-                        }
-                    }
-                }
-
-                override fun onFailure(call: Call<SMSCodeValidationModel?>, t: Throwable) {
-                    setSMSCodeValidation(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "smsCodeValidation(): onFailure = $t", userData)
-                    call.cancel()
-                }
-            })
-        }
-    }
-
-    private fun setSMSCodeValidation(smsCode: SMSCodeValidationModel?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setSMSCodeValidation()", showToast = false)
-        this.smsCodeValidation.postValue(smsCode)
-    }
-
-    //endregion == sms code validation ===========
-
     //region == pay program registration ===
-    fun payProgramRegistration(applicationContext: Context, userData: UserEntity?, payUUID: String?) {
+    fun payProgramRegistration(applicationContext: Context, userData: UserEntity?, programPayId: String?) {
         Utilities.log(Enums.LogType.Debug, TAG, "payProgramRegistration()")
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val call: Call<RegistrationModel?>? = registrationService.registrationAPI.payProgram(payUUID, userData?.uuid)
+            val call: Call<UserResponse?>? = registrationService.registrationAPI.payProgram(
+                    "Bearer ${activity.userToken}", programPayId!!)
 
-            call?.enqueue(object : Callback<RegistrationModel?> {
-                override fun onResponse(call: Call<RegistrationModel?>, response: Response<RegistrationModel?>) {
+
+            call?.enqueue(object : Callback<UserResponse?> {
+                override fun onResponse(call: Call<UserResponse?>, response: Response<UserResponse?>) {
                     Utilities.log(Enums.LogType.Debug, TAG, "payProgramRegistration(): response = ${response}")
-                    val result: RegistrationModel? = response.body()
+                    val result: UserResponse? = response.body()
 
                     if (response.code() == 200) {
-                        setPayProgramRegistration(result)
+                        activity.userToken = result?.token
+                        activity.preferences!!.setString("token", activity.userToken, false)
+
+                        val localUser = UserEntity(
+                                email = result?.email,
+                                fullname = result?.fullname,
+                                yearOfBirth = result?.yearOfBirth,
+                                equity = result?.equity,
+                                incomes = result?.incomes,
+                                commitments = result?.commitments,
+                                termsOfUseAccept = result?.termsOfUseAccept,
+                                registrationExpiredTime = result?.registrationExpiredTime,
+                                subscriberType = result?.subscriberType,
+                                calcCanTakeMortgage = result?.calcCanTakeMortgage,
+                                calcAge = result?.calcAge
+                        )
+
+                        setPayProgramRegistration(localUser)
                         Utilities.log(Enums.LogType.Notify, TAG, "payProgramRegistration(): Success", userData)
                     }
                     else {
@@ -466,7 +286,7 @@ class SignUpViewModel internal constructor(
                     }
                 }
 
-                override fun onFailure(call: Call<RegistrationModel?>, t: Throwable) {
+                override fun onFailure(call: Call<UserResponse?>, t: Throwable) {
                     setPayProgramRegistration(null)
                     Utilities.log(Enums.LogType.Error, TAG, "payProgramRegistration(): onFailure = ${t}", userData)
                     call.cancel()
@@ -475,50 +295,11 @@ class SignUpViewModel internal constructor(
         }
     }
 
-    private fun setPayProgramRegistration(registrationModel: RegistrationModel?) {
+    private fun setPayProgramRegistration(userData: UserEntity?) {
         Utilities.log(Enums.LogType.Debug, TAG, "setPayProgramRegistration()", showToast = false)
-        this.payProgramRegistration.postValue(registrationModel)
+        this.payProgramRegistration.postValue(userData)
     }
     //endregion == pay program registration ======
-
-    //region == trial registration ============
-
-    fun trialRegistration(userData: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "trialRegistration()")
-
-        CoroutineScope(Dispatchers.IO).launch {
-
-            val call: Call<RegistrationModel?>? = registrationService.registrationAPI.trial(userData?.uuid)
-
-            call?.enqueue(object : Callback<RegistrationModel?> {
-                override fun onResponse(call: Call<RegistrationModel?>, response: Response<RegistrationModel?>) {
-                    Utilities.log(Enums.LogType.Debug, TAG, "trialRegistration(): response = $response")
-                    val result: RegistrationModel? = response.body()
-
-                    if (response.code() == 200 && response.body()?.success == true) {
-                        setTrialRegistration(result)
-                    }
-                    else {
-                        setTrialRegistration(result)
-                        Utilities.log(Enums.LogType.Error, TAG, "trialRegistration(): Error = $response ; errorCode = ${result?.error?.errorCode} ; errorMessage = ${result?.error?.errorMessage}", userData)
-                    }
-                }
-
-                override fun onFailure(call: Call<RegistrationModel?>, t: Throwable) {
-                    setTrialRegistration(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "trialRegistration(): onFailure = $t", userData)
-                    call.cancel()
-                }
-            })
-        }
-    }
-
-    private fun setTrialRegistration(registrationModel: RegistrationModel?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setTrialRegistration()", showToast = false)
-        this.trialRegistration.postValue(registrationModel)
-    }
-
-    //endregion == trial registration ============
 
     //region == terms of use ==================
 
@@ -526,23 +307,23 @@ class SignUpViewModel internal constructor(
         Utilities.log(Enums.LogType.Debug, TAG, "getTermsOfUse()")
 
         CoroutineScope(Dispatchers.IO).launch {
-            val call: Call<StringModel?>? = stringsService.stringsAPI.getString("signup_terms_of_use_text")
+            val call: Call<PhraseEntity?>? = phraseService.phraseAPI.getPhrase("signup_terms_of_use_text")
 
-            call?.enqueue(object : Callback<StringModel?> {
-                override fun onResponse(call: Call<StringModel?>, response: Response<StringModel?>) {
+            call?.enqueue(object : Callback<PhraseEntity?> {
+                override fun onResponse(call: Call<PhraseEntity?>, response: Response<PhraseEntity?>) {
                     Utilities.log(Enums.LogType.Debug, TAG, "getTermsOfUse(): response = $response")
-                    val result: StringModel? = response.body()
+                    val result: PhraseEntity? = response.body()
 
-                    if (response.code() == 200 && response.body()?.success == true) {
+                    if (response.code() == 200) {
                         setTermsOfUse(result)
                     }
                     else {
                         setTermsOfUse(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "getTermsOfUse(): Error = $response ; errorCode = ${result?.error?.errorCode} ; errorMessage = ${result?.error?.errorMessage}")
+                        Utilities.log(Enums.LogType.Error, TAG, "getTermsOfUse(): Error = $response ; errorCode = ${response.code()} ; errorMessage = ${response.message()}")
                     }
                 }
 
-                override fun onFailure(call: Call<StringModel?>, t: Throwable) {
+                override fun onFailure(call: Call<PhraseEntity?>, t: Throwable) {
                     setTermsOfUse(null)
                     Utilities.log(Enums.LogType.Error, TAG, "getTermsOfUse(): onFailure = $t")
                     call.cancel()
@@ -551,7 +332,7 @@ class SignUpViewModel internal constructor(
         }
     }
 
-    private fun setTermsOfUse(content: StringModel?) {
+    private fun setTermsOfUse(content: PhraseEntity?) {
         Utilities.log(Enums.LogType.Debug, TAG, "setTermsOfUse()", showToast = false)
         this.termsOfUse.postValue(content)
     }

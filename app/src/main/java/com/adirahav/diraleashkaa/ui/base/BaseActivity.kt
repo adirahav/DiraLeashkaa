@@ -33,7 +33,8 @@ import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.ExceptionHandler
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.common.Utilities.showEnvironmentSnackMessageIfNeeded
-import com.adirahav.diraleashkaa.data.network.entities.StringEntity
+import com.adirahav.diraleashkaa.data.DataManager
+import com.adirahav.diraleashkaa.data.network.entities.PhraseEntity
 import com.adirahav.diraleashkaa.databinding.ActivityCalculatorBinding
 import com.adirahav.diraleashkaa.databinding.ActivityCalculatorsBinding
 import com.adirahav.diraleashkaa.databinding.ActivityContactusBinding
@@ -45,10 +46,17 @@ import com.adirahav.diraleashkaa.databinding.IncludeMenuBinding
 import com.adirahav.diraleashkaa.ui.calculators.CalculatorsActivity
 import com.adirahav.diraleashkaa.ui.contactus.ContactUsActivity
 import com.adirahav.diraleashkaa.ui.copyright.CopyrightActivity
+import com.adirahav.diraleashkaa.ui.login.LoginActivity
 import com.adirahav.diraleashkaa.ui.registration.RegistrationActivity
 import com.adirahav.diraleashkaa.ui.user.UserActivity
 import com.google.android.material.navigation.NavigationView
 import com.mixpanel.android.mpmetrics.MixpanelAPI
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
@@ -84,7 +92,7 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
     var trackUser: ImageView? = null
 
     // drawer views
-    var drawerUserName: TextView? = null
+    var drawerFullname: TextView? = null
     var drawerCalculators: TextView? = null
     var drawerPersonalDetails: TextView? = null
     var drawerFinancialDetails: TextView? = null
@@ -92,6 +100,7 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
     var drawerTermsOfUse: TextView? = null
     var drawerContactUs: TextView? = null
     var drawerShare: TextView? = null
+    var drawerLogout: TextView? = null
     var drawerVersion: TextView? = null
     var drawerCopyright: TextView? = null
 
@@ -195,8 +204,8 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
         Utilities.log(Enums.LogType.Debug, TAG, "initObserver()")
         if (!viewModel!!.roomBaseStrings.hasObservers()) viewModel!!.roomBaseStrings.observe(this@BaseActivity, StringsObserver())
 
-        Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): getRoomStrings")
-        viewModel!!.getRoomStrings(applicationContext)
+        Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): getRoomPhrases")
+        viewModel!!.getRoomPhrases(applicationContext)
     }
 
     //endregion == lifecycle methods ==
@@ -320,8 +329,8 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
             }
         })*/
 
-        // drawer - user name
-        drawerUserName = menu?.drawerUserName
+        // drawer - fullname
+        drawerFullname = menu?.drawerFullname
 
         // drawer - calculators
         drawerCalculators = menu?.drawerCalculators
@@ -382,7 +391,7 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
                 action = Intent.ACTION_SEND
                 putExtra(Intent.EXTRA_TEXT,
                         String.format(
-                                Utilities.getRoomString("share_text"),
+                                Utilities.getLocalPhrase("share_text"),
                                 preferences?.getString("appURL", ""))
                 )
                 type = "text/plain"
@@ -390,6 +399,48 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
 
             val shareIntent = Intent.createChooser(intent, null)
             startActivity(shareIntent)
+        }
+
+        // drawer - logout
+        drawerLogout = menu?.drawerLogout
+
+        drawerLogout?.setOnClickListener {
+            drawer?.closeDrawer(GravityCompat.START)
+
+            CoroutineScope(Dispatchers.IO).launch {
+
+                val authService = DataManager.instance!!.authService
+                val call: Call<Boolean?>? = authService.authAPI.logout()
+
+                call?.enqueue(object : Callback<Boolean?> {
+                    override fun onResponse(call: Call<Boolean?>, response: Response<Boolean?>) {
+                        Utilities.log(Enums.LogType.Debug, TAG, "setLogout(): response = $response")
+
+                        val result: Boolean? = response.body()
+
+                        if (response.code() == 200) {
+                            try {
+                                if (result === true) {
+                                    preferences?.setString("token", null, false)
+                                    LoginActivity.start(context, preferences?.getString("email", ""))
+                                }
+                            } catch (e: Exception) {
+                                Utilities.log(Enums.LogType.Error, TAG, "setLogout(): e = ${e.message} ; result.data = ${result?.toString()}")
+                            }
+                        }
+                        else {
+                            Utilities.log(Enums.LogType.Error, TAG, "setLogout(): Error = $response ; errorCode = ${response.code()} ; errorMessage = ${response.message()}")
+                        }
+                    }
+
+                    override fun onFailure(call: Call<Boolean?>, t: Throwable) {
+                        Utilities.log(Enums.LogType.Error, TAG, "setLogout(): onFailure = $t")
+                        call.cancel()
+                    }
+                })
+            }
+
+
         }
 
         // drawer - version
@@ -428,28 +479,29 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
             "UserActivity" ->
                 if (intent.getStringExtra(UserActivity.EXTRA_PAGE_TYPE)!!
                         .equals(Enums.UserPageType.PERSONAL_DETAILS.toString()))
-                    return Utilities.getRoomString("actionbar_title_personal_details")
+                    return Utilities.getLocalPhrase("actionbar_title_personal_details")
                 else if (intent.getStringExtra(UserActivity.EXTRA_PAGE_TYPE)!!
                         .equals(Enums.UserPageType.FINANCIAL_DETAILS.toString()))
-                    return Utilities.getRoomString("actionbar_title_financial_details")
+                    return Utilities.getLocalPhrase("actionbar_title_financial_details")
             "RegistrationActivity" ->
                 return  if (isBeta ?: false)
-                            Utilities.getRoomString("actionbar_title_beta")
+                            Utilities.getLocalPhrase("actionbar_title_beta")
                         else
-                            Utilities.getRoomString("actionbar_title_registration_details")
+                            Utilities.getLocalPhrase("actionbar_title_registration_details")
             "ContactUsActivity" ->
-                return Utilities.getRoomString("actionbar_title_contact_us")
+                return Utilities.getLocalPhrase("actionbar_title_contact_us")
             "CopyrightActivity" ->
-                return Utilities.getRoomString("actionbar_title_copyright")
+                return Utilities.getLocalPhrase("actionbar_title_copyright")
             "CalculatorsActivity" ->
-                return Utilities.getRoomString("actionbar_title_calculators")
+                return Utilities.getLocalPhrase("actionbar_title_calculators")
         }
-        return Utilities.getRoomString("actionbar_title_home")
+        return Utilities.getLocalPhrase("actionbar_title_home")
     }
 
     private fun isFullScreen() : Boolean {
         if (this::class.java.simpleName.equals("SplashActivity")) return true
         if (this::class.java.simpleName.equals("SignUpActivity")) return true
+        if (this::class.java.simpleName.equals("LoginActivity")) return true
         if (this::class.java.simpleName.equals("GoodbyeActivity")) return true
         return false
     }
@@ -457,6 +509,7 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
     private fun allowShowExpiredSnack() : Boolean {
         if (this::class.java.simpleName.equals("SplashActivity")) return false
         if (this::class.java.simpleName.equals("SignUpActivity")) return false
+        if (this::class.java.simpleName.equals("LoginActivity")) return false
         if (this::class.java.simpleName.equals("RegistrationActivity")) return false
         return true
     }
@@ -464,6 +517,7 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
     private fun allowShowDrawer() : Boolean {
         if (this::class.java.simpleName.equals("SplashActivity")) return false
         if (this::class.java.simpleName.equals("SignUpActivity")) return false
+        if (this::class.java.simpleName.equals("LoginActivity")) return false
         if (this::class.java.simpleName.equals("RegistrationActivity")) {
             return !(isExpiredRegistration?: false || isBeta?: false)
         }
@@ -496,13 +550,13 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
         return null
     }
 
-    private fun getDrawerUserNameView() : TextView? {
+    private fun getDrawerFullnameView() : TextView? {
         when (this::class.java.simpleName) {
-            "HomeActivity" -> return (layoutBase as ActivityHomeBinding).menu.drawerUserName
-            "UserActivity" -> return (layoutBase as ActivityUserBinding).menu.drawerUserName
-            "RegistrationActivity" -> return (layoutBase as ActivityRegistrationBinding).menu.drawerUserName
-            "ContactUsActivity" -> return (layoutBase as ActivityContactusBinding).menu.drawerUserName
-            "PropertyActivity" -> return (layoutBase as ActivityPropertyBinding).menu.drawerUserName
+            "HomeActivity" -> return (layoutBase as ActivityHomeBinding).menu.drawerFullname
+            "UserActivity" -> return (layoutBase as ActivityUserBinding).menu.drawerFullname
+            "RegistrationActivity" -> return (layoutBase as ActivityRegistrationBinding).menu.drawerFullname
+            "ContactUsActivity" -> return (layoutBase as ActivityContactusBinding).menu.drawerFullname
+            "PropertyActivity" -> return (layoutBase as ActivityPropertyBinding).menu.drawerFullname
         }
         return null
     }
@@ -601,22 +655,22 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
     //endregion == views ==============
 
     //region observers
-    private inner class StringsObserver : Observer<ArrayList<StringEntity>?> {
-        override fun onChanged(strings: ArrayList<StringEntity>?) {
+    private inner class StringsObserver : Observer<ArrayList<PhraseEntity>?> {
+        override fun onChanged(strings: ArrayList<PhraseEntity>?) {
             Utilities.log(Enums.LogType.Debug, TAG, "StringsObserver(): onChanged")
 
             if (strings == null) {
                 return
             }
 
-            Utilities.roomStrings = strings
+            Utilities.localPhrase = strings
 
-            setRoomStrings()
+            setPhrases()
         }
     }
 
-    open fun setRoomStrings() {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomStrings()")
+    open fun setPhrases() {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         // title text
         if (!this::class.java.simpleName.equals("CalculatorActivity")) {
@@ -624,42 +678,45 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
         }
 
 
-        // drawer - user name
-        drawerUserName?.text =
-            if (Utilities.getRoomString("drawer_user_name").isNotEmpty())
+        // drawer - fullname
+        drawerFullname?.text =
+            if (Utilities.getLocalPhrase("drawer_fullname").isNotEmpty())
                 String.format(
-                    Utilities.getRoomString("drawer_user_name"),
-                    preferences?.getString("userName", ""))
+                    Utilities.getLocalPhrase("drawer_fullname"),
+                    preferences?.getString("fullname", ""))
             else
                 ""
 
         // drawer - calculators
-        drawerCalculators?.text = Utilities.getRoomString("drawer_calculators")
+        drawerCalculators?.text = Utilities.getLocalPhrase("drawer_calculators")
 
         // drawer - personal details
-        drawerPersonalDetails?.text = Utilities.getRoomString("drawer_personal_details")
+        drawerPersonalDetails?.text = Utilities.getLocalPhrase("drawer_personal_details")
 
         // drawer - financial details
-        drawerFinancialDetails?.text = Utilities.getRoomString("drawer_financial_details")
+        drawerFinancialDetails?.text = Utilities.getLocalPhrase("drawer_financial_details")
 
         // drawer - registration
-        drawerRegistrationDetails?.text = Utilities.getRoomString("drawer_registration_details")
+        drawerRegistrationDetails?.text = Utilities.getLocalPhrase("drawer_registration_details")
 
         // drawer - terms of use
-        drawerTermsOfUse?.text = Utilities.getRoomString("drawer_terms_of_use")
+        drawerTermsOfUse?.text = Utilities.getLocalPhrase("drawer_terms_of_use")
 
         // drawer - contact us
-        drawerContactUs?.text = Utilities.getRoomString("drawer_contact_us")
+        drawerContactUs?.text = Utilities.getLocalPhrase("drawer_contact_us")
 
         // drawer - share
-        drawerShare?.text = Utilities.getRoomString("drawer_share")
+        drawerShare?.text = Utilities.getLocalPhrase("drawer_share")
+
+        // drawer - logout
+        drawerLogout?.text = Utilities.getLocalPhrase("drawer_logout")
 
         // drawer - version
         if (preferences?.getBoolean("isNewVersionAvailable", false) == true) {
             drawerVersion?.text =
-                if (Utilities.getRoomString("drawer_version_update").isNotEmpty())
+                if (Utilities.getLocalPhrase("drawer_version_update").isNotEmpty())
                     HtmlCompat.fromHtml(
-                        String.format(Utilities.getRoomString("drawer_version_update"), BuildConfig.VERSION_NAME), HtmlCompat.FROM_HTML_MODE_LEGACY)
+                        String.format(Utilities.getLocalPhrase("drawer_version_update"), BuildConfig.VERSION_NAME), HtmlCompat.FROM_HTML_MODE_LEGACY)
                 else
                     ""
 
@@ -676,14 +733,14 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
         }
         else {
             drawerVersion?.text =
-                if (Utilities.getRoomString("drawer_version").isNotEmpty())
-                    String.format(Utilities.getRoomString("drawer_version"), BuildConfig.VERSION_NAME)
+                if (Utilities.getLocalPhrase("drawer_version").isNotEmpty())
+                    String.format(Utilities.getLocalPhrase("drawer_version"), BuildConfig.VERSION_NAME)
                 else
                     ""
         }
 
         // drawer - copyright
-        drawerCopyright?.text = Utilities.getRoomString("drawer_copyright")
+        drawerCopyright?.text = Utilities.getLocalPhrase("drawer_copyright")
 
     }
 
