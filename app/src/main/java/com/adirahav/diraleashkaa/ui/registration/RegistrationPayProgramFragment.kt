@@ -325,6 +325,22 @@ class RegistrationPayProgramFragment : Fragment(),
 
         Utilities.log(Enums.LogType.Notify, TAG, "makePurchase(): programID = ${programID}", registerUser)
 
+        /*TO DELETE*/
+        /*activity?.runOnUiThread {
+            if (isSignUpActivity!!) {
+                _signupActivity?.layout?.buttons?.pay?.isEnabled = false
+            }
+            else {
+                _registrationActivity?.layout?.buttons?.pay?.isEnabled = false
+            }
+
+            if (isSignUpActivity!!)
+                _signupActivity?.viewModel?.payProgramRegistration(requireContext(), registerUser, programID)
+            else
+                _registrationActivity?.viewModel?.payProgramRegistration(requireContext(), registerUser, programID)
+
+        }*/
+        /**/
         if (consoleProgram != null) {
             val billingFlowParams = BillingFlowParams.newBuilder()
                     .setProductDetailsParamsList(
@@ -501,8 +517,8 @@ class RegistrationPayProgramFragment : Fragment(),
                 layout.payMessage.visibility = View.INVISIBLE
                 if (isSignUpActivity!!) {
                     userData.roomUID = _signupActivity?.roomUID
-                    //_signupActivity?.signupLocalUser(userData)
-                }
+                    _signupActivity?.submitNext(null)
+                 }
                 else {
                     //PAYPROGRAM-5
                     Utilities.setButtonDisable(_registrationActivity?.layout?.buttons?.send)

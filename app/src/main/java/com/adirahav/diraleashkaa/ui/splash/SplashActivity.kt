@@ -63,7 +63,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     var lastNetworkStatus: Enums.NetworkStatus? = null
 
     // layout
-    private var layout: ActivitySplashBinding? = null
+    internal var layout: ActivitySplashBinding? = null
 
     // start time
     var startTime = Date()

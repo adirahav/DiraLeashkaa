@@ -40,10 +40,6 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
             intent.flags = FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK
             context.startActivity(intent)
         }
-
-        fun submitNext() {
-
-        }
     }
 
     //endregion == companion ==========

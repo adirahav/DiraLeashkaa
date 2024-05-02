@@ -18,7 +18,7 @@ android {
         applicationId "com.adirahav.diraleashkaa"
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode 23
+        versionCode 26
         versionName "2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.release
@@ -82,7 +82,7 @@ android {
             */
         }
         else {
-            BASE_URL = "https://diraleashkaabackendnpm-i.onrender.com/api/"
+            BASE_URL = "https://diraleashkaabackend.onrender.com/api/"
         }
 
         variant.buildConfigField "String", "BASE_URL", "\"${BASE_URL}\""

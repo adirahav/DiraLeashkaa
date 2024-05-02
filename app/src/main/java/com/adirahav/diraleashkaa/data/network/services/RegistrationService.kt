@@ -42,7 +42,7 @@ class RegistrationService private constructor() {
         @PUT("registration/{payProgramId}/payProgram")
         fun payProgram(
             @Header("Authorization") token: String?,
-            @Field("payProgramId") payProgramId: String
+            @Path("payProgramId") payProgramId: String
         ): Call<UserResponse?>?
     }
 }

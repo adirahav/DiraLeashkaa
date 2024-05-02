@@ -1,6 +1,8 @@
 package com.adirahav.diraleashkaa.ui.splash
 
 import android.content.Context
+import android.view.View
+import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import com.adirahav.diraleashkaa.common.AppApplication
@@ -15,10 +17,12 @@ import com.adirahav.diraleashkaa.data.network.services.AnnouncementService
 import com.adirahav.diraleashkaa.data.network.services.UserService
 import com.adirahav.diraleashkaa.ui.base.BaseViewModel
 import com.adirahav.diraleashkaa.ui.login.LoginActivity
+import com.adirahav.diraleashkaa.ui.signup.SignUpWelcomeFragment
 import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.Date
 
 class SplashViewModel internal constructor(private val activity: SplashActivity,
                                            private val userService: UserService,
@@ -41,6 +45,11 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
     // announcement
     val announcement: MutableLiveData<AnnouncementEntity> = MutableLiveData()
 
+    val MAX_CONNECTING_TRIES = 10
+    val AWAIT_SECONDS = 5
+    var tryConnecting = 1
+    var connectionSuccess = false
+
     //region == splash =============
 
     fun getSplash() {
@@ -59,43 +68,62 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
             }
 
             if (!gotoLogin) {
-                val call: Call<SplashModel?>? = userService.userAPI.getSplashData(
-                        "android",
-                        getVersionName(),
-                        if (existLocalUser != null) existLocalUser.email else null
-                )
-
-                call?.enqueue(object : Callback<SplashModel?> {
-                    override fun onResponse(call: Call<SplashModel?>, response: Response<SplashModel?>) {
-
-                        val result: SplashModel? = response.body()
-
-                        Utilities.log(Enums.LogType.Debug, TAG, "getSplash(): response = $response")
-
-                        if (response.code() == 200) {
-                            try {
-                                setSplash(result)
-                            }
-                            catch (e: Exception) {
-                                setSplash(null)
-                                Utilities.log(Enums.LogType.Error, TAG, "getSplash(): e = ${e.message} ; result.data = ${result?.toString()}")
-                            }
-                        }
-                        else {
-                            setSplash(null)
-                            Utilities.log(Enums.LogType.Error, TAG, "getSplash(): response = $response")
-                        }
-                    }
-
-                    override fun onFailure(call: Call<SplashModel?>, t: Throwable) {
-                        setSplash(null)
-
-                        Utilities.log(Enums.LogType.Error, TAG, "getSplash(): onFailure = $t")
-                        call.cancel()
-                    }
-                })
+                tryCallSplash("android", getVersionName(), if (existLocalUser != null) existLocalUser.email else null)
             }
         }
+    }
+
+    private fun tryCallSplash(platform: String, versionName: String, localUser: String?) {
+        val call: Call<SplashModel?> = userService.userAPI.getSplashData(
+                platform,
+                versionName,
+                localUser
+        )
+
+        call.enqueue(object : Callback<SplashModel?> {
+
+            override fun onResponse(call: Call<SplashModel?>, response: Response<SplashModel?>) {
+
+                connectionSuccess = true
+
+                val result: SplashModel? = response.body()
+
+                Utilities.log(Enums.LogType.Debug, TAG, "getSplash(): response = $response")
+
+                if (response.code() == 200) {
+                    try {
+                        setSplash(result)
+                    } catch (e: Exception) {
+                        setSplash(null)
+                        Utilities.log(Enums.LogType.Error, TAG, "getSplash(): e = ${e.message} ; result.data = ${result?.toString()}")
+                    }
+                } else {
+                    setSplash(null)
+                    Utilities.log(Enums.LogType.Error, TAG, "getSplash(): response = $response")
+                }
+            }
+
+            override fun onFailure(call: Call<SplashModel?>, t: Throwable) {
+
+                if (tryConnecting > MAX_CONNECTING_TRIES) {
+                    Utilities.log(Enums.LogType.Error, TAG, "getSplash(): onFailure = $t")
+                    setSplash(null)
+                    call.cancel()
+                }
+                else {
+                    Utilities.log(Enums.LogType.Error, TAG, "getSplash(): tryConnecting = $tryConnecting")
+
+                    Utilities.await(Date(), AWAIT_SECONDS) {
+                        if (activity.layout?.waiting?.isVisible == false) {
+                            activity.layout?.waiting?.visibility = View.VISIBLE
+                        }
+                        tryConnecting++
+                        call.cancel()
+                        tryCallSplash(platform, versionName, localUser)
+                    }
+                }
+            }
+        })
     }
 
     private fun setSplash(splash: SplashModel?) {
