@@ -22,6 +22,7 @@ import com.adirahav.diraleashkaa.data.DataManager
 import com.adirahav.diraleashkaa.data.network.dataClass.DeviceDataClass
 import com.adirahav.diraleashkaa.data.network.entities.*
 import com.adirahav.diraleashkaa.data.network.models.SplashModel
+import com.adirahav.diraleashkaa.data.network.requests.ErrorReportRequest
 import com.adirahav.diraleashkaa.databinding.ActivitySplashBinding
 import com.adirahav.diraleashkaa.ui.base.BaseActivity
 import com.adirahav.diraleashkaa.ui.dialog.FancyDialog
@@ -90,6 +91,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
     var isServerDown: Boolean? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
 
         layout = ActivitySplashBinding.inflate(layoutInflater)
@@ -360,7 +362,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appID")))
         } catch (e: ActivityNotFoundException) {
-            Utilities.log(Enums.LogType.Error, TAG, "responseAfterNewVersionAvailableNotRequiredPositivePress(): ActivityNotFoundException = ${e.message}", localUser)
+            Utilities.log(Enums.LogType.Error, TAG, "responseAfterNewVersionAvailableNotRequiredPositivePress(): ActivityNotFoundException = ${e.message}")
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appID")))
         }
     }

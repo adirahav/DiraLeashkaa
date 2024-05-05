@@ -28,6 +28,9 @@ class DataManager private constructor() {
     val calculatorsService: CalculatorsService
         get() = CalculatorsService.instance!!
 
+    val errorReportService: ErrorReportService
+        get() = ErrorReportService.instance!!
+
     companion object {
         @JvmStatic
         @get:Synchronized

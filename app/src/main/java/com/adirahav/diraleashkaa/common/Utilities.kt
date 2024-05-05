@@ -45,6 +45,9 @@ import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
 import com.adirahav.diraleashkaa.data.network.entities.PhraseEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.data.network.models.EmailModel
+import com.adirahav.diraleashkaa.data.network.requests.ErrorReportRequest
+import com.adirahav.diraleashkaa.data.network.requests.PropertyRequest
+import com.adirahav.diraleashkaa.data.network.services.ErrorReportService
 import com.adirahav.diraleashkaa.ui.dialog.FancyDialog
 import com.adirahav.diraleashkaa.ui.dialog.FancyDialogListener
 import com.adirahav.diraleashkaa.views.LabelWithIcon
@@ -53,6 +56,7 @@ import com.adirahav.diraleashkaa.views.PropertyPercent
 import com.airbnb.paris.extensions.style
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.GsonBuilder
+import com.kofigyan.stateprogressbar.StateProgressBar
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.*
 import retrofit2.Call
@@ -75,7 +79,7 @@ object Utilities {
     const val TYPING_DELAY = 200L
     const val TAG = "Utilities"
 
-    fun log(logType: Enums.LogType, tag: String, message: String, userData: UserEntity? = null, propertyData: PropertyEntity? = null, showToast: Boolean = true) {
+    fun log(logType: Enums.LogType, tag: String, message: String, showToast: Boolean = true) {
         when (logType) {
             Enums.LogType.Debug -> {
                 Log.d(tag, message)
@@ -91,8 +95,6 @@ object Utilities {
                 if (BuildConfig.DEBUG && showToast) {
                     Toast.makeText(context, Html.fromHtml("${"<font color='#0000ff' ><b>" + tag + "</b>: " + message + "</font>"}"), Toast.LENGTH_SHORT).show()
                 }
-
-                composeEmail("NOTIFY","$tag", message, userData, propertyData, null, null)
             }
 
             Enums.LogType.Warning -> {
@@ -101,8 +103,6 @@ object Utilities {
                 if (BuildConfig.DEBUG && showToast) {
                     Toast.makeText(context, Html.fromHtml("${"<font color='#ffcc00' ><b>" + tag + "</b>: " + message + "</font>"}"), Toast.LENGTH_SHORT).show()
                 }
-
-                composeEmail("WARNING","$tag", message, userData, propertyData, null, null)
             }
 
             Enums.LogType.Error -> {
@@ -112,7 +112,7 @@ object Utilities {
                     Toast.makeText(context, Html.fromHtml("${"<font color='#55eb4a7c' ><b>" + tag + "</b>: " + message + "</font>"}"), Toast.LENGTH_SHORT).show()
                 }
 
-                composeEmail("ERROR","$tag", message, userData, propertyData, null, null)
+                composeEmail(logType,"$tag", message)
             }
 
             Enums.LogType.Crash -> {
@@ -122,106 +122,27 @@ object Utilities {
                     Toast.makeText(context, Html.fromHtml("${"<font color='#ff0000' ><b>" + tag + "</b>: " + message + "</font>"}"), Toast.LENGTH_SHORT).show()
                 }
 
-                composeEmail("CRASH","$tag", message, userData, propertyData, null, null)
+                composeEmail(logType,"$tag", message)
             }
         }
     }
 
     //region == email ==============
 
-    fun composeEmail(type: String, subject: String, message: String?, userData: UserEntity?, propertyData: PropertyEntity?, responseSuccess: (() -> Unit)?, responseFail: (() -> Unit)?) {
-        return
+    fun composeEmail(logType: Enums.LogType, subject: String, message: String?) {
         CoroutineScope(Dispatchers.IO).launch {
+            val call: Call<Void>? = DataManager.instance?.errorReportService?.errorReportAPI?.reportError(ErrorReportRequest(type = logType.toString().uppercase(Locale.getDefault()), subject = subject, message = message))
 
-            val fullMessage = "${message}\n\n" +
-                    "------------------------------------------------------------------------------\n\n" +
-                    "fullname: ${userData?.fullname}\n" +
-                    "property:\n" + "${propertyData?.toString()}\n\n"
+            call?.enqueue(object : Callback<Void> {
+                override fun onResponse(call: Call<Void>, response: Response<Void>) {
 
-
-            val call: Call<EmailModel?>? = DataManager.instance?.emailService?.emailAPI?.sendEmail(userData?.email, type, subject, fullMessage)
-
-            call?.enqueue(object : Callback<EmailModel?> {
-                override fun onResponse(call: Call<EmailModel?>, response: Response<EmailModel?>) {
-
-                    val result: EmailModel? = response.body()
-
-                    if (response.code() == 200 && response.body()?.success == true) {
-                        try {
-                            if (responseSuccess != null) {
-                                responseSuccess()
-                            }
-                        }
-                        catch (e: Exception) {
-                            if (responseFail != null) {
-                                responseFail()
-                            }
-                            log(Enums.LogType.Error, TAG, "serverSendEmail(): e = ${e.message} ; result.data = ${result?.data.toString()}")
-                        }
-                    }
-                    else {
-                        if (responseFail != null) {
-                            responseFail()
-                        }
-                        log(Enums.LogType.Error, TAG, "serverSendEmail(): response = $response")
-                    }
                 }
 
-                override fun onFailure(call: Call<EmailModel?>, t: Throwable) {
-                    var result : EmailDataClass? = null
-                    if (t.message.equals("timeout")) {
-                        result = EmailDataClass(
-                                email = null
-                        )
-                    }
-                    if (responseFail != null) {
-                        responseFail()
-                    }
-
-                    log(Enums.LogType.Error, TAG, "serverSendEmail(): onFailure = $t")
+                override fun onFailure(call: Call<Void>, t: Throwable) {
                     call.cancel()
                 }
             })
         }
-
-        /*val preferences = AppPreferences.instance
-
-        BackgroundMail.newBuilder(context)
-            .withMailFrom("diraleashkaa@gmail.com")
-            .withPassword("Mario18GD")
-            .withMailTo("diraleashkaa@gmail.com")
-            //.withMailCc("cc-email@gmail.com")
-            //.withMailBcc("bcc-email@gmail.com")
-            .withType(BackgroundMail.TYPE_HTML)
-            .withSubject("DIRA-LEASHKAA | ${if (BuildConfig.DEBUG) "DEBUG" else "RELEASE"} | $subject")
-            //.withBody("<div style='direction=ltr'>${message}<br /><br />------------------------------------------------------------------------------<br /><br /><b>user:</b><br />${userData?.toString(true)}</div>")
-            .withBody("" +
-                    "${message}\n\n" +
-                    "------------------------------------------------------------------------------\n\n" +
-                    "user:\n + " + "${userData?.toString()}\n\n" +
-                    "property:\n" + "${propertyData?.toString()}\n\n" +
-                    "device:\n" + "deviceID = ${Settings.Secure.getString(context.contentResolver, getDeviceID(context))}\n" +
-                    "deviceType = ${getDeviceType()}\n\n" +
-                    "preferences:\n" + "userName = ${preferences?.getString("userName", "")}\n" +
-                    "appVersion = ${preferences?.getString("appVersion", "")}\n" +
-                    "roomUID = ${preferences?.getLong("roomUID", 0L)}\n" +
-                    "subscriberType = ${preferences?.getString("subscriberType", "")}\n" +
-                    "expiredTime = ${preferences?.getLong("expiredTime", 0L)}\n\n" +
-                    "")
-            .withProcessVisibility(false)
-            .withOnSuccessCallback {
-                if (responseSuccess != null) {
-                    responseSuccess()
-                }
-            }
-            .withOnFailCallback(object : BackgroundMail.OnFailCallback {
-                override fun onFail (failureReason: String) {
-                    if (responseFail != null) {
-                        responseFail()
-                    }
-                }
-            })
-            .send()*/
     }
 
     //endregion == email ==============

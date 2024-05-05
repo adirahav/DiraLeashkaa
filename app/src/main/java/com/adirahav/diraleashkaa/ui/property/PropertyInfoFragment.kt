@@ -1693,7 +1693,7 @@ class PropertyInfoFragment : Fragment() {
                 layout?.possibleMonthlyRepayment?.setInputDefaultValue(_activity?.propertyData?.calcPossibleMonthlyRepayment ?: 0)
             }
 
-            _activity?.setNumberPickerAttributes(layout?.possibleMonthlyRepayment, "possible_monthly_repayment_percent", _activity?.propertyData?.calcPossibleMonthlyRepaymentPercent)
+            _activity?.setNumberPickerAttributes(layout?.possibleMonthlyRepayment, "possibleMonthlyRepaymentPercent", _activity?.propertyData?.calcPossibleMonthlyRepaymentPercent)
         }
     }
 
@@ -1819,7 +1819,7 @@ class PropertyInfoFragment : Fragment() {
                 layout?.rent?.setInputDefaultValue(_activity?.propertyData?.calcRent ?: 0)
             }
 
-            _activity?.setNumberPickerAttributes(layout?.rent, "rent_percent", _activity?.propertyData?.calcRentPercent)
+            _activity?.setNumberPickerAttributes(layout?.rent, "rentPercent", _activity?.propertyData?.calcRentPercent)
         }
     }
 

@@ -96,8 +96,6 @@ class RegistrationViewModel internal constructor(
 
     // update room user
     fun updateLocalUser(applicationContext: Context, userData: UserEntity?, caller: Enums.DBCaller) {
-        //COUPON-7
-        //PAYPROGRAM-7
         if (userData != null) {
             Utilities.log(Enums.LogType.Debug, TAG, "updateLocalUser()")
 
@@ -107,8 +105,6 @@ class RegistrationViewModel internal constructor(
     }
 
     private fun setUpdateLocalUser(user: UserEntity?, caller: Enums.DBCaller) {
-        //COUPON-8
-        //PAYPROGRAM-8
         Utilities.log(Enums.LogType.Debug, TAG, "setUpdateLocalUser()", showToast = false)
         if (caller == Enums.DBCaller.LOCAL) {
             this.updateLocalUserCallback.postValue(user)
@@ -145,7 +141,6 @@ class RegistrationViewModel internal constructor(
         Utilities.log(Enums.LogType.Debug, TAG, "couponRegistration()")
 
         CoroutineScope(Dispatchers.IO).launch {
-            //COUPON-1
             val call: Call<UserResponse?>? = registrationService.registrationAPI.coupon(
                     "Bearer ${activity.userToken}", code)
 
@@ -176,13 +171,13 @@ class RegistrationViewModel internal constructor(
                     }
                     else {
                         setCouponRegistration(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "couponRegistration(): Error = $response ; errorCode = ${response.code()} ; errorMessage = ${response.message()}", activity.userData)
+                        Utilities.log(Enums.LogType.Error, TAG, "couponRegistration(): Error = $response ; errorCode = ${response.code()} ; errorMessage = ${response.message()}")
                     }
                 }
 
                 override fun onFailure(call: Call<UserResponse?>, t: Throwable) {
                     setCouponRegistration(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "couponRegistration(): onFailure = $t", activity.userData)
+                    Utilities.log(Enums.LogType.Error, TAG, "couponRegistration(): onFailure = $t")
                     call.cancel()
                 }
             })
@@ -190,7 +185,6 @@ class RegistrationViewModel internal constructor(
     }
 
     private fun setCouponRegistration(userData: UserEntity?) {
-        //COUPON-2
         Utilities.log(Enums.LogType.Debug, TAG, "setCouponRegistration()", showToast = false)
         this.couponRegistrationCallback.postValue(userData)
     }
@@ -199,7 +193,6 @@ class RegistrationViewModel internal constructor(
 
     //region == pay program registration ===
     fun payProgramRegistration(applicationContext: Context, userData: UserEntity?, programPayId: String?) {
-        //PAYPROGRAM-1
         Utilities.log(Enums.LogType.Debug, TAG, "payRegistration()")
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -231,24 +224,23 @@ class RegistrationViewModel internal constructor(
                         )
 
                         setPayProgramRegistration(localUser)
-                        Utilities.log(Enums.LogType.Notify, TAG, "payProgramRegistration(): Success", userData)
+                        Utilities.log(Enums.LogType.Notify, TAG, "payProgramRegistration(): Success")
                     }
                     else {
                         setPayProgramRegistration(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "payProgramRegistration(): Error = ${response}", userData)
+                        Utilities.log(Enums.LogType.Error, TAG, "payProgramRegistration(): Error = ${response}")
                     }
                 }
 
                 override fun onFailure(call: Call<UserResponse?>, t: Throwable) {
                     setPayProgramRegistration(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "payProgramRegistration(): onFailure = ${t}", userData)
+                    Utilities.log(Enums.LogType.Error, TAG, "payProgramRegistration(): onFailure = ${t}")
                     call.cancel()
                 }
             })
         }
     }
     private fun setPayProgramRegistration(userData: UserEntity?) {
-        //PAYPROGRAM-2
         Utilities.log(Enums.LogType.Debug, TAG, "setPayProgramRegistration()", showToast = false)
         this.payProgramRegistrationCallback.postValue(userData)
     }
@@ -279,13 +271,13 @@ class RegistrationViewModel internal constructor(
                     }
                     else {
                         setUnsubscribe(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "getUnsubscribe(): Error = ${response}", userData)
+                        Utilities.log(Enums.LogType.Error, TAG, "getUnsubscribe(): Error = ${response}")
                     }
                 }
 
                 override fun onFailure(call: Call<UnsubscribeModel?>, t: Throwable) {
                     setUnsubscribe(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "getUnsubscribe(): onFailure = ${t}", userData)
+                    Utilities.log(Enums.LogType.Error, TAG, "getUnsubscribe(): onFailure = ${t}")
                     call.cancel()
                 }
             })

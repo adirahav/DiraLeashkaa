@@ -1135,6 +1135,8 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
                     infoFragment?.initData()
 
                     infoFragment?.activateActionsMenuIfNeeded()
+
+                    initIndexesAndInterests()
                 }
 
                 else -> {}

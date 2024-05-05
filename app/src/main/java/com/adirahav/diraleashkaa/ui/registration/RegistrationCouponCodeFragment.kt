@@ -226,7 +226,6 @@ class RegistrationCouponCodeFragment : Fragment() {
     }
 
     fun couponCodeAfterResponse(userData: UserEntity?) {
-        //COUPON-4
         hideKeyboard(requireContext())
 
         if (userData != null) {
@@ -238,7 +237,6 @@ class RegistrationCouponCodeFragment : Fragment() {
                     //_signupActivity?.setPayProgramRegistration(userData)
                 }
                 else {
-                    //COUPON-5
                     Utilities.setButtonDisable(_registrationActivity?.layout?.buttons?.send)
                     userData.roomUID = _registrationActivity?.roomUID
                     _registrationActivity?.updateLocalUser(userData)
@@ -257,7 +255,7 @@ class RegistrationCouponCodeFragment : Fragment() {
                 Utilities.setButtonEnable(_registrationActivity?.layout?.buttons?.send)
             }
 
-            Utilities.log(Enums.LogType.Warning, TAG, "couponCodeAfterResponse(): ${layout?.codeError?.text}", registerUser)
+            Utilities.log(Enums.LogType.Warning, TAG, "couponCodeAfterResponse(): ${layout?.codeError?.text}")
         }
     }
 }

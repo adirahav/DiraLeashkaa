@@ -33,8 +33,6 @@ class ExceptionHandler(app: Activity?) : UncaughtExceptionHandler {
                 logType = Enums.LogType.Crash,
                 tag = this::class.java.simpleName,
                 message = report,
-                userData = null,
-                propertyData = null,
                 showToast = false,
             )
 

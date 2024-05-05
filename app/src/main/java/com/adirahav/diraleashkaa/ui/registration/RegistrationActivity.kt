@@ -437,8 +437,6 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
     fun updateLocalUser(userData: UserEntity) =
         GlobalScope.launch {
-            //COUPON-6
-            //PAYPROGRAM-6
             viewModel!!.updateLocalUser(applicationContext, userData, Enums.DBCaller.LOCAL)
         }
 
@@ -474,13 +472,11 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
     private inner class CouponRegistrationObserver : Observer<UserEntity?> {
         override fun onChanged(userData: UserEntity?) {
-            //COUPON-3
             couponCodeFragment.couponCodeAfterResponse(userData)
         }
     }
 
     private inner class PayRegistrationObserver : Observer<UserEntity?> {
-        //PAYPROGRAM-3
         override fun onChanged(userData: UserEntity?) {
             payProgramFragment.payProgramAfterResponse(userData)
         }
@@ -521,8 +517,6 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
                 }
 
                 Enums.ObserverAction.UPDATE_LOCAL -> {
-                    //COUPON-9
-                    //PAYPROGRAM-9
                     log(Enums.LogType.Debug, TAG, "RoomUserObserver(): UPDATE_ROOM. user = $user")
 
                     roomUID = user?.roomUID

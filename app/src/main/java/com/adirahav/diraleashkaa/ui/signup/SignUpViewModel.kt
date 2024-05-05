@@ -178,7 +178,6 @@ class SignUpViewModel internal constructor(
         Utilities.log(Enums.LogType.Debug, TAG, "couponRegistration()")
 
         CoroutineScope(Dispatchers.IO).launch {
-            //COUPON-1
             val call: Call<UserResponse?>? = registrationService.registrationAPI.coupon(
                     "Bearer ${activity.userToken}", code)
 
@@ -278,17 +277,17 @@ class SignUpViewModel internal constructor(
                         )
 
                         setPayProgramRegistration(localUser)
-                        Utilities.log(Enums.LogType.Notify, TAG, "payProgramRegistration(): Success", userData)
+                        Utilities.log(Enums.LogType.Notify, TAG, "payProgramRegistration(): Success")
                     }
                     else {
                         setPayProgramRegistration(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "payProgramRegistration(): Error = ${response}", userData)
+                        Utilities.log(Enums.LogType.Error, TAG, "payProgramRegistration(): Error = ${response}")
                     }
                 }
 
                 override fun onFailure(call: Call<UserResponse?>, t: Throwable) {
                     setPayProgramRegistration(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "payProgramRegistration(): onFailure = ${t}", userData)
+                    Utilities.log(Enums.LogType.Error, TAG, "payProgramRegistration(): onFailure = ${t}")
                     call.cancel()
                 }
             })

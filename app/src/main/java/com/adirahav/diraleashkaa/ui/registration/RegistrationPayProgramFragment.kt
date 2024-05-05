@@ -252,7 +252,7 @@ class RegistrationPayProgramFragment : Fragment(),
                                     .setProductId(program.programID)
                                     .setProductType(BillingClient.ProductType.INAPP)
                                     .build()
-                            Utilities.log(Enums.LogType.Debug, "ADITEST", program.programID)
+
                             productList.add(product)
                         }
 
@@ -323,7 +323,7 @@ class RegistrationPayProgramFragment : Fragment(),
     fun makePurchase(programID: String) {
         val consoleProgram = _consolePrograms?.find { it.productId == programID }
 
-        Utilities.log(Enums.LogType.Notify, TAG, "makePurchase(): programID = ${programID}", registerUser)
+        Utilities.log(Enums.LogType.Notify, TAG, "makePurchase(): programID = ${programID}")
 
         /*TO DELETE*/
         /*activity?.runOnUiThread {
@@ -388,7 +388,7 @@ class RegistrationPayProgramFragment : Fragment(),
     private fun completePurchase(item: Purchase) {
         purchase = item
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-            Utilities.log(Enums.LogType.Notify, TAG, "completePurchase()", registerUser)
+            Utilities.log(Enums.LogType.Notify, TAG, "completePurchase()")
             activity?.runOnUiThread {
                 if (isSignUpActivity!!) {
                     _signupActivity?.layout?.buttons?.pay?.isEnabled = false
@@ -398,9 +398,9 @@ class RegistrationPayProgramFragment : Fragment(),
                 }
 
                 if (isSignUpActivity!!)
-                    _signupActivity?.viewModel?.payProgramRegistration(requireContext(), registerUser, _programs?.get(selectedPosition!!)?._id)
+                    _signupActivity?.viewModel?.payProgramRegistration(requireContext(), registerUser, _programs?.get(selectedPosition!!)?.programID)
                 else
-                    _registrationActivity?.viewModel?.payProgramRegistration(requireContext(), registerUser, _programs?.get(selectedPosition!!)?._id)
+                    _registrationActivity?.viewModel?.payProgramRegistration(requireContext(), registerUser, _programs?.get(selectedPosition!!)?.programID)
 
             }
         }
@@ -508,7 +508,6 @@ class RegistrationPayProgramFragment : Fragment(),
 
     // server callback
     fun payProgramAfterResponse(userData: UserEntity?) {
-        //PAYPROGRAM-4
         Utilities.hideKeyboard(requireContext())
 
         if (userData != null) {
@@ -520,7 +519,6 @@ class RegistrationPayProgramFragment : Fragment(),
                     _signupActivity?.submitNext(null)
                  }
                 else {
-                    //PAYPROGRAM-5
                     Utilities.setButtonDisable(_registrationActivity?.layout?.buttons?.send)
                     userData.roomUID = _registrationActivity?.roomUID
                     _registrationActivity?.updateLocalUser(userData)
@@ -537,7 +535,7 @@ class RegistrationPayProgramFragment : Fragment(),
                 Utilities.setButtonEnable(_registrationActivity?.layout?.buttons?.send)
             }
 
-            Utilities.log(Enums.LogType.Warning, TAG, "payProgramAfterResponse(): ${layout.payMessage.text}", registerUser)
+            Utilities.log(Enums.LogType.Warning, TAG, "payProgramAfterResponse(): ${layout.payMessage.text}")
         }
     }
 }

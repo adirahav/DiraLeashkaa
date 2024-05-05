@@ -5,6 +5,7 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
+import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.AppApplication
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
@@ -45,7 +46,7 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
     // announcement
     val announcement: MutableLiveData<AnnouncementEntity> = MutableLiveData()
 
-    val MAX_CONNECTING_TRIES = 10
+val MAX_CONNECTING_TRIES = 20
     val AWAIT_SECONDS = 5
     var tryConnecting = 1
     var connectionSuccess = false
@@ -94,12 +95,40 @@ class SplashViewModel internal constructor(private val activity: SplashActivity,
                     try {
                         setSplash(result)
                     } catch (e: Exception) {
-                        setSplash(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "getSplash(): e = ${e.message} ; result.data = ${result?.toString()}")
+                        if (tryConnecting > MAX_CONNECTING_TRIES) {
+                            Utilities.log(Enums.LogType.Error, TAG, "getSplash(): e = ${e.message} ; result.data = ${result?.toString()}")
+                            setSplash(null)
+                        }
+                        else {
+                            Utilities.log(Enums.LogType.Error, TAG, "getSplash(): tryConnecting = $tryConnecting")
+
+                            Utilities.await(Date(), AWAIT_SECONDS) {
+                                if (activity.layout?.waiting?.isVisible == false) {
+                                    activity.layout!!.waiting.setAnimation(R.raw.lottie_waiting9)
+                                    activity.layout!!.waiting.visibility = View.VISIBLE
+                                }
+                                tryConnecting++
+                                tryCallSplash(platform, versionName, localUser)
+                            }
+                        }
                     }
                 } else {
-                    setSplash(null)
-                    Utilities.log(Enums.LogType.Error, TAG, "getSplash(): response = $response")
+                    if (tryConnecting > MAX_CONNECTING_TRIES) {
+                        Utilities.log(Enums.LogType.Error, TAG, "getSplash(): response = $response")
+                        setSplash(null)
+                    }
+                    else {
+                        Utilities.log(Enums.LogType.Error, TAG, "getSplash(): tryConnecting = $tryConnecting")
+
+                        Utilities.await(Date(), AWAIT_SECONDS) {
+                            if (activity.layout?.waiting?.isVisible == false) {
+                                activity.layout!!.waiting.setAnimation(R.raw.lottie_waiting2)
+                                activity.layout!!.waiting.visibility = View.VISIBLE
+                            }
+                            tryConnecting++
+                            tryCallSplash(platform, versionName, localUser)
+                        }
+                    }
                 }
             }
 
