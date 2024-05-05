@@ -10,7 +10,7 @@ object Configuration {
 
     const val TYPING_RESPONSE_DELAY = 800L   // millisecond
 
-    const val ROOM_AWAIT_MILLISEC = 10L   // millisecond
+    const val LOCAL_AWAIT_MILLISEC = 10L   // millisecond
 
     ///
 

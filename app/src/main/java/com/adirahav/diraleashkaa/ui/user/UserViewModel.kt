@@ -52,7 +52,7 @@ class UserViewModel internal constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             val fixedParameters = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
-            Timer("FixedParameters", false).schedule(Configuration.ROOM_AWAIT_MILLISEC) {
+            Timer("FixedParameters", false).schedule(Configuration.LOCAL_AWAIT_MILLISEC) {
                 setRoomFixedParameters(fixedParameters?.first())
             }
         }

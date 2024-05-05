@@ -26,7 +26,7 @@ abstract class BaseViewModel : ViewModel() {
 
         CoroutineScope(Dispatchers.IO).launch {
             val strings = DatabaseClient.getInstance(applicationContext)?.appDatabase?.stringsDao()?.getAll()
-            Timer("Strings", false).schedule(Configuration.ROOM_AWAIT_MILLISEC) {
+            Timer("Strings", false).schedule(Configuration.LOCAL_AWAIT_MILLISEC) {
                 setStrings(strings as ArrayList<PhraseEntity>)
             }
         }

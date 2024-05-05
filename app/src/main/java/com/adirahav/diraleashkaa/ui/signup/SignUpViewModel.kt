@@ -14,7 +14,6 @@ import com.adirahav.diraleashkaa.data.network.DatabaseClient
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
 import com.adirahav.diraleashkaa.data.network.entities.PhraseEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
-import com.adirahav.diraleashkaa.data.network.models.*
 import com.adirahav.diraleashkaa.data.network.requests.SignUpRequest
 import com.adirahav.diraleashkaa.data.network.response.UserResponse
 import com.adirahav.diraleashkaa.data.network.services.AuthService
@@ -66,7 +65,7 @@ class SignUpViewModel internal constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             val fixedParameters = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
-            Timer("FixedParameters", false).schedule(Configuration.ROOM_AWAIT_MILLISEC) {
+            Timer("FixedParameters", false).schedule(Configuration.LOCAL_AWAIT_MILLISEC) {
                 setRoomFixedParameters(fixedParameters?.first())
             }
         }

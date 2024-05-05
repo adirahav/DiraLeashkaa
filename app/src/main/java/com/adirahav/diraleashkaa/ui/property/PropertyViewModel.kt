@@ -53,7 +53,7 @@ class PropertyViewModel internal constructor(
 	fun getRoomFixedParameters(applicationContext: Context) {
 		CoroutineScope(Dispatchers.IO).launch {
 			val fixedParameters = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
-			Timer("FixedParameters", false).schedule(Configuration.ROOM_AWAIT_MILLISEC) {
+			Timer("FixedParameters", false).schedule(Configuration.LOCAL_AWAIT_MILLISEC) {
 				setFixedParameters(fixedParameters?.first())
 			}
 		}

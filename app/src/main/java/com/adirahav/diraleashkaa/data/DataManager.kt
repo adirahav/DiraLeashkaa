@@ -22,8 +22,8 @@ class DataManager private constructor() {
     val announcementService: AnnouncementService
         get() = AnnouncementService.instance!!
 
-    val emailService: EmailService
-        get() = EmailService.instance!!
+    val contactUsService: ContactUsService
+        get() = ContactUsService.instance!!
 
     val calculatorsService: CalculatorsService
         get() = CalculatorsService.instance!!

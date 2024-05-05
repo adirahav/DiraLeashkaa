@@ -144,13 +144,12 @@ class RegistrationPayProgramFragment : Fragment(),
                     _registrationActivity?.fixedParametersData?.payProgramsObject?.programTypes
 
         // contact us
-        /*if (isSignUpActivity!!) {
+        if (isSignUpActivity!!) {
             layout.contactUs.visibility = GONE
         }
         else {
             Utilities.setTextViewHtml(layout.contactUs, "signup_contact_us")
-        }*/
-        layout.contactUs.visibility = GONE  // TODO
+        }
 
         // skip
         if (isSignUpActivity!!) {

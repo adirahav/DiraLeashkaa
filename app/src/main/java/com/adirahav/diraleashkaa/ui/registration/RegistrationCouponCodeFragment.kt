@@ -115,13 +115,13 @@ class RegistrationCouponCodeFragment : Fragment() {
         Utilities.setTextViewHtml(layout?.registerWithPayProgram, "signup_register_with_pay_program")
 
         // contact us
-        /*if (isSignUpActivity!!) {
+        if (isSignUpActivity!!) {
             layout?.contactUs?.visibility = GONE
         }
         else {
             Utilities.setTextViewHtml(layout?.contactUs, "signup_contact_us")
-        }*/
-        layout?.contactUs?.visibility = GONE  // TODO
+        }
+
 
         // skip
         if (isSignUpActivity!!) {

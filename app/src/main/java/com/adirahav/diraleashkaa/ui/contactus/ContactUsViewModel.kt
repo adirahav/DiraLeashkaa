@@ -6,11 +6,10 @@ import com.adirahav.diraleashkaa.common.Configuration
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.data.network.DatabaseClient
-import com.adirahav.diraleashkaa.data.network.dataClass.EmailDataClass
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
-import com.adirahav.diraleashkaa.data.network.models.EmailModel
-import com.adirahav.diraleashkaa.data.network.services.EmailService
+import com.adirahav.diraleashkaa.data.network.requests.ContactUsRequest
+import com.adirahav.diraleashkaa.data.network.services.ContactUsService
 import com.adirahav.diraleashkaa.ui.base.BaseViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,106 +21,101 @@ import java.util.*
 import kotlin.concurrent.schedule
 
 class ContactUsViewModel internal constructor(private val activity: ContactUsActivity,
-                                              private val emailService: EmailService,) : BaseViewModel() {
+                                              private val contactUsService: ContactUsService,) : BaseViewModel() {
 
     private val TAG = "ContactUsViewModel"
 
     // fixed parameters
-    val fixedParametersCallback: MutableLiveData<FixedParametersEntity> = MutableLiveData()
+    val getLocalFixedParametersCallback: MutableLiveData<FixedParametersEntity> = MutableLiveData()
 
     // user
-    val roomUserGet: MutableLiveData<UserEntity> = MutableLiveData()
+    val getLocalUserCallback: MutableLiveData<UserEntity> = MutableLiveData()
 
-    // email
-    val serverEmail: MutableLiveData<EmailDataClass> = MutableLiveData()
+    // message
+    val sendMessageCallback: MutableLiveData<Boolean> = MutableLiveData()
 
     //region == fixed parameters ==============
-    fun getRoomFixedParameters(applicationContext: Context) {
-        Utilities.log(Enums.LogType.Debug, TAG, "getRoomFixedParameters()")
+    fun getLocalFixedParameters(applicationContext: Context) {
+        Utilities.log(Enums.LogType.Debug, TAG, "getLocalFixedParameters()")
 
         CoroutineScope(Dispatchers.IO).launch {
             val fixedParameters = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
-            Timer("FixedParameters", false).schedule(Configuration.ROOM_AWAIT_MILLISEC) {
-                setRoomFixedParameters(fixedParameters?.first())
+            Timer("FixedParameters", false).schedule(Configuration.LOCAL_AWAIT_MILLISEC) {
+                setLocalFixedParametersCallback(fixedParameters?.first())
             }
         }
     }
 
-    private fun setRoomFixedParameters(fixedParameters: FixedParametersEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomFixedParameters()", showToast = false)
-        this.fixedParametersCallback.postValue(fixedParameters)
+    private fun setLocalFixedParametersCallback(fixedParameters: FixedParametersEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setLocalFixedParametersCallback()", showToast = false)
+        this.getLocalFixedParametersCallback.postValue(fixedParameters)
     }
     //endregion == fixed parameters ==============
 
     //region == user ==========================
 
-    fun getRoomUser(applicationContext: Context, userID: Long?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "getRoomUser()")
+    fun getLocalUser(applicationContext: Context, userID: Long?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "getLocalUser()")
         if (userID != null && userID > 0L) {
             CoroutineScope(Dispatchers.IO).launch {
                 val resultUser = DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.findById(userID)
-                setRoomUserGet(resultUser)
+                setLocalUserCallback(resultUser)
             }
         }
         else {
-            setRoomUserGet(null)
+            setLocalUserCallback(null)
         }
     }
 
-    private fun setRoomUserGet(user: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomUserGet()", showToast = false)
-        this.roomUserGet.postValue(user)
+    private fun setLocalUserCallback(user: UserEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setLocalUserCallback()", showToast = false)
+        this.getLocalUserCallback.postValue(user)
     }
 
     //endregion == user ==========================
 
-    //region == email =========================
-    fun serverSendEmail(userId: String?, subject: String, message: String?) {
+    //region == message =======================
+    fun sendMessage(subject: String, message: String?) {
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val call: Call<EmailModel?>? = emailService.emailAPI.sendEmail(userId, "CONTACT_US", subject, message)
+            val call: Call<Boolean>? = contactUsService.contactUsAPI.sendMessage(ContactUsRequest(subject = subject, message = message))
 
-            call?.enqueue(object : Callback<EmailModel?> {
-                override fun onResponse(call: Call<EmailModel?>, response: Response<EmailModel?>) {
+            call?.enqueue(object : Callback<Boolean> {
+                override fun onResponse(call: Call<Boolean>, response: Response<Boolean>) {
 
-                    val result: EmailModel? = response.body()
+                    val result: Boolean? = response.body()
 
-                    if (response.code() == 200 && response.body()?.success == true) {
+                    if (response.code() == 200) {
                         try {
-                            setSendEmail(result?.data)
+                            setSendMessage(result)
                         }
                         catch (e: Exception) {
-                            setSendEmail(null)
-                            Utilities.log(Enums.LogType.Error, TAG, "serverSendEmail(): e = ${e.message} ; result.data = ${result?.data.toString()}")
+                            setSendMessage(false)
+                            Utilities.log(Enums.LogType.Error, TAG, "serverSendMessage(): e = ${e.message} ; result = ${result?.toString()}")
                         }
                     }
                     else {
-                        setSendEmail(null)
-                        Utilities.log(Enums.LogType.Error, TAG, "serverSendEmail(): response = $response")
+                        setSendMessage(false)
+                        Utilities.log(Enums.LogType.Error, TAG, "serverSendMessage(): response = $response")
                     }
                 }
 
-                override fun onFailure(call: Call<EmailModel?>, t: Throwable) {
-                    var result : EmailDataClass? = null
-                    if (t.message.equals("timeout")) {
-                        result = EmailDataClass(
-                                email = null
-                        )
-                    }
-                    setSendEmail(result)
+                override fun onFailure(call: Call<Boolean>, t: Throwable) {
 
-                    Utilities.log(Enums.LogType.Error, TAG, "serverSendEmail(): onFailure = $t")
+                    setSendMessage(false)
+
+                    Utilities.log(Enums.LogType.Error, TAG, "serverSendMessage(): onFailure = $t")
                     call.cancel()
                 }
             })
         }
     }
 
-    private fun setSendEmail(email: EmailDataClass?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setSendEmail()", showToast = false)
-        this.serverEmail.postValue(email)
+    private fun setSendMessage(success: Boolean?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setSendMessage()", showToast = false)
+        this.sendMessageCallback.postValue(success)
     }
 
-    //endregion == email =========================
+    //endregion == message =======================
 }

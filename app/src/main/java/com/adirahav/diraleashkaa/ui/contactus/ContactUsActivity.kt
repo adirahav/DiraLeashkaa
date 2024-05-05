@@ -3,7 +3,6 @@ package com.adirahav.diraleashkaa.ui.contactus
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -16,7 +15,6 @@ import com.adirahav.diraleashkaa.common.*
 import com.adirahav.diraleashkaa.common.Utilities.getMapStringValue
 import com.adirahav.diraleashkaa.common.Utilities.log
 import com.adirahav.diraleashkaa.data.DataManager
-import com.adirahav.diraleashkaa.data.network.dataClass.EmailDataClass
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.databinding.ActivityContactusBinding
@@ -61,9 +59,9 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
     // lifecycle owner
     var lifecycleOwner: LifecycleOwner? = null
 
-    // room/server data loaded
-    var isRoomFixedParametersLoaded: Boolean = false
-    var isRoomUserLoaded: Boolean = false
+    // local/server data loaded
+    var isLocalFixedParametersLoaded: Boolean = false
+    var isLocalUserLoaded: Boolean = false
     var isDataInit: Boolean = false
 
     // fixed parameters data
@@ -109,7 +107,7 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
     }
 
     override fun createViewModel(): ContactUsViewModel {
-        val factory = ContactUsViewModelFactory(this@ContactUsActivity, DataManager.instance!!.emailService)
+        val factory = ContactUsViewModelFactory(this@ContactUsActivity, DataManager.instance!!.contactUsService)
         return ViewModelProvider(this, factory)[ContactUsViewModel::class.java]
     }
 
@@ -119,13 +117,13 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
 
     fun initObserver() {
         log(Enums.LogType.Debug, TAG, "initObserver()", showToast = false)
-        if (!viewModel!!.fixedParametersCallback.hasObservers()) viewModel!!.fixedParametersCallback.observe(this@ContactUsActivity, RoomFixedParametersObserver(Enums.ObserverAction.GET_LOCAL))
-        if (!viewModel!!.roomUserGet.hasObservers()) viewModel!!.roomUserGet.observe(this@ContactUsActivity, RoomUserObserver(Enums.ObserverAction.GET_LOCAL))
-        if (!viewModel!!.serverEmail.hasObservers()) viewModel!!.serverEmail.observe(this@ContactUsActivity, ServerEmailObserver())
+        if (!viewModel!!.getLocalFixedParametersCallback.hasObservers()) viewModel!!.getLocalFixedParametersCallback.observe(this@ContactUsActivity, LocalFixedParametersObserver())
+        if (!viewModel!!.getLocalUserCallback.hasObservers()) viewModel!!.getLocalUserCallback.observe(this@ContactUsActivity, LocalUserObserver())
+        if (!viewModel!!.sendMessageCallback.hasObservers()) viewModel!!.sendMessageCallback.observe(this@ContactUsActivity, ServerMessageObserver())
 
-        if (!isRoomFixedParametersLoaded && !isRoomUserLoaded && !isDataInit) {
-            viewModel!!.getRoomFixedParameters(applicationContext)
-            viewModel!!.getRoomUser(applicationContext, roomUID)
+        if (!isLocalFixedParametersLoaded && !isLocalUserLoaded && !isDataInit) {
+            viewModel!!.getLocalFixedParameters(applicationContext)
+            viewModel!!.getLocalUser(applicationContext, roomUID)
         }
     }
 
@@ -137,9 +135,9 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
         // user id
         roomUID = preferences?.getLong("roomUID", 0L)
 
-        // room/server data loaded
-        isRoomFixedParametersLoaded = false
-        isRoomUserLoaded = false
+        // local/server data loaded
+        isLocalFixedParametersLoaded = false
+        isLocalUserLoaded = false
 
         isDataInit = false
 
@@ -216,7 +214,7 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
 
     //endregion == fragments ==========
 
-    //region == steps ==============
+    //region == submit =============
 
     fun submitSend(view: View?) {
 
@@ -232,28 +230,17 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
             Utilities.hideKeyboard(this@ContactUsActivity)
 
             runBlocking {
-                sendEmail(result)
+                sendMessage(result)
             }
         }
     }
 
-    //endregion == steps ==============
+    //endregion == submit =============
 
     //region == send message ========
 
-    private fun sendEmail(result: Map<String, Any?>?) {
-        viewModel!!.serverSendEmail(userData?.email , getMapStringValue(result, "messageType").toString(), getMapStringValue(result, "message"))
-
-        /*GlobalScope.launch {
-            Utilities.composeEmail(
-                subject = "CONTACT US | ${getMapStringValue(result, "messageType")}",
-                message = getMapStringValue(result, "message"),
-                userData = userData,
-                propertyData = null,
-                responseSuccess = ::sendMessageSuccessCallback,
-                responseFail = ::sendMessageFailCallback
-            )
-        }*/
+    private fun sendMessage(result: Map<String, Any?>?) {
+        viewModel!!.sendMessage(getMapStringValue(result, "messageType").toString(), getMapStringValue(result, "message"))
     }
 
     private fun sendMessageSuccessCallback() {
@@ -278,62 +265,49 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
 
     //region == observers ==========
 
-    private inner class RoomFixedParametersObserver(action: Enums.ObserverAction) : Observer<FixedParametersEntity?> {
-        val _action = action
+    private inner class LocalFixedParametersObserver : Observer<FixedParametersEntity?> {
+
         override fun onChanged(fixedParameters: FixedParametersEntity?) {
-            when (_action) {
-                Enums.ObserverAction.GET_LOCAL -> {
-                    log(Enums.LogType.Debug, TAG, "RoomFixedParametersObserver(): GET_ROOM")
-                    isRoomFixedParametersLoaded = true
+            log(Enums.LogType.Debug, TAG, "LocalFixedParametersObserver()")
+            isLocalFixedParametersLoaded = true
 
-                    if (fixedParameters == null) {
-                        return
-                    }
+            if (fixedParameters == null) {
+                return
+            }
 
-                    fixedParametersData = FixedParameters.init(fixedParameters)
+            fixedParametersData = FixedParameters.init(fixedParameters)
 
-                    if (isRoomFixedParametersLoaded && isRoomUserLoaded) {
-                        expiredRegistration()
-                        loadFragment()
-                    }
-                }
-
-                else -> {}
+            if (isLocalFixedParametersLoaded && isLocalUserLoaded) {
+                expiredRegistration()
+                loadFragment()
             }
         }
     }
 
-    private inner class RoomUserObserver(action: Enums.ObserverAction) : Observer<UserEntity?> {
-        val _action = action
+    private inner class LocalUserObserver : Observer<UserEntity?> {
+
         override fun onChanged(user: UserEntity?) {
-            when (_action) {
-                Enums.ObserverAction.GET_LOCAL -> {
-                    log(Enums.LogType.Debug, TAG, "RoomUserObserver(): GET_ROOM. user = $user")
+            log(Enums.LogType.Debug, TAG, "LocalUserObserver(): user = $user")
 
-                    isRoomUserLoaded = true
-                    userData = user
+            isLocalUserLoaded = true
+            userData = user
 
-                    if (isRoomFixedParametersLoaded && isRoomUserLoaded) {
-                        expiredRegistration()
-                        loadFragment()
-                    }
-                }
-
-                else -> {}
+            if (isLocalFixedParametersLoaded && isLocalUserLoaded) {
+                expiredRegistration()
+                loadFragment()
             }
-
         }
     }
 
-    private inner class ServerEmailObserver : Observer<EmailDataClass?> {
-        override fun onChanged(emailData: EmailDataClass?) {
-            if (emailData == null) {
-                Log.d(TAG, "ServerEmailObserver(): emailData == null)")
-                sendMessageFailCallback()
+    private inner class ServerMessageObserver : Observer<Boolean?> {
+        override fun onChanged(success: Boolean?) {
+            if (success == true) {
+                log(Enums.LogType.Debug, TAG, "ServerEmailObserver(): success = $success")
+                sendMessageSuccessCallback()
             }
             else {
-                Log.d(TAG, "ServerEmailObserver(): emailData == null)")
-                sendMessageSuccessCallback()
+                log(Enums.LogType.Error, TAG, "ServerEmailObserver(): success = $success")
+                sendMessageFailCallback()
             }
         }
     }

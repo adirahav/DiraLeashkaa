@@ -3,7 +3,7 @@ package com.adirahav.diraleashkaa.ui.registration
 import android.content.Context
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
-import com.adirahav.diraleashkaa.common.Configuration.ROOM_AWAIT_MILLISEC
+import com.adirahav.diraleashkaa.common.Configuration.LOCAL_AWAIT_MILLISEC
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.data.network.DatabaseClient
@@ -63,7 +63,7 @@ class RegistrationViewModel internal constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             val fixedParameters = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
-            Timer("FixedParameters", false).schedule(ROOM_AWAIT_MILLISEC) {
+            Timer("FixedParameters", false).schedule(LOCAL_AWAIT_MILLISEC) {
                 setLocalFixedParameters(fixedParameters?.first())
             }
         }

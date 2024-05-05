@@ -14,7 +14,6 @@ import com.adirahav.diraleashkaa.data.network.requests.PropertyArchiveRequest
 import com.adirahav.diraleashkaa.data.network.services.PropertyService
 import com.adirahav.diraleashkaa.data.network.services.UserService
 import com.adirahav.diraleashkaa.ui.base.BaseViewModel
-import com.adirahav.diraleashkaa.ui.signup.SignUpActivity
 import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -76,7 +75,7 @@ class HomeViewModel internal constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             val fixedParameters = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
-            Timer("FixedParameters", false).schedule(Configuration.ROOM_AWAIT_MILLISEC) {
+            Timer("FixedParameters", false).schedule(Configuration.LOCAL_AWAIT_MILLISEC) {
                 setRoomFixedParameters(fixedParameters?.first())
             }
         }
