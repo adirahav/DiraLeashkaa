@@ -61,7 +61,7 @@ class SignUpFinancialInfoFragment : Fragment() {
     //region == initialize =========
 
     fun initGlobal() {
-         // activity
+        // activity
         isSignUpActivity = activity?.javaClass?.simpleName.equals("SignUpActivity")
 
         _signupActivity = if (isSignUpActivity!!) activity as SignUpActivity else null

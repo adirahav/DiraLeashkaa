@@ -5,7 +5,7 @@ import com.adirahav.diraleashkaa.common.Configuration
 import com.google.gson.annotations.SerializedName
 
 @Entity
-data class UserResponse(
+data class  UserResponse(
         @SerializedName("_id") var _id: String?,
         @SerializedName("token") var token: String?,
 

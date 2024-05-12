@@ -26,18 +26,18 @@ class PropertyViewModel internal constructor(
 	private val TAG = "PropertyViewModel"
 
 	// fixed parameters
-	val fixedParametersCallback: MutableLiveData<FixedParametersEntity> = MutableLiveData()
+	val getLocalFixedParametersCallback: MutableLiveData<FixedParametersEntity> = MutableLiveData()
 
 	// user
-	val roomUserGet: MutableLiveData<UserEntity> = MutableLiveData()
+	val getLocalUserCallback: MutableLiveData<UserEntity> = MutableLiveData()
 
 	// property
-	val propertyGet: MutableLiveData<PropertyEntity> = MutableLiveData()
-	val propertyInsert: MutableLiveData<PropertyEntity> = MutableLiveData()
-	val propertyUpdate: MutableLiveData<PropertyEntity> = MutableLiveData()
-	val localPropertyGet: MutableLiveData<PropertyEntity> = MutableLiveData()
-	val localPropertyInsert: MutableLiveData<PropertyEntity> = MutableLiveData()
-	val localPropertyUpdate: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val getPropertyCallback: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val insertPropertyCallback: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val updatePropertyCallback: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val getLocalPropertCallback: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val insertLocalPropertyCallback: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val updateLocalPropertyCallback: MutableLiveData<PropertyEntity> = MutableLiveData()
 	val roomPropertyUpdateServer: MutableLiveData<PropertyEntity> = MutableLiveData()
 
 	// yield forecast
@@ -50,7 +50,7 @@ class PropertyViewModel internal constructor(
 	val chart: MutableLiveData<List<YieldForecastEntity>> = MutableLiveData()
 
 	//region == fixed parameters ==============
-	fun getRoomFixedParameters(applicationContext: Context) {
+	fun getLocalFixedParameters(applicationContext: Context) {
 		CoroutineScope(Dispatchers.IO).launch {
 			val fixedParameters = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
 			Timer("FixedParameters", false).schedule(Configuration.LOCAL_AWAIT_MILLISEC) {
@@ -60,13 +60,13 @@ class PropertyViewModel internal constructor(
 	}
 
 	private fun setFixedParameters(fixedParameters: FixedParametersEntity?) {
-		this.fixedParametersCallback.postValue(fixedParameters)
+		this.getLocalFixedParametersCallback.postValue(fixedParameters)
 	}
 	//endregion == fixed parameters ==============
 
 	//region == user ==========================
 
-	fun getRoomUser(applicationContext: Context, userID: Long?) {
+	fun getLocalUser(applicationContext: Context, userID: Long?) {
 		Utilities.log(Enums.LogType.Debug, TAG, "getUser()")
 
 		if (userID != null && userID > 0L) {
@@ -87,7 +87,7 @@ class PropertyViewModel internal constructor(
 	}
 
 	private fun setUser(user: UserEntity?) {
-		this.roomUserGet.postValue(user)
+		this.getLocalUserCallback.postValue(user)
 	}
 
 
@@ -159,11 +159,11 @@ class PropertyViewModel internal constructor(
 		Utilities.log(Enums.LogType.Debug, TAG, "setProperty(): action = $action", showToast = false)
 		when (action) {
 			Enums.ObserverAction.GET ->
-				this.propertyGet.postValue(response)
+				this.getPropertyCallback.postValue(response)
 			Enums.ObserverAction.CREATE ->
-				this.propertyInsert.postValue(response)
+				this.insertPropertyCallback.postValue(response)
 			Enums.ObserverAction.UPDATE ->
-				this.propertyUpdate.postValue(response)
+				this.updatePropertyCallback.postValue(response)
 
 			else -> {}
 		}
@@ -186,7 +186,7 @@ class PropertyViewModel internal constructor(
 	}
 
 	private fun setLocalProperty(property: PropertyEntity?) {
-		this.localPropertyGet.postValue(property)
+		this.getLocalPropertCallback.postValue(property)
 	}
 
 	fun actionLocalProperty(applicationContext: Context, propertyData: PropertyEntity?) {
@@ -213,10 +213,10 @@ class PropertyViewModel internal constructor(
 	private fun setLocalPropertySave(action: Enums.ObserverAction, property: PropertyEntity) {
 		Utilities.log(Enums.LogType.Debug, TAG, "setLocalPropertySave(): action = $action", showToast = false)
 		if (action == Enums.ObserverAction.INSERT_LOCAL) {
-			this.localPropertyInsert.postValue(property)
+			this.insertLocalPropertyCallback.postValue(property)
 		}
 		else {
-			this.localPropertyUpdate.postValue(property)
+			this.updateLocalPropertyCallback.postValue(property)
 		}
 	}
 

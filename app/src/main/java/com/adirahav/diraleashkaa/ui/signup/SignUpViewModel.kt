@@ -60,7 +60,7 @@ class SignUpViewModel internal constructor(
 
 
     //region == fixed parameters ==============
-    fun getRoomFixedParameters(applicationContext: Context) {
+    fun getLocalFixedParameters(applicationContext: Context) {
         Utilities.log(Enums.LogType.Debug, TAG, "getRoomFixedParameters()")
 
         CoroutineScope(Dispatchers.IO).launch {

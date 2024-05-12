@@ -45,7 +45,7 @@ class SignUpSMSCodeAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_signup_sms_code, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_forgot_password_code, parent, false)
 
         val height: Int = parent.measuredHeight
         val width: Int = parent.measuredWidth / itemCount

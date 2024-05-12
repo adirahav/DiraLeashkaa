@@ -22,6 +22,7 @@ import com.adirahav.diraleashkaa.data.network.DatabaseClient
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
 import com.adirahav.diraleashkaa.databinding.ActivityLoginBinding
 import com.adirahav.diraleashkaa.ui.base.BaseActivity
+import com.adirahav.diraleashkaa.ui.forgotPassword.ForgotPasswordActivity
 import com.adirahav.diraleashkaa.ui.signup.SignUpActivity
 import com.adirahav.diraleashkaa.ui.splash.SplashActivity
 import kotlinx.coroutines.CoroutineScope
@@ -140,6 +141,11 @@ class LoginActivity : BaseActivity<LoginViewModel?, ActivityLoginBinding>() {
 		layout.signUp.setOnClickListener {
 			goToSignUp()
 		}
+
+		// sign up
+		layout.forgotPassword.setOnClickListener {
+			goToForgotPassword()
+		}
 	}
 
 	override fun createViewModel(): LoginViewModel {
@@ -165,6 +171,9 @@ class LoginActivity : BaseActivity<LoginViewModel?, ActivityLoginBinding>() {
 		layout.signUp.text = HtmlCompat.fromHtml(
 			Utilities.getLocalPhrase("login_goto_signup"),
 			HtmlCompat.FROM_HTML_MODE_LEGACY)
+		layout.forgotPassword.text = HtmlCompat.fromHtml(
+				Utilities.getLocalPhrase("login_goto_forgot_password"),
+				HtmlCompat.FROM_HTML_MODE_LEGACY)
 
 		super.setPhrases()
 	}
@@ -213,7 +222,12 @@ class LoginActivity : BaseActivity<LoginViewModel?, ActivityLoginBinding>() {
 		}
 		SignUpActivity.start(context)
 	}
-
+	fun goToForgotPassword() {
+		CoroutineScope(Dispatchers.IO).launch {
+			DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.deleteAll()!!
+		}
+		ForgotPasswordActivity.start(context, layout.email.text.toString())
+	}
 	//region == base abstract ======
 
 	private inner class LoginObserver : Observer<UserEntity?> {

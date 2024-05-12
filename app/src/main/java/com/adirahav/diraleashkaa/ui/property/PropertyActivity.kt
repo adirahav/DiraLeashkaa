@@ -442,18 +442,18 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
 
     fun initObserver() {
         Utilities.log(Enums.LogType.Debug, TAG, "initObserver()", showToast = false)
-        if (!viewModel!!.fixedParametersCallback.hasObservers()) viewModel!!.fixedParametersCallback.observe(this@PropertyActivity, LocalFixedParametersObserver(Enums.ObserverAction.GET_LOCAL))
-        if (!viewModel!!.roomUserGet.hasObservers()) viewModel!!.roomUserGet.observe(this@PropertyActivity, LocalUserObserver(Enums.ObserverAction.GET_LOCAL))
-        if (!viewModel!!.propertyGet.hasObservers()) viewModel!!.propertyGet.observe(this@PropertyActivity, ServerPropertyObserver(Enums.ObserverAction.GET))
-        if (!viewModel!!.propertyInsert.hasObservers()) viewModel!!.propertyInsert.observe(this@PropertyActivity, ServerPropertyObserver(Enums.ObserverAction.CREATE))
-        if (!viewModel!!.propertyUpdate.hasObservers()) viewModel!!.propertyUpdate.observe(this@PropertyActivity, ServerPropertyObserver(Enums.ObserverAction.UPDATE))
-        if (!viewModel!!.localPropertyGet.hasObservers()) viewModel!!.localPropertyGet.observe(this@PropertyActivity, LocalPropertyObserver(Enums.ObserverAction.GET_LOCAL))
-        if (!viewModel!!.localPropertyInsert.hasObservers()) viewModel!!.localPropertyInsert.observe(this@PropertyActivity, LocalPropertyObserver(Enums.ObserverAction.INSERT_LOCAL))
-        if (!viewModel!!.localPropertyUpdate.hasObservers()) viewModel!!.localPropertyUpdate.observe(this@PropertyActivity, LocalPropertyObserver(Enums.ObserverAction.UPDATE_LOCAL))
+        if (!viewModel!!.getLocalFixedParametersCallback.hasObservers()) viewModel!!.getLocalFixedParametersCallback.observe(this@PropertyActivity, LocalFixedParametersObserver(Enums.ObserverAction.GET_LOCAL))
+        if (!viewModel!!.getLocalUserCallback.hasObservers()) viewModel!!.getLocalUserCallback.observe(this@PropertyActivity, LocalUserObserver(Enums.ObserverAction.GET_LOCAL))
+        if (!viewModel!!.getPropertyCallback.hasObservers()) viewModel!!.getPropertyCallback.observe(this@PropertyActivity, ServerPropertyObserver(Enums.ObserverAction.GET))
+        if (!viewModel!!.insertPropertyCallback.hasObservers()) viewModel!!.insertPropertyCallback.observe(this@PropertyActivity, ServerPropertyObserver(Enums.ObserverAction.CREATE))
+        if (!viewModel!!.updatePropertyCallback.hasObservers()) viewModel!!.updatePropertyCallback.observe(this@PropertyActivity, ServerPropertyObserver(Enums.ObserverAction.UPDATE))
+        if (!viewModel!!.getLocalPropertCallback.hasObservers()) viewModel!!.getLocalPropertCallback.observe(this@PropertyActivity, LocalPropertyObserver(Enums.ObserverAction.GET_LOCAL))
+        if (!viewModel!!.insertLocalPropertyCallback.hasObservers()) viewModel!!.insertLocalPropertyCallback.observe(this@PropertyActivity, LocalPropertyObserver(Enums.ObserverAction.INSERT_LOCAL))
+        if (!viewModel!!.updateLocalPropertyCallback.hasObservers()) viewModel!!.updateLocalPropertyCallback.observe(this@PropertyActivity, LocalPropertyObserver(Enums.ObserverAction.UPDATE_LOCAL))
 
         if (!isLocalFixedParametersLoaded && !isLocalUserLoaded && !isDataInit) {
-            viewModel!!.getRoomFixedParameters(applicationContext)
-            viewModel!!.getRoomUser(applicationContext, roomUID)
+            viewModel!!.getLocalFixedParameters(applicationContext)
+            viewModel!!.getLocalUser(applicationContext, roomUID)
             viewModel!!.getLocalProperty(applicationContext, propertyId)
         }
     }
@@ -1041,7 +1041,7 @@ class PropertyActivity : BaseActivity<PropertyViewModel?, ActivityPropertyBindin
         override fun onChanged(fixedParameters: FixedParametersEntity?) {
             when (_action) {
                 Enums.ObserverAction.GET_LOCAL -> {
-                    Utilities.log(Enums.LogType.Debug, TAG, "LocalFixedParametersObserver(): onChanged. GET_ROOM")
+                    Utilities.log(Enums.LogType.Debug, TAG, "LocalFixedParametersObserver(): onChanged. GET_LOCAL")
 
                     isLocalFixedParametersLoaded = true
 

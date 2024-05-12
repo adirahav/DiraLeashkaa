@@ -21,7 +21,6 @@ import com.adirahav.diraleashkaa.data.network.DatabaseClient
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
 import com.adirahav.diraleashkaa.data.network.entities.PhraseEntity
 import com.adirahav.diraleashkaa.data.network.entities.UserEntity
-import com.adirahav.diraleashkaa.data.network.models.*
 import com.adirahav.diraleashkaa.databinding.ActivitySignupBinding
 import com.adirahav.diraleashkaa.ui.registration.*
 import com.kofigyan.stateprogressbar.StateProgressBar
@@ -127,7 +126,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
 
     fun initObserver() {
         log(Enums.LogType.Debug, TAG, "initObserver()", showToast = false)
-        if (!viewModel!!.fixedParametersCallback.hasObservers()) viewModel!!.fixedParametersCallback.observe(this@SignUpActivity, FixedParametersObserver())
+        if (!viewModel!!.fixedParametersCallback.hasObservers()) viewModel!!.fixedParametersCallback.observe(this@SignUpActivity, LocalFixedParametersObserver())
         if (!viewModel!!.couponRegistration.hasObservers()) viewModel!!.couponRegistration.observe(this@SignUpActivity, CouponRegistrationObserver())
         if (!viewModel!!.payProgramRegistration.hasObservers()) viewModel!!.payProgramRegistration.observe(this@SignUpActivity, PayRegistrationObserver())
         if (!viewModel!!.skipRegistrationCallback.hasObservers()) viewModel!!.skipRegistrationCallback.observe(this@SignUpActivity, SkipRegistrationObserver())
@@ -136,7 +135,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
         if (!viewModel!!.termsOfUse.hasObservers()) viewModel!!.termsOfUse.observe(this@SignUpActivity, TermsOfUseObserver())
 
         if (fixedParametersData == null) {
-            viewModel!!.getRoomFixedParameters(applicationContext)
+            viewModel!!.getLocalFixedParameters(applicationContext)
         }
     }
 
@@ -489,7 +488,6 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
     private fun updateWelcome() =
         GlobalScope.launch {
             if (currentStepProgressBar <= stepsCount!!) {
-                log(Enums.LogType.Debug, TAG, "updateStep7: currentStepProgressBar = $currentStepProgressBar")
                 currentStepProgressBar++
                 log(Enums.LogType.Debug, TAG, "updateWelcome()")
                 activity.runOnUiThread {
@@ -526,9 +524,9 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
         }
     }
 
-    private inner class FixedParametersObserver : Observer<FixedParametersEntity?> {
+    private inner class LocalFixedParametersObserver : Observer<FixedParametersEntity?> {
         override fun onChanged(fixedParameters: FixedParametersEntity?) {
-            log(Enums.LogType.Debug, TAG, "FixedParametersObserver()")
+            log(Enums.LogType.Debug, TAG, "LocalFixedParametersObserver()")
 
             if (fixedParameters == null) {
                 return

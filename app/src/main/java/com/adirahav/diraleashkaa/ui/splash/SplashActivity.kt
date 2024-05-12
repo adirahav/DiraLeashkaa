@@ -26,6 +26,7 @@ import com.adirahav.diraleashkaa.data.network.requests.ErrorReportRequest
 import com.adirahav.diraleashkaa.databinding.ActivitySplashBinding
 import com.adirahav.diraleashkaa.ui.base.BaseActivity
 import com.adirahav.diraleashkaa.ui.dialog.FancyDialog
+import com.adirahav.diraleashkaa.ui.forgotPassword.ForgotPasswordActivity
 import com.adirahav.diraleashkaa.ui.home.HomeActivity
 import com.adirahav.diraleashkaa.ui.registration.RegistrationActivity
 import com.adirahav.diraleashkaa.ui.login.LoginActivity

@@ -502,6 +502,7 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
         if (this::class.java.simpleName.equals("SplashActivity")) return true
         if (this::class.java.simpleName.equals("SignUpActivity")) return true
         if (this::class.java.simpleName.equals("LoginActivity")) return true
+        if (this::class.java.simpleName.equals("ForgotPasswordActivity")) return true
         if (this::class.java.simpleName.equals("GoodbyeActivity")) return true
         return false
     }
@@ -510,6 +511,7 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
         if (this::class.java.simpleName.equals("SplashActivity")) return false
         if (this::class.java.simpleName.equals("SignUpActivity")) return false
         if (this::class.java.simpleName.equals("LoginActivity")) return false
+        if (this::class.java.simpleName.equals("ForgotPasswordActivity")) return false
         if (this::class.java.simpleName.equals("RegistrationActivity")) return false
         return true
     }
@@ -518,6 +520,7 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
         if (this::class.java.simpleName.equals("SplashActivity")) return false
         if (this::class.java.simpleName.equals("SignUpActivity")) return false
         if (this::class.java.simpleName.equals("LoginActivity")) return false
+        if (this::class.java.simpleName.equals("ForgotPasswordActivity")) return false
         if (this::class.java.simpleName.equals("RegistrationActivity")) {
             return !(isExpiredRegistration?: false || isBeta?: false)
         }

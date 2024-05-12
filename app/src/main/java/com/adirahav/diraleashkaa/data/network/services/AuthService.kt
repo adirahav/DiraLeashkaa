@@ -4,10 +4,14 @@ import com.adirahav.diraleashkaa.BuildConfig.BASE_URL
 import com.adirahav.diraleashkaa.data.network.response.UserResponse
 import com.adirahav.diraleashkaa.data.network.requests.LoginRequest
 import com.adirahav.diraleashkaa.data.network.requests.SignUpRequest
+import com.google.gson.JsonObject
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.Field
+import retrofit2.http.Header
 import retrofit2.http.POST
 
 class AuthService private constructor() {
@@ -39,7 +43,6 @@ class AuthService private constructor() {
         fun login(
             @Body request: LoginRequest
         ): Call<UserResponse?>?
-
 
         @POST("auth/logout")
         fun logout(): Call<Boolean?>?

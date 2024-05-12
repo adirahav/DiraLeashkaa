@@ -7,6 +7,9 @@ class DataManager private constructor() {
     val authService: AuthService
         get() = AuthService.instance!!
 
+    val forgotPasswordService: ForgotPasswordService
+        get() = ForgotPasswordService.instance!!
+
     val userService: UserService
         get() = UserService.instance!!
 
