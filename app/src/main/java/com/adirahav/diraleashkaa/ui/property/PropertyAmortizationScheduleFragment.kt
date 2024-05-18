@@ -88,7 +88,7 @@ class PropertyAmortizationScheduleFragment : BaseFragment<PropertyViewModel?>() 
         // actions menu
         _activity?.updateActionsMenuVisibility(PropertyActivity.ActionsMenuButtonType.AMORTIZATION_SCHEDULE)
 
-        // strings
+        // phrases
         setPhrases()
     }
 
@@ -125,7 +125,7 @@ class PropertyAmortizationScheduleFragment : BaseFragment<PropertyViewModel?>() 
         }
     }
 
-    //region == strings ============
+    //region == phrases ============
 
     private fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")

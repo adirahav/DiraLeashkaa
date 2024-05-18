@@ -32,23 +32,23 @@ class HomeViewModel internal constructor(
     private val TAG = "HomeViewModel"
 
     // fixed parameters
-    val roomFixedParameters: MutableLiveData<FixedParametersEntity> = MutableLiveData()
+    val localFixedParametersCallback: MutableLiveData<FixedParametersEntity> = MutableLiveData()
 
     // my cities
-    val roomMyCities: MutableLiveData<List<PropertyEntity>> = MutableLiveData()
+    val localMyCitiesCallback: MutableLiveData<List<PropertyEntity>> = MutableLiveData()
 
     // city's properties
-    val roomCityProperties: MutableLiveData<ArrayList<PropertyEntity>>
+    val localCityPropertiesCallback: MutableLiveData<ArrayList<PropertyEntity>>
 
     // delete property
-    val roomDeleteProperty: MutableLiveData<Int>
+    val localDeleteProperty: MutableLiveData<Int>
     val serverDeleteProperty: MutableLiveData<Int>
 
     // best yield
-    val roomBestYield: MutableLiveData<List<BestYieldEntity>>
+    val localBestYieldCallback: MutableLiveData<List<BestYieldEntity>>
 
     // home
-    val serverHome: MutableLiveData<HomeModel>
+    val homeCallback: MutableLiveData<HomeModel>
 
     init {
         // fixed parameters
@@ -56,40 +56,40 @@ class HomeViewModel internal constructor(
         // my cities
 
         // city's properties
-        roomCityProperties = MutableLiveData()
+        localCityPropertiesCallback = MutableLiveData()
 
         // delete property
-        roomDeleteProperty = MutableLiveData()
+        localDeleteProperty = MutableLiveData()
         serverDeleteProperty = MutableLiveData()
 
         // best yield
-        roomBestYield = MutableLiveData()
+        localBestYieldCallback = MutableLiveData()
 
         // home
-        serverHome = MutableLiveData()
+        homeCallback = MutableLiveData()
     }
 
     //region fixed parameters
-    fun getRoomFixedParameters(applicationContext: Context) {
-        Utilities.log(Enums.LogType.Debug, TAG, "getFixedParameters()")
+    fun getLocalFixedParameters(applicationContext: Context) {
+        Utilities.log(Enums.LogType.Debug, TAG, "getLocalFixedParameters()")
 
         CoroutineScope(Dispatchers.IO).launch {
             val fixedParameters = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
             Timer("FixedParameters", false).schedule(Configuration.LOCAL_AWAIT_MILLISEC) {
-                setRoomFixedParameters(fixedParameters?.first())
+                setLocalFixedParameters(fixedParameters?.first())
             }
         }
     }
 
-    private fun setRoomFixedParameters(fixedParameters: FixedParametersEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setFixedParameters()", showToast = false)
-        this.roomFixedParameters.postValue(fixedParameters)
+    private fun setLocalFixedParameters(fixedParameters: FixedParametersEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "localFixedParametersCallback()", showToast = false)
+        this.localFixedParametersCallback.postValue(fixedParameters)
     }
     //endregion fixed parameters
 
     //region my cities
-    fun getRoomMyCities(applicationContext: Context) {
-        Utilities.log(Enums.LogType.Debug, TAG, "getRoomMyCities()")
+    fun getLocalMyCities(applicationContext: Context) {
+        Utilities.log(Enums.LogType.Debug, TAG, "getLocalMyCities()")
         CoroutineScope(Dispatchers.IO).launch {
             //getMyCitiesSuspend(applicationContext, lifecycleOwner)
             val resultsProperties = DatabaseClient.getInstance(applicationContext)?.appDatabase?.propertyDao()?.getMyCities()
@@ -99,7 +99,7 @@ class HomeViewModel internal constructor(
 
     private fun setMyCities(cities: List<PropertyEntity>?) {
         Utilities.log(Enums.LogType.Debug, TAG, "setMyCities()", showToast = false)
-        this.roomMyCities.postValue(cities)
+        this.localMyCitiesCallback.postValue(cities)
     }
 
     //endregion my cities
@@ -113,7 +113,7 @@ class HomeViewModel internal constructor(
     }
 
     private fun setCityProperties(properties: ArrayList<PropertyEntity>?) {
-        this.roomCityProperties.postValue(properties)
+        this.localCityPropertiesCallback.postValue(properties)
     }
 
     //endregion city's properties
@@ -139,22 +139,22 @@ class HomeViewModel internal constructor(
                     if (response.code() == 200) {
                         try {
                             Utilities.log(Enums.LogType.Debug, TAG, "deleteServerProperty(): response = $response")
-                            saveServerHomeToRoom(applicationContext, result)
+                            saveLocalHome(applicationContext, result)
                         }
                         catch (e: Exception) {
                             Utilities.log(Enums.LogType.Error, TAG, "deleteServerProperty(): e = ${e.message} ; result.data = ${response.message()}")
-                            setServerHome(null)
+                            setHome(null)
                         }
                     }
                     else {
                         Utilities.log(Enums.LogType.Error, TAG, "deleteServerProperty(): response = $response")
-                        setServerHome(null)
+                        setHome(null)
                     }
                 }
 
                 override fun onFailure(call: Call<HomeModel?>, t: Throwable) {
                     Utilities.log(Enums.LogType.Error, TAG, "deleteServerProperty(): onFailure = $t")
-                    setServerHome(null)
+                    setHome(null)
                     call.cancel()
                 }
             })
@@ -194,18 +194,18 @@ class HomeViewModel internal constructor(
     //endregion delete property
 
     //region best yield
-    fun getRoomBestYield(applicationContext: Context) {
-        Utilities.log(Enums.LogType.Debug, TAG, "getBestYield()")
+    fun getLocalBestYield(applicationContext: Context) {
+        Utilities.log(Enums.LogType.Debug, TAG, "getLocalBestYield()")
 
         CoroutineScope(Dispatchers.IO).launch {
             val resultProperties = DatabaseClient.getInstance(applicationContext)?.appDatabase?.bestYieldDao()?.getAll()
-            setRoomBestYield(resultProperties)
+            setLocalBestYield(resultProperties)
         }
     }
 
-    private fun setRoomBestYield(bestYield: List<BestYieldEntity>?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setBestYield()", showToast = false)
-        this.roomBestYield.postValue(bestYield)
+    private fun setLocalBestYield(bestYield: List<BestYieldEntity>?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setLocalBestYield()", showToast = false)
+        this.localBestYieldCallback.postValue(bestYield)
     }
     //endregion best yield
 
@@ -226,44 +226,44 @@ class HomeViewModel internal constructor(
                     if (response.code() == 200) {
                         try {
                             Utilities.log(Enums.LogType.Debug, TAG, "getServerHome(): response = $response")
-                            saveServerHomeToRoom(applicationContext, result)
+                            saveLocalHome(applicationContext, result)
                         }
                         catch (e: Exception) {
                             Utilities.log(Enums.LogType.Error, TAG, "getServerHome(): e = ${e.message} ; result.data = ${response.message()}")
-                            setServerHome(null)
+                            setHome(null)
                         }
                     }
                     else {
                         Utilities.log(Enums.LogType.Error, TAG, "getServerHome(): response = $response")
-                        setServerHome(null)
+                        setHome(null)
                     }
                 }
 
                 override fun onFailure(call: Call<HomeModel?>, t: Throwable) {
                     Utilities.log(Enums.LogType.Error, TAG, "getServerHome(): onFailure = $t")
-                    setServerHome(null)
+                    setHome(null)
                     call.cancel()
                 }
             })
         }
     }
 
-    private fun setServerHome(home: HomeModel?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setServerHome()", showToast = false)
-        this.serverHome.postValue(home)
+    private fun setHome(home: HomeModel?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setHome()", showToast = false)
+        this.homeCallback.postValue(home)
     }
 
-    fun saveServerHomeToRoom(applicationContext: Context, home: HomeModel?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "saveServerHomeToRoom(): home = ${home.toString()}")
+    fun saveLocalHome(applicationContext: Context, home: HomeModel?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "saveLocalHome(): home = ${home.toString()}")
         CoroutineScope(Dispatchers.IO).launch {
 
             // ----------------
             // properties
             // ----------------
-            val roomPropertiesList = DatabaseClient.getInstance(applicationContext)?.appDatabase?.propertyDao()?.getAll()
+            val localPropertiesList = DatabaseClient.getInstance(applicationContext)?.appDatabase?.propertyDao()?.getAll()
 
-            var oldProperties = if (roomPropertiesList != null)
-                                    ArrayList(roomPropertiesList.map { it.copy() }).filter { item -> item._id != "" }
+            var oldProperties = if (localPropertiesList != null)
+                                    ArrayList(localPropertiesList.map { it.copy() }).filter { item -> item._id != "" }
                                 else
                                     null
 
@@ -273,8 +273,8 @@ class HomeViewModel internal constructor(
                 }
             }
 
-            if (roomPropertiesList != null) {
-                if (roomPropertiesList.isNotEmpty()) {
+            if (localPropertiesList != null) {
+                if (localPropertiesList.isNotEmpty()) {
                     DatabaseClient.getInstance(applicationContext)?.appDatabase?.propertyDao()?.deleteAll()!!
                 }
             }
@@ -297,16 +297,14 @@ class HomeViewModel internal constructor(
             // ----------------
             // best yield
             // ----------------
-            val roomBestYieldList = DatabaseClient.getInstance(applicationContext)?.appDatabase?.bestYieldDao()?.getAll()
+            val localBestYieldList = DatabaseClient.getInstance(applicationContext)?.appDatabase?.bestYieldDao()?.getAll()
 
-            if (roomBestYieldList != null) {
-                if (roomBestYieldList.isNotEmpty()) {
-                    DatabaseClient.getInstance(applicationContext)?.appDatabase?.bestYieldDao()?.deleteAll()!!
-                }
+            if (localBestYieldList != null && localBestYieldList.isNotEmpty()) {
+                DatabaseClient.getInstance(applicationContext)?.appDatabase?.bestYieldDao()?.deleteAll()!!
             }
 
-            val oldBestYieldList = if (roomBestYieldList != null)
-                ArrayList(roomBestYieldList.map { it.copy() })
+            val oldBestYieldList = if (localBestYieldList != null)
+                ArrayList(localBestYieldList.map { it.copy() })
             else
                 null
 
@@ -325,23 +323,23 @@ class HomeViewModel internal constructor(
 
             val isBestYieldNeedToRefresh = oldBestYieldList?.equals(newBestYields) != true
 
-            setServerHome(newProperties, newBestYields, isPropertiesNeedToRefresh, isBestYieldNeedToRefresh)
+            setHome(newProperties, newBestYields, isPropertiesNeedToRefresh, isBestYieldNeedToRefresh)
         }
     }
 
-    private fun setServerHome(
+    private fun setHome(
         properties: List<PropertyEntity>?,
         bestYields: List<BestYieldEntity>?,
         isPropertiesNeedToRefresh: Boolean,
         isBestYieldNeedToRefresh: Boolean) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setServerHome()", showToast = false)
-        val roomHomeData = HomeModel(
+        Utilities.log(Enums.LogType.Debug, TAG, "setHome()", showToast = false)
+        val localHomeData = HomeModel(
             properties = properties,
             bestYields = bestYields,
             isPropertiesNeedToRefresh = isPropertiesNeedToRefresh,
             isBestYieldNeedToRefresh = isBestYieldNeedToRefresh,
         )
-        this.serverHome.postValue(roomHomeData)
+        this.homeCallback.postValue(localHomeData)
     }
     //endregion home
 }

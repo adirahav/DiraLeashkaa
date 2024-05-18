@@ -10,10 +10,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.GridLayoutManager
 import com.adirahav.diraleashkaa.common.*
 import com.adirahav.diraleashkaa.databinding.FragmentContactusMailFormBinding
-import com.jakewharton.rxbinding.widget.RxTextView
 import com.skydoves.powerspinner.IconSpinnerAdapter
 import com.skydoves.powerspinner.IconSpinnerItem
-import java.util.concurrent.TimeUnit
 
 
 class ContactUsMailFormFragment : Fragment() {
@@ -49,7 +47,7 @@ class ContactUsMailFormFragment : Fragment() {
         // hide keyboard
         Utilities.hideKeyboard(requireContext())
 
-        // strings
+        // phrases
         setPhrases()
     }
 
@@ -114,18 +112,18 @@ class ContactUsMailFormFragment : Fragment() {
         layout.message.requestFocus()
     }
 
-    //region == strings ============
+    //region == phrases ============
 
     private fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         Utilities.setLabelViewString(layout.messageTypeTitle, "contactus_message_type_hint")
-        Utilities.setTextViewString(layout.messageTypeError, "contactus_message_type_error")
+        Utilities.setTextViewPhrase(layout.messageTypeError, "contactus_message_type_error")
         Utilities.setLabelViewString(layout.messageTitle, "contactus_message_hint")
-        Utilities.setTextViewString(layout.messageError, "contactus_message_error")
+        Utilities.setTextViewPhrase(layout.messageError, "contactus_message_error")
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     fun submitForm(): Map<String, Any?> {
         var isValid = true

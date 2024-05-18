@@ -114,22 +114,22 @@ class RegistrationViewModel internal constructor(
         }
     }
 
-    // get room user
-    fun getRoomUser(applicationContext: Context, userID: Long?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "getRoomUser(): userID = $userID")
+    // get local user
+    fun getLocalUser(applicationContext: Context, userID: Long?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "getLocalUser(): userID = $userID")
         if (userID != null && userID > 0L) {
             CoroutineScope(Dispatchers.IO).launch {
                 val resultUser = DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.findById(userID)
-                setLocalUser_Get(resultUser)
+                setGettingLocalUser(resultUser)
             }
         }
         else {
-            setLocalUser_Get(null)
+            setGettingLocalUser(null)
         }
     }
 
-    private fun setLocalUser_Get(user: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomUser_Get()", showToast = false)
+    private fun setGettingLocalUser(user: UserEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setGettingLocalUser()", showToast = false)
         this.getLocalUserCallback.postValue(user)
     }
 

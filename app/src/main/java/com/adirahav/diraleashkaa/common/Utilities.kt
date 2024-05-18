@@ -40,14 +40,8 @@ import com.adirahav.diraleashkaa.common.Configuration.EMAIL_PATTERN
 import com.adirahav.diraleashkaa.common.Configuration.PASSWORD_PATTERN
 import com.adirahav.diraleashkaa.common.Configuration.PHONE_PATTERN
 import com.adirahav.diraleashkaa.data.DataManager
-import com.adirahav.diraleashkaa.data.network.dataClass.EmailDataClass
-import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
 import com.adirahav.diraleashkaa.data.network.entities.PhraseEntity
-import com.adirahav.diraleashkaa.data.network.entities.UserEntity
-import com.adirahav.diraleashkaa.data.network.models.EmailModel
 import com.adirahav.diraleashkaa.data.network.requests.ErrorReportRequest
-import com.adirahav.diraleashkaa.data.network.requests.PropertyRequest
-import com.adirahav.diraleashkaa.data.network.services.ErrorReportService
 import com.adirahav.diraleashkaa.ui.dialog.FancyDialog
 import com.adirahav.diraleashkaa.ui.dialog.FancyDialogListener
 import com.adirahav.diraleashkaa.views.LabelWithIcon
@@ -56,7 +50,6 @@ import com.adirahav.diraleashkaa.views.PropertyPercent
 import com.airbnb.paris.extensions.style
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.GsonBuilder
-import com.kofigyan.stateprogressbar.StateProgressBar
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.*
 import retrofit2.Call
@@ -131,7 +124,12 @@ object Utilities {
 
     fun composeEmail(logType: Enums.LogType, subject: String, message: String?) {
         CoroutineScope(Dispatchers.IO).launch {
-            val call: Call<Void>? = DataManager.instance?.errorReportService?.errorReportAPI?.reportError(ErrorReportRequest(type = logType.toString().uppercase(Locale.getDefault()), subject = subject, message = message))
+            val call: Call<Void>? = DataManager.instance?.errorReportService?.errorReportAPI?.reportError(
+                    ErrorReportRequest(
+                            type = logType.toString().uppercase(Locale.getDefault()),
+                            subject = subject,
+                            message = message,
+                            appEnv = BuildConfig.BUILD_TYPE.uppercase() ))
 
             call?.enqueue(object : Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
@@ -857,7 +855,7 @@ object Utilities {
         return key
     }
 
-    fun setTextViewString(textView: TextView?, key: String) {
+    fun setTextViewPhrase(textView: TextView?, key: String) {
         textView?.text = getLocalPhrase(key)
     }
 
@@ -876,7 +874,7 @@ object Utilities {
         }
     }
 
-    fun setInputViewString(inputView: PropertyInput?, textKey: String, textWithoutValueKey: String? = null, warningKey: String? = null) {
+    fun setInputViewPhrase(inputView: PropertyInput?, textKey: String, textWithoutValueKey: String? = null, warningKey: String? = null) {
         inputView?.setInputLabelText(getLocalPhrase(textKey))
 
         if (textWithoutValueKey != null) {
@@ -888,7 +886,7 @@ object Utilities {
         }
     }
 
-    fun setPropertyInputString(inputView: PropertyInput?, textKey: String, textWithoutValueKey: String? = null, warningKey: String? = null) {
+    fun setPropertyInputPhrase(inputView: PropertyInput?, textKey: String, textWithoutValueKey: String? = null, warningKey: String? = null) {
         inputView?.setInputLabelText(getLocalPhrase(textKey))
 
         if (textWithoutValueKey != null) {
@@ -903,7 +901,7 @@ object Utilities {
     fun setPropertyPercentViewString(inputView: PropertyPercent?, textKey: String) {
         inputView?.setInputLabelText(getLocalPhrase(textKey))
     }
-    //endregion == strings ===============
+    //endregion == phrases ===============
 
     data class BitmapSize(val width: Int, val height: Int)
 
@@ -1084,4 +1082,8 @@ object Utilities {
         return appID
     }
 
+    fun String.camelToSnakeCase(): String {
+        val pattern = "(?<=.)[A-Z]".toRegex()
+        return this.replace(pattern, "_$0").lowercase()
+    }
 }

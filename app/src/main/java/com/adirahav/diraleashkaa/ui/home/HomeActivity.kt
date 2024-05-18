@@ -26,6 +26,7 @@ import com.adirahav.diraleashkaa.data.network.entities.*
 import com.adirahav.diraleashkaa.data.network.models.HomeModel
 import com.adirahav.diraleashkaa.databinding.ActivityHomeBinding
 import com.adirahav.diraleashkaa.ui.base.BaseActivity
+import com.adirahav.diraleashkaa.ui.calculators.CalculatorActivity
 import com.adirahav.diraleashkaa.ui.property.PropertyActivity
 import com.adirahav.diraleashkaa.ui.property.PropertyChartFragment
 import com.google.gson.reflect.TypeToken
@@ -46,7 +47,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
         private const val MIN_HOME_AWAIT_SECONDS = 2
         private const val BEST_YIELD_YEARS_PERIOD_DEFAULT = 10
         private const val BEST_YIELD_PICTURE_SIZE_RATIO = 0.5F
-        private const val LOAD_FROM_ROOM = true
+        private const val LOAD_FROM_LOCAL = true
 
         fun start(context: Context) {
             val intent = Intent(context, HomeActivity::class.java)
@@ -65,10 +66,10 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
     // lifecycle owner
     var lifecycleOwner: LifecycleOwner? = null
 
-    // room/server data loaded
-    var isRoomFixedParametersLoaded: Boolean = false
-    var isRoomMyCitiesLoaded: Boolean = false
-    var isRoomBestYieldLoaded: Boolean = false
+    // local/server data loaded
+    var isLocalFixedParametersLoaded: Boolean = false
+    var isLocalMyCitiesLoaded: Boolean = false
+    var isLocalBestYieldLoaded: Boolean = false
 
     var isServerHomeLoaded: Boolean = false
 
@@ -113,6 +114,9 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
     // home
     var homeData: HomeModel? = null
 
+    // mask
+    private var containerMaskView: View? = null
+
     //endregion == variables ==========
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -138,6 +142,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
 
         lifecycleOwner = this
         initObserver()
+        initViews()
 
         setCustomActionBar(layout.drawer)
         setDrawer(layout.drawer, layout.menu)
@@ -153,15 +158,15 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
             else
                 GONE*/
 
-        freezeScreen()
+        //freezeScreen()
     }
 
     private fun initGlobal() {
 
-        // room/server data loaded
-        isRoomFixedParametersLoaded = false
-        isRoomMyCitiesLoaded = false
-        isRoomBestYieldLoaded = false
+        // local/server data loaded
+        isLocalFixedParametersLoaded = false
+        isLocalMyCitiesLoaded = false
+        isLocalBestYieldLoaded = false
 
         isServerHomeLoaded = false
 
@@ -199,25 +204,33 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
         }
     }
 
+    fun initViews() {
+        Utilities.log(Enums.LogType.Debug, TAG, "initViews()", showToast = false)
+
+        // mask
+        containerMaskView = layout?.containerMask
+    }
+
     private fun initData() {
         userToken = preferences!!.getString("token", "")
+        unfreezeScreen()
     }
 
     fun initObserver() {
         Utilities.log(Enums.LogType.Debug, TAG, "initObserver()")
-        if (!viewModel!!.roomFixedParameters.hasObservers()) viewModel!!.roomFixedParameters.observe(this@HomeActivity, RoomFixedParametersObserver())
-        if (!viewModel!!.roomMyCities.hasObservers()) viewModel!!.roomMyCities.observe(this@HomeActivity, RoomMyCitiesObserver())
-        if (!viewModel!!.roomCityProperties.hasObservers()) viewModel!!.roomCityProperties.observe(this@HomeActivity, RoomCityPropertiesObserver() as Observer<in ArrayList<PropertyEntity>>)
-        if (!viewModel!!.roomBestYield.hasObservers()) viewModel!!.roomBestYield.observe(this@HomeActivity, RoomBestYieldObserver())
+        if (!viewModel!!.localFixedParametersCallback.hasObservers()) viewModel!!.localFixedParametersCallback.observe(this@HomeActivity, LocalFixedParametersObserver())
+        if (!viewModel!!.localMyCitiesCallback.hasObservers()) viewModel!!.localMyCitiesCallback.observe(this@HomeActivity, LocalMyCitiesObserver())
+        if (!viewModel!!.localCityPropertiesCallback.hasObservers()) viewModel!!.localCityPropertiesCallback.observe(this@HomeActivity, LocalCityPropertiesObserver() as Observer<in ArrayList<PropertyEntity>>)
+        if (!viewModel!!.localBestYieldCallback.hasObservers()) viewModel!!.localBestYieldCallback.observe(this@HomeActivity, LocalBestYieldObserver())
         if (!viewModel!!.serverDeleteProperty.hasObservers()) viewModel!!.serverDeleteProperty.observe(this@HomeActivity, ServerDeletePropertyObserver())
-        if (!viewModel!!.serverHome.hasObservers()) viewModel!!.serverHome.observe(this@HomeActivity, ServerHomeObserver())
+        if (!viewModel!!.homeCallback.hasObservers()) viewModel!!.homeCallback.observe(this@HomeActivity, ServerHomeObserver())
 
-        if (LOAD_FROM_ROOM) {
-            if (!isRoomFixedParametersLoaded && !isRoomMyCitiesLoaded && !isRoomBestYieldLoaded && !isServerHomeLoaded && !isDataInit) {
-                Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): getRoomFixedParameters, getRoomMyCities, getRoomBestYield")
-                viewModel!!.getRoomFixedParameters(applicationContext)
-                viewModel!!.getRoomMyCities(applicationContext)
-                viewModel!!.getRoomBestYield(applicationContext)
+        if (LOAD_FROM_LOCAL) {
+            if (!isLocalFixedParametersLoaded && !isLocalMyCitiesLoaded && !isLocalBestYieldLoaded && !isServerHomeLoaded && !isDataInit) {
+                Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): getLocalFixedParameters, getLocalMyCities, getLocalBestYield")
+                viewModel!!.getLocalFixedParameters(applicationContext)
+                viewModel!!.getLocalMyCities(applicationContext)
+                viewModel!!.getLocalBestYield(applicationContext)
             }
         }
         else {
@@ -466,10 +479,10 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
     }
 
     //region observers
-    private inner class RoomFixedParametersObserver : Observer<FixedParametersEntity?> {
+    private inner class LocalFixedParametersObserver : Observer<FixedParametersEntity?> {
         override fun onChanged(fixedParameters: FixedParametersEntity?) {
-            Utilities.log(Enums.LogType.Debug, TAG, "FixedParametersObserver(): onChanged")
-            isRoomFixedParametersLoaded = true
+            Utilities.log(Enums.LogType.Debug, TAG, "LocalFixedParametersObserver(): onChanged")
+            isLocalFixedParametersLoaded = true
 
             if (fixedParameters == null) {
                 return
@@ -478,15 +491,15 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
             // fixed parameters
             fixedParametersData = FixedParameters.init(fixedParameters)
 
-            if (isRoomFixedParametersLoaded && isRoomMyCitiesLoaded) {
+            if (isLocalFixedParametersLoaded && isLocalMyCitiesLoaded) {
                 setMyCities()
             }
 
-            if (isRoomFixedParametersLoaded && isRoomBestYieldLoaded) {
+            if (isLocalFixedParametersLoaded && isLocalBestYieldLoaded) {
                 setBestYield()
             }
 
-            if (isRoomFixedParametersLoaded && isRoomMyCitiesLoaded && isRoomBestYieldLoaded && !isServerHomeLoaded) {
+            if (isLocalFixedParametersLoaded && isLocalMyCitiesLoaded && isLocalBestYieldLoaded && !isServerHomeLoaded) {
                 viewModel!!.getServerHome(applicationContext)
             }
         }
@@ -503,23 +516,23 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
         }
     }
 
-    private inner class RoomMyCitiesObserver : Observer<List<PropertyEntity?>?> {
+    private inner class LocalMyCitiesObserver : Observer<List<PropertyEntity?>?> {
         override fun onChanged(cities: List<PropertyEntity?>?) {
-            Utilities.log(Enums.LogType.Debug, TAG, "MyCitiesObserver(): onChanged")
-            isRoomMyCitiesLoaded = true
+            Utilities.log(Enums.LogType.Debug, TAG, "LocalMyCitiesObserver(): onChanged")
+            isLocalMyCitiesLoaded = true
             myCitiesData = cities
 
-            if (isRoomFixedParametersLoaded && isRoomMyCitiesLoaded) {
+            if (isLocalFixedParametersLoaded && isLocalMyCitiesLoaded) {
                 setMyCities()
             }
 
-            if (isRoomFixedParametersLoaded && isRoomMyCitiesLoaded && isRoomBestYieldLoaded && !isServerHomeLoaded) {
+            if (isLocalFixedParametersLoaded && isLocalMyCitiesLoaded && isLocalBestYieldLoaded && !isServerHomeLoaded) {
                 viewModel!!.getServerHome(applicationContext)
             }
         }
     }
 
-    private inner class RoomCityPropertiesObserver : Observer<ArrayList<PropertyEntity?>?> {
+    private inner class LocalCityPropertiesObserver : Observer<ArrayList<PropertyEntity?>?> {
         override fun onChanged(cityProperties: ArrayList<PropertyEntity?>?) {
             if (cityProperties == null) {
                 return
@@ -534,17 +547,17 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
         }
     }
 
-    private inner class RoomBestYieldObserver : Observer<List<BestYieldEntity?>?> {
+    private inner class LocalBestYieldObserver : Observer<List<BestYieldEntity?>?> {
         override fun onChanged(bestYields: List<BestYieldEntity?>?) {
-            Utilities.log(Enums.LogType.Debug, TAG, "BestYieldObserver(): onChanged")
-            isRoomBestYieldLoaded = true
+            Utilities.log(Enums.LogType.Debug, TAG, "LocalBestYieldObserver(): onChanged")
+            isLocalBestYieldLoaded = true
             bestYieldData = bestYields
 
-            if (isRoomFixedParametersLoaded && isRoomBestYieldLoaded) {
+            if (isLocalFixedParametersLoaded && isLocalBestYieldLoaded) {
                 setBestYield()
             }
 
-            if (isRoomFixedParametersLoaded && isRoomMyCitiesLoaded && isRoomBestYieldLoaded && !isServerHomeLoaded) {
+            if (isLocalFixedParametersLoaded && isLocalMyCitiesLoaded && isLocalBestYieldLoaded && !isServerHomeLoaded) {
                 viewModel!!.getServerHome(applicationContext)
             }
         }
@@ -576,9 +589,9 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
 
     private fun responseAfterGetHomeAwait() {
 
-        viewModel!!.getRoomFixedParameters(applicationContext)
-        viewModel!!.getRoomMyCities(applicationContext)
-        viewModel!!.getRoomBestYield(applicationContext)
+        viewModel!!.getLocalFixedParameters(applicationContext)
+        viewModel!!.getLocalMyCities(applicationContext)
+        viewModel!!.getLocalBestYield(applicationContext)
 
         if (layout.swipeToRefresh.isRefreshing) {
             layout.swipeToRefresh.isRefreshing = false
@@ -587,7 +600,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
 
     //endregion observers
 
-    //strings
+    //phrases
     override fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
@@ -600,7 +613,7 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
 
         super.setPhrases()
     }
-    //strings
+    //phrases
 
     //region mask
     fun showMask() {
@@ -629,12 +642,13 @@ class HomeActivity : BaseActivity<HomeViewModel?, ActivityHomeBinding>(),
 
     fun freezeScreen() {
         this.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-        layout.containerMask.visibility = VISIBLE
+        layout.drawer.addView(containerMaskView)
+        //layout.containerMask.visibility = VISIBLE
     }
 
     fun unfreezeScreen() {
         this.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-        layout.drawer.removeView(layout.containerMask)
+        layout.drawer.removeView(containerMaskView)
     }
 
     //endregion == freeze screen ============

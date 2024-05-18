@@ -94,7 +94,7 @@ class PropertyYieldForecastFragment : BaseFragment<PropertyViewModel?>() {
         // actions menu
         _activity?.updateActionsMenuVisibility(PropertyActivity.ActionsMenuButtonType.YIELD_FORECAST)
 
-        // strings
+        // phrases
         setPhrases()
     }
 
@@ -136,7 +136,7 @@ class PropertyYieldForecastFragment : BaseFragment<PropertyViewModel?>() {
         return ViewModelProvider(this, factory)[PropertyViewModel::class.java]
     }
 
-    //region == strings ============
+    //region == phrases ============
 
     private fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")

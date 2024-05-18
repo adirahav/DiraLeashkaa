@@ -12,5 +12,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun propertyDao(): PropertiesDao
     abstract fun calculatorDao(): CalculatorsDao
     abstract fun bestYieldDao(): BestYieldDao
-    abstract fun stringsDao(): PhrasesDao
+    abstract fun phrasesDao(): PhrasesDao
 }

@@ -61,18 +61,18 @@ class SignUpViewModel internal constructor(
 
     //region == fixed parameters ==============
     fun getLocalFixedParameters(applicationContext: Context) {
-        Utilities.log(Enums.LogType.Debug, TAG, "getRoomFixedParameters()")
+        Utilities.log(Enums.LogType.Debug, TAG, "getLocalFixedParameters()")
 
         CoroutineScope(Dispatchers.IO).launch {
             val fixedParameters = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
             Timer("FixedParameters", false).schedule(Configuration.LOCAL_AWAIT_MILLISEC) {
-                setRoomFixedParameters(fixedParameters?.first())
+                setLocalFixedParameters(fixedParameters?.first())
             }
         }
     }
 
-    private fun setRoomFixedParameters(fixedParameters: FixedParametersEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomFixedParameters()", showToast = false)
+    private fun setLocalFixedParameters(fixedParameters: FixedParametersEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setLocalFixedParameters()", showToast = false)
         this.fixedParametersCallback.postValue(fixedParameters)
     }
     //endregion == fixed parameters ==============
@@ -146,7 +146,7 @@ class SignUpViewModel internal constructor(
                     }
                     else if (response.code() == 400 && activity.currentStepProgressBar == 1) {
                         activity.personalInfoFragment.layout?.emailError?.visibility = View.VISIBLE
-                        Utilities.setTextViewString(activity.personalInfoFragment.layout?.emailError, "signup_email_taken_error")
+                        Utilities.setTextViewPhrase(activity.personalInfoFragment.layout?.emailError, "signup_email_taken_error")
                         setSignup(null)
                     }
                     else {

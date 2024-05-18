@@ -128,7 +128,7 @@ class RegistrationPayProgramFragment : Fragment(),
             )
         }
 
-        // strings
+        // phrases
         setPhrases()
 
         // in-app products
@@ -432,18 +432,18 @@ class RegistrationPayProgramFragment : Fragment(),
 
     //endregion == in-app products ====
 
-    //region == strings ============
+    //region == phrases ============
 
     private fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        Utilities.setTextViewString(layout.title, "signup_pay_program_label")
-        Utilities.setTextViewString(layout.registerWithCoupon, "signup_register_with_coupon")
-        Utilities.setTextViewString(layout.contactUs, "signup_contact_us")
-        Utilities.setTextViewString(layout.skip, "signup_code_skip")
+        Utilities.setTextViewPhrase(layout.title, "signup_pay_program_label")
+        Utilities.setTextViewPhrase(layout.registerWithCoupon, "signup_register_with_coupon")
+        Utilities.setTextViewPhrase(layout.contactUs, "signup_contact_us")
+        Utilities.setTextViewPhrase(layout.skip, "signup_code_skip")
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     fun submitForm(skip: Boolean) {
         var isValid = true

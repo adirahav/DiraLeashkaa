@@ -22,7 +22,7 @@
 
         <View style="@style/drawerDivider" />
 
-        <LinearLayout style="@style/drawerContainer" android:visibility="gone">
+        <LinearLayout style="@style/drawerContainer">
             <ImageView android:src="@drawable/icon_drawer_calculators" style="@style/drawerIcon"/>
             <TextView android:id="@+id/drawerCalculators" style="@style/drawerTitle" />
         </LinearLayout>

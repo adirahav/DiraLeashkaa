@@ -1,4 +1,4 @@
-package com.adirahav.diraleashkaa.ui.property
+package com.adirahav.diraleashkaa.ui.calculators
 
 import android.content.Context
 import android.os.Bundle
@@ -18,11 +18,11 @@ import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import com.adirahav.diraleashkaa.common.*
+import com.adirahav.diraleashkaa.common.Utilities.log
 import com.adirahav.diraleashkaa.common.Utilities.toFormatNumber
 import com.adirahav.diraleashkaa.common.Utilities.toNumber
 import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
 import com.adirahav.diraleashkaa.databinding.FragmentCalculatorMaxPriceBinding
-import com.adirahav.diraleashkaa.ui.calculators.CalculatorActivity
 import java.util.Date
 
 class CalculatorMaxPriceFragment : Fragment() {
@@ -60,8 +60,8 @@ class CalculatorMaxPriceFragment : Fragment() {
     // max price
     var maxPriceData: PropertyEntity? = null
 
-    // room/server data loaded
-    var isRoomDataInit: Boolean = false
+    // local/server data loaded
+    var isLocalDataInit: Boolean = false
     var isServerDataInit: Boolean = false
 
     // start time
@@ -133,7 +133,7 @@ class CalculatorMaxPriceFragment : Fragment() {
     var incidentalsTotalInputView: EditText? = null
 
     // observers
-    var roomMaxPriceObserver : Observer<in PropertyEntity>? = null
+    var localMaxPriceObserver : Observer<in PropertyEntity>? = null
     var serverMaxPriceObserver : Observer<in PropertyEntity>? = null
 
     //endregion == views variables ====
@@ -159,7 +159,6 @@ class CalculatorMaxPriceFragment : Fragment() {
 
         initGlobal()
         initViews()
-        initEvents()
         initObserver()
 
         return layout?.root
@@ -179,11 +178,11 @@ class CalculatorMaxPriceFragment : Fragment() {
         // context
         _context = context
 
-        // strings
+        // phrases
         setPhrases()
 
-        // room/server data loaded
-        isRoomDataInit = false
+        // local/server data loaded
+        isLocalDataInit = false
         isServerDataInit = false
     }
 
@@ -325,6 +324,8 @@ class CalculatorMaxPriceFragment : Fragment() {
             callServerStartTime = Date()
             _activity?.viewModel!!.calcServerMaxPrice(null, null)
         }
+
+        initEvents()
     }
 
     private fun initEvents() {
@@ -736,45 +737,45 @@ class CalculatorMaxPriceFragment : Fragment() {
 
     //endregion == initialize =========
 
-    //region == strings ============
+    //region == phrases ============
 
     private fun initObserver() {
-        Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): roomMaxPrice.hasObservers = ${_activity?.viewModel!!.roomMaxPrice.hasObservers()}")
-        Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): serverMaxPrice.hasObservers = ${_activity?.viewModel!!.serverMaxPrice.hasObservers()}")
+        Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): localMaxPriceCallback.hasObservers = ${_activity?.viewModel!!.localMaxPriceCallback.hasObservers()}")
+        Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): serverMaxPriceCallback.hasObservers = ${_activity?.viewModel!!.serverMaxPriceCallback.hasObservers()}")
 
-        if (!_activity?.viewModel!!.roomMaxPrice.hasObservers()) _activity?.viewModel!!.roomMaxPrice.observe(viewLifecycleOwner, RoomMaxPriceObserver())
-        if (!_activity?.viewModel!!.serverMaxPrice.hasObservers()) _activity?.viewModel!!.serverMaxPrice.observe(viewLifecycleOwner, ServerMaxPriceObserver())
+        if (!_activity?.viewModel!!.localMaxPriceCallback.hasObservers()) _activity?.viewModel!!.localMaxPriceCallback.observe(viewLifecycleOwner, LocalMaxPriceObserver())
+        if (!_activity?.viewModel!!.serverMaxPriceCallback.hasObservers()) _activity?.viewModel!!.serverMaxPriceCallback.observe(viewLifecycleOwner, ServerMaxPriceObserver())
 
-        if (!isRoomDataInit) {
-            Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): getRoomMaxPrice")
-            _activity?.viewModel!!.getRoomMaxPrice(_activity!!.applicationContext)
+        if (!isLocalDataInit) {
+            Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): getLocalMaxPrice")
+            _activity?.viewModel!!.getLocalMaxPrice(_activity!!.applicationContext)
         }
     }
 
     private fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        Utilities.setPropertyInputString(layout?.apartmentType, "property_apartment_type_label")
-        Utilities.setTextViewString(layout?.propertyPriceLabel, "calculator_maxprice_price_label")
-        Utilities.setPropertyInputString(layout?.equity, "property_equity_label")
-        Utilities.setPropertyInputString(layout?.equityCleaningExpenses, "property_equity_cleaning_expenses_label", null, "property_equity_cleaning_expenses_warning")
-        Utilities.setPropertyInputString(layout?.mortgageRequired, "property_mortgage_required_label", null, "property_mortgage_required_warning")
-        Utilities.setPropertyInputString(layout?.incomes, "property_incomes_label")
-        Utilities.setPropertyInputString(layout?.commitments, "property_commitments_label")
-        Utilities.setPropertyInputString(layout?.disposableIncome, "property_disposable_income_label")
-        Utilities.setPropertyInputString(layout?.possibleMonthlyRepayment, "property_possible_monthly_payment_label")
-        Utilities.setPropertyInputString(layout?.maxPercentOfFinancing, "property_max_percent_of_financing_label")
-        Utilities.setPropertyInputString(layout?.actualPercentOfFinancing, "property_actual_percent_of_financing_label", null, "property_actual_percent_of_financing_warning")
-        Utilities.setTextViewString(layout?.incidentalsTitle, "property_incidentals_title")
-        Utilities.setPropertyInputString(layout?.transferTax, "property_transfer_tax_label")
-        Utilities.setInputViewString(layout?.lawyer, "property_lawyer_label", "property_lawyer_label_without_value")
-        Utilities.setPropertyInputString(layout?.realEstateAgent, "property_real_estate_agent_label", "property_real_estate_agent_label_without_value")
-        Utilities.setPropertyInputString(layout?.brokerMortgage, "property_broker_mortgage_label")
-        Utilities.setPropertyInputString(layout?.repairing, "property_repairing_label")
-        Utilities.setPropertyInputString(layout?.incidentalsTotal, "property_incidentals_total_label")
+        Utilities.setPropertyInputPhrase(layout?.apartmentType, "property_apartment_type_label")
+        Utilities.setTextViewPhrase(layout?.propertyPriceLabel, "calculator_maxprice_price_label")
+        Utilities.setPropertyInputPhrase(layout?.equity, "property_equity_label")
+        Utilities.setPropertyInputPhrase(layout?.equityCleaningExpenses, "property_equity_cleaning_expenses_label", null, "property_equity_cleaning_expenses_warning")
+        Utilities.setPropertyInputPhrase(layout?.mortgageRequired, "property_mortgage_required_label", null, "property_mortgage_required_warning")
+        Utilities.setPropertyInputPhrase(layout?.incomes, "property_incomes_label")
+        Utilities.setPropertyInputPhrase(layout?.commitments, "property_commitments_label")
+        Utilities.setPropertyInputPhrase(layout?.disposableIncome, "property_disposable_income_label")
+        Utilities.setPropertyInputPhrase(layout?.possibleMonthlyRepayment, "property_possible_monthly_payment_label")
+        Utilities.setPropertyInputPhrase(layout?.maxPercentOfFinancing, "property_max_percent_of_financing_label")
+        Utilities.setPropertyInputPhrase(layout?.actualPercentOfFinancing, "property_actual_percent_of_financing_label", null, "property_actual_percent_of_financing_warning")
+        Utilities.setTextViewPhrase(layout?.incidentalsTitle, "property_incidentals_title")
+        Utilities.setPropertyInputPhrase(layout?.transferTax, "property_transfer_tax_label")
+        Utilities.setInputViewPhrase(layout?.lawyer, "property_lawyer_label", "property_lawyer_label_without_value")
+        Utilities.setPropertyInputPhrase(layout?.realEstateAgent, "property_real_estate_agent_label", "property_real_estate_agent_label_without_value")
+        Utilities.setPropertyInputPhrase(layout?.brokerMortgage, "property_broker_mortgage_label")
+        Utilities.setPropertyInputPhrase(layout?.repairing, "property_repairing_label")
+        Utilities.setPropertyInputPhrase(layout?.incidentalsTotal, "property_incidentals_total_label")
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     //region == change events ======
 
@@ -991,7 +992,6 @@ class CalculatorMaxPriceFragment : Fragment() {
             }*/
 
             layout?.equity?.setInputDefaultValue(_activity?.userData?.equity ?: 0)
-
             activity?.runOnUiThread {
                 equityInputView?.setText(maxPriceData?.calcEquity.toFormatNumber())
             }
@@ -1075,7 +1075,7 @@ class CalculatorMaxPriceFragment : Fragment() {
                 layout?.possibleMonthlyRepayment?.setInputDefaultValue(maxPriceData?.calcPossibleMonthlyRepayment ?: 0)
             }
 
-            _activity?.setNumberPickerAttributes(layout?.possibleMonthlyRepayment, "possible_monthly_repayment_percent", maxPriceData?.calcPossibleMonthlyRepaymentPercent)
+            _activity?.setNumberPickerAttributes(layout?.possibleMonthlyRepayment, "possibleMonthlyRepaymentPercent", maxPriceData?.calcPossibleMonthlyRepaymentPercent)
         }
     }
 
@@ -1192,21 +1192,25 @@ class CalculatorMaxPriceFragment : Fragment() {
 
     //region == observers =============
 
-    private inner class RoomMaxPriceObserver : Observer<PropertyEntity?> {
+    private inner class LocalMaxPriceObserver : Observer<PropertyEntity?> {
         override fun onChanged(maxPrice: PropertyEntity?) {
-            Log.d(TAG, "RoomMaxPriceObserver()")
+            Log.d(TAG, "LocalMaxPriceObserver()")
+
+            isLocalDataInit = true
 
             if (maxPrice == null) {
-                Log.d(TAG, "RoomMaxPriceObserver(): splashData == null)")
+                Log.d(TAG, "LocalMaxPriceObserver(): splashData == null)")
                 _activity?.unfreezeScreen()
-                return
+
+                callServerStartTime = Date()
+                _activity?.viewModel!!.calcServerMaxPrice(null, null)
+            }
+            else {
+                maxPriceData = maxPrice
+                initData()
             }
 
-            isRoomDataInit = true
-            maxPriceData = maxPrice
-            initData()
-
-            roomMaxPriceObserver = this
+            localMaxPriceObserver = this
         }
     }
 
@@ -1235,7 +1239,7 @@ class CalculatorMaxPriceFragment : Fragment() {
 
             if (!formattedMaxPrice.equals(formattedMaxPriceData)) {
                 maxPriceData = maxPrice
-                _activity?.viewModel!!.saveRoomMaxPrice(_activity!!.applicationContext, maxPriceData!!)
+                _activity?.viewModel!!.saveLocalMaxPrice(_activity!!.applicationContext, maxPriceData!!)
                 Utilities.await(callServerStartTime, CALL_SERVER_AWAIT_SECONDS, ::initData)
             }
 
@@ -1244,8 +1248,8 @@ class CalculatorMaxPriceFragment : Fragment() {
     }
 
     fun removeObservers() {
-        if (roomMaxPriceObserver != null) _activity?.viewModel!!.roomMaxPrice.removeObserver(roomMaxPriceObserver!!)
-        if (serverMaxPriceObserver != null) _activity?.viewModel!!.serverMaxPrice.removeObserver(serverMaxPriceObserver!!)
+        if (localMaxPriceObserver != null) _activity?.viewModel!!.localMaxPriceCallback.removeObserver(localMaxPriceObserver!!)
+        if (serverMaxPriceObserver != null) _activity?.viewModel!!.serverMaxPriceCallback.removeObserver(serverMaxPriceObserver!!)
     }
 
     //endregion == observers =============

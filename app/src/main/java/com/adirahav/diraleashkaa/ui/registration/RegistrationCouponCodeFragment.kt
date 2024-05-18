@@ -100,7 +100,7 @@ class RegistrationCouponCodeFragment : Fragment() {
             )
         }
 
-        // strings
+        // phrases
         setPhrases()
     }
 
@@ -167,18 +167,18 @@ class RegistrationCouponCodeFragment : Fragment() {
 
     //endregion == initialize =========
 
-    //region == strings ============
+    //region == phrases ============
 
     private fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        Utilities.setTextViewString(layout?.title, "signup_code_label")
-        Utilities.setTextViewString(layout?.registerWithPayProgram, "signup_register_with_pay_program")
-        Utilities.setTextViewString(layout?.contactUs, "signup_contact_us")
-        Utilities.setTextViewString(layout?.skip, "signup_code_skip")
+        Utilities.setTextViewPhrase(layout?.title, "signup_code_label")
+        Utilities.setTextViewPhrase(layout?.registerWithPayProgram, "signup_register_with_pay_program")
+        Utilities.setTextViewPhrase(layout?.contactUs, "signup_contact_us")
+        Utilities.setTextViewPhrase(layout?.skip, "signup_code_skip")
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     fun setCode() {
 

@@ -38,7 +38,7 @@ class PropertyViewModel internal constructor(
 	val getLocalPropertCallback: MutableLiveData<PropertyEntity> = MutableLiveData()
 	val insertLocalPropertyCallback: MutableLiveData<PropertyEntity> = MutableLiveData()
 	val updateLocalPropertyCallback: MutableLiveData<PropertyEntity> = MutableLiveData()
-	val roomPropertyUpdateServer: MutableLiveData<PropertyEntity> = MutableLiveData()
+	val localPropertyUpdateServerCallback: MutableLiveData<PropertyEntity> = MutableLiveData()
 
 	// yield forecast
 	val yieldForecastList: MutableLiveData<List<YieldForecastEntity>> = MutableLiveData()
@@ -190,7 +190,7 @@ class PropertyViewModel internal constructor(
 	}
 
 	fun actionLocalProperty(applicationContext: Context, propertyData: PropertyEntity?) {
-		Utilities.log(Enums.LogType.Debug, TAG, "actionRoomProperty(): propertyData = $propertyData")
+		Utilities.log(Enums.LogType.Debug, TAG, "actionLocalProperty(): propertyData = $propertyData")
 
 		val action = if (propertyData?.roomID == null || propertyData.roomID == 0L)
 			Enums.ObserverAction.INSERT_LOCAL

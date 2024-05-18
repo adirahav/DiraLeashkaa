@@ -59,7 +59,7 @@ class RegistrationTermsOfUseFragment : Fragment() {
         else
             _userActivity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
 
-        // strings
+        // phrases
         setPhrases()
     }
 
@@ -113,17 +113,17 @@ class RegistrationTermsOfUseFragment : Fragment() {
         layout?.agree?.contentDescription = Utilities.getLocalPhrase("signup_terms_of_use_agree")
     }
 
-    //region == strings ============
+    //region == phrases ============
 
     private fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        Utilities.setTextViewString(layout?.agreeLabel, "signup_terms_of_use_agree")
-        Utilities.setTextViewString(layout?.agreeError, "signup_terms_of_use_agree_error")
+        Utilities.setTextViewPhrase(layout?.agreeLabel, "signup_terms_of_use_agree")
+        Utilities.setTextViewPhrase(layout?.agreeError, "signup_terms_of_use_agree_error")
 
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     fun submitForm() : Map<String, Any?> {
         var isValid = true

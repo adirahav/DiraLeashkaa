@@ -84,7 +84,7 @@ class SignUpPersonalInfoFragment : Fragment() {
             )
         }
 
-        // strings
+        // phrases
         setPhrases()
     }
 
@@ -193,22 +193,22 @@ class SignUpPersonalInfoFragment : Fragment() {
         }
     }
 
-    //region == strings ============
+    //region == phrases ============
 
     private fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         Utilities.setLabelViewString(layout?.fullnameLabel, "signup_fullname_label")
-        Utilities.setTextViewString(layout?.fullnameError, "signup_fullname_error")
+        Utilities.setTextViewPhrase(layout?.fullnameError, "signup_fullname_error")
 
         Utilities.setLabelViewString(layout?.emailLabel, "signup_email_label")
-        Utilities.setTextViewString(layout?.emailError, "signup_email_error")
+        Utilities.setTextViewPhrase(layout?.emailError, "signup_email_error")
 
         Utilities.setLabelViewString(layout?.passwordLabel, "signup_password_label")
-        Utilities.setTextViewString(layout?.passwordError, "signup_password_error")
+        Utilities.setTextViewPhrase(layout?.passwordError, "signup_password_error")
 
         Utilities.setLabelViewString(layout?.yearOfBirthLabel, "signup_year_of_birth_hint")
-        Utilities.setTextViewString(layout?.yearOfBirthError, "signup_year_of_birth_error")
+        Utilities.setTextViewPhrase(layout?.yearOfBirthError, "signup_year_of_birth_error")
 
         layout?.login?.text = HtmlCompat.fromHtml(
                 Utilities.getLocalPhrase("signup_goto_login"),
@@ -216,7 +216,7 @@ class SignUpPersonalInfoFragment : Fragment() {
 
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     fun submitForm(): Map<String, Any?> {
         var isValid = true
@@ -251,7 +251,7 @@ class SignUpPersonalInfoFragment : Fragment() {
         // email
         if (!Utilities.isEmailValid(layout?.email?.text.toString().trim())) {
             layout?.emailError?.visibility = View.VISIBLE
-            Utilities.setTextViewString(layout?.emailError, "signup_email_error")
+            Utilities.setTextViewPhrase(layout?.emailError, "signup_email_error")
 
             if (isValid) {
                 layout?.email?.requestFocus()

@@ -157,7 +157,7 @@ class LoginActivity : BaseActivity<LoginViewModel?, ActivityLoginBinding>() {
 		return ViewModelProvider(this, factory)[LoginViewModel::class.java]
 	}
 
-	//strings
+	//phrases
 	override fun setPhrases() {
 		Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
@@ -165,7 +165,7 @@ class LoginActivity : BaseActivity<LoginViewModel?, ActivityLoginBinding>() {
 
 		Utilities.setLabelViewString(layout.emailLabel, "login_email_label")
 		Utilities.setLabelViewString(layout.passwordLabel, "login_password_label")
-		Utilities.setTextViewString(layout.loginError, "login_credentials_error")
+		Utilities.setTextViewPhrase(layout.loginError, "login_credentials_error")
 
 		layout.submit.text = Utilities.getLocalPhrase("login_submit")
 		layout.signUp.text = HtmlCompat.fromHtml(
@@ -177,7 +177,7 @@ class LoginActivity : BaseActivity<LoginViewModel?, ActivityLoginBinding>() {
 
 		super.setPhrases()
 	}
-	//strings
+	//phrases
 
 	// events
 	fun submitForm() {

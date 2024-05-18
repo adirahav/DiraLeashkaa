@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.view.View.VISIBLE
 import android.view.WindowManager
 import androidx.lifecycle.LifecycleOwner
@@ -12,14 +13,14 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.*
+import com.adirahav.diraleashkaa.common.Utilities.camelToSnakeCase
 import com.adirahav.diraleashkaa.data.DataManager
 import com.adirahav.diraleashkaa.data.network.entities.*
 import com.adirahav.diraleashkaa.databinding.ActivityCalculatorBinding
 import com.adirahav.diraleashkaa.ui.base.BaseActivity
-import com.adirahav.diraleashkaa.ui.property.CalculatorMaxPriceFragment
 import com.adirahav.diraleashkaa.views.PropertyInput
 
-class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculatorBinding>() {
+class CalculatorActivity : BaseActivity<CalculatorViewModel?, ActivityCalculatorBinding>() {
 
     //region == companion ==========
 
@@ -46,9 +47,9 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
     // shared preferences
     var preferences: AppPreferences? = null
 
-    // room/server data loaded
-    var isRoomFixedParametersLoaded: Boolean = false
-    var isRoomUserLoaded: Boolean = false
+    // local/server data loaded
+    var isLocalFixedParametersLoaded: Boolean = false
+    var isLocalUserLoaded: Boolean = false
 
     var isServerFixedParametersLoaded: Boolean = false
     var isServerUserLoaded: Boolean = false
@@ -68,11 +69,17 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
     // user data
     var userData: UserEntity? = null
 
+    // loggedin user
+    var userToken: String? = null
+
     // layout
     internal var layout: ActivityCalculatorBinding? = null
 
     // fragments
     private var calculatorMaxPriceFragment: CalculatorMaxPriceFragment? = null
+
+    // mask
+    private var containerMaskView: View? = null
 
     //endregion == variables ==========
 
@@ -97,17 +104,18 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
 
         lifecycleOwner = this
         initObserver()
+        initViews()
 
         setCustomActionBar(layout?.drawer)
         setDrawer(layout?.drawer, layout?.menu)
 
         // title text
-        titleText?.text = Utilities.getLocalPhrase("actionbar_title_calculator_${argCalculatorType}")
+        titleText?.text = Utilities.getLocalPhrase("actionbar_title_calculator_${argCalculatorType?.camelToSnakeCase()}")
     }
-    override fun createViewModel(): CalculatorsViewModel {
+    override fun createViewModel(): CalculatorViewModel {
         Utilities.log(Enums.LogType.Debug, TAG, "createViewModel()", showToast = false)
-        val factory = CalculatorsViewModelFactory(DataManager.instance!!.calculatorsService)
-        return ViewModelProvider(this, factory)[CalculatorsViewModel::class.java]
+        val factory = CalculatorViewModelFactory(this@CalculatorActivity, DataManager.instance!!.calculatorsService)
+        return ViewModelProvider(this, factory)[CalculatorViewModel::class.java]
     }
 
     override fun onPause() {
@@ -121,7 +129,7 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
         Utilities.log(Enums.LogType.Debug, TAG, "onStop()", showToast = false)
 
         when (argCalculatorType) {
-            "max_price" -> {
+            "maxPrice" -> {
                 calculatorMaxPriceFragment?.removeObservers()
             }
         }
@@ -133,8 +141,8 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
     override fun onSaveInstanceState(savedInstanceState: Bundle) {
         super.onSaveInstanceState(savedInstanceState)
         Utilities.log(Enums.LogType.Debug, TAG, "onSaveInstanceState()", showToast = false)
-        savedInstanceState.putBoolean("isRoomFixedParametersLoaded", isRoomFixedParametersLoaded)
-        savedInstanceState.putBoolean("isRoomUserLoaded", isRoomUserLoaded)
+        savedInstanceState.putBoolean("isLocalFixedParametersLoaded", isLocalFixedParametersLoaded)
+        savedInstanceState.putBoolean("isLocalUserLoaded", isLocalUserLoaded)
         savedInstanceState.putBoolean("isServerFixedParametersLoaded", isServerFixedParametersLoaded)
         savedInstanceState.putBoolean("isDataInit", isDataInit)
 
@@ -144,13 +152,13 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         Utilities.log(Enums.LogType.Debug, TAG, "onRestoreInstanceState()", showToast = false)
-        isRoomFixedParametersLoaded = savedInstanceState.getBoolean("isRoomFixedParametersLoaded")
-        isRoomUserLoaded = savedInstanceState.getBoolean("isRoomUserLoaded")
+        isLocalFixedParametersLoaded = savedInstanceState.getBoolean("isLocalFixedParametersLoaded")
+        isLocalUserLoaded = savedInstanceState.getBoolean("isLocalUserLoaded")
         isServerFixedParametersLoaded = savedInstanceState.getBoolean("isServerFixedParametersLoaded")
         isDataInit = savedInstanceState.getBoolean("isDataInit")
 
         when (argCalculatorType) {
-            "max_price" -> {
+            "maxPrice" -> {
                 calculatorMaxPriceFragment = CalculatorMaxPriceFragment()
                 supportFragmentManager.beginTransaction()
                         .replace(R.id.fragment, calculatorMaxPriceFragment!!)
@@ -174,9 +182,9 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
         // calculator type
         argCalculatorType = intent.getStringExtra(EXTRA_CALCULATOR_TYPE)
 
-        // room/server data loaded
-        isRoomFixedParametersLoaded = false
-        isRoomUserLoaded = false
+        // local/server data loaded
+        isLocalFixedParametersLoaded = false
+        isLocalUserLoaded = false
 
         isServerFixedParametersLoaded = false
         isServerUserLoaded = false
@@ -186,13 +194,18 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
 
     fun initViews() {
         Utilities.log(Enums.LogType.Debug, TAG, "initViews()", showToast = false)
+
+        // mask
+        containerMaskView = layout?.containerMask
     }
 
     fun initData() {
         Utilities.log(Enums.LogType.Debug, TAG, "initData()", showToast = false)
 
+        userToken = preferences!!.getString("token", "")
+
         when (argCalculatorType) {
-            "max_price" -> {
+            "maxPrice" -> {
                 calculatorMaxPriceFragment = CalculatorMaxPriceFragment()
                 supportFragmentManager.beginTransaction()
                         .replace(R.id.fragment, calculatorMaxPriceFragment!!)
@@ -204,12 +217,12 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
     fun initObserver() {
         if (Utilities.getNetworkStatus() != Enums.NetworkStatus.NOT_CONNECTED) {
             Utilities.log(Enums.LogType.Debug, TAG, "initObserver()", showToast = false)
-            if (!viewModel!!.roomFixedParameters.hasObservers()) viewModel!!.roomFixedParameters.observe(this@CalculatorActivity, RoomFixedParametersObserver())
-            if (!viewModel!!.roomUser.hasObservers()) viewModel!!.roomUser.observe(this@CalculatorActivity, RoomUserObserver())
+            if (!viewModel!!.localFixedParametersCallback.hasObservers()) viewModel!!.localFixedParametersCallback.observe(this@CalculatorActivity, LocalFixedParametersObserver())
+            if (!viewModel!!.localUserCallback.hasObservers()) viewModel!!.localUserCallback.observe(this@CalculatorActivity, LocalUserObserver())
 
-            if (!isRoomFixedParametersLoaded && !isRoomUserLoaded && !isServerFixedParametersLoaded && !isServerUserLoaded && !isDataInit) {
-                viewModel!!.getRoomFixedParameters(applicationContext)
-                viewModel!!.getRoomUser(applicationContext, roomUID)
+            if (!isLocalFixedParametersLoaded && !isLocalUserLoaded && !isServerFixedParametersLoaded && !isServerUserLoaded && !isDataInit) {
+                viewModel!!.getLocalFixedParameters(applicationContext)
+                viewModel!!.getLocalUser(applicationContext, roomUID)
             }
         }
         else {
@@ -241,11 +254,11 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
     //endregion == input number picker ======
 
     //region == observers ================
-    private inner class RoomFixedParametersObserver() : Observer<FixedParametersEntity?> {
+    private inner class LocalFixedParametersObserver() : Observer<FixedParametersEntity?> {
         override fun onChanged(fixedParameters: FixedParametersEntity?) {
-            Utilities.log(Enums.LogType.Debug, TAG, "RoomFixedParametersObserver()")
+            Utilities.log(Enums.LogType.Debug, TAG, "LocalFixedParametersObserver()")
 
-            isRoomFixedParametersLoaded = true
+            isLocalFixedParametersLoaded = true
 
             if (fixedParameters == null) {
                 return
@@ -254,23 +267,23 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
             // fixed parameters
             fixedParametersData = FixedParameters.init(fixedParameters)
 
-            if (isRoomFixedParametersLoaded && isRoomUserLoaded && !isDataInit) {
+            if (isLocalFixedParametersLoaded && isLocalUserLoaded && !isDataInit) {
                 initData()
             }
         }
     }
 
-    private inner class RoomUserObserver() : Observer<UserEntity?> {
+    private inner class LocalUserObserver() : Observer<UserEntity?> {
         override fun onChanged(user: UserEntity?) {
-            Utilities.log(Enums.LogType.Debug, TAG, "RoomUserObserver()")
+            Utilities.log(Enums.LogType.Debug, TAG, "LocalUserObserver()")
 
-            isRoomUserLoaded = true
+            isLocalUserLoaded = true
 
             if (user != null) {
                 userData = user
             }
 
-            if (isRoomFixedParametersLoaded && isRoomUserLoaded && !isDataInit) {
+            if (isLocalFixedParametersLoaded && isLocalUserLoaded && !isDataInit) {
                 initData()
             }
         }
@@ -290,12 +303,14 @@ class CalculatorActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculato
 
     fun freezeScreen() {
         this.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-        layout?.containerMask?.visibility = VISIBLE
+        layout?.drawer?.addView(containerMaskView)
+        //layout?.containerMask?.visibility = VISIBLE
     }
 
     fun unfreezeScreen() {
         this.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-        layout?.drawer?.removeView(layout?.containerMask)
+        layout?.drawer?.removeView(containerMaskView)
+        //layout?.containerMask?.visibility = View.GONE
     }
 
     //endregion == freeze screen ============

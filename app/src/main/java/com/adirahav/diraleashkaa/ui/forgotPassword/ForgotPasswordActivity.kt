@@ -2,7 +2,6 @@ package com.adirahav.diraleashkaa.ui.forgotPassword
 
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,13 +9,10 @@ import android.view.WindowManager
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.activity.OnBackPressedCallback
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.adirahav.diraleashkaa.R
-import com.adirahav.diraleashkaa.common.AppApplication
 import com.adirahav.diraleashkaa.common.AppApplication.Companion.context
 import com.adirahav.diraleashkaa.common.AppPreferences
 import com.adirahav.diraleashkaa.common.Enums
@@ -24,18 +20,14 @@ import com.adirahav.diraleashkaa.common.FixedParameters
 import com.adirahav.diraleashkaa.common.Utilities
 import com.adirahav.diraleashkaa.data.DataManager
 import com.adirahav.diraleashkaa.data.network.entities.FixedParametersEntity
-import com.adirahav.diraleashkaa.data.network.response.UserResponse
 import com.adirahav.diraleashkaa.databinding.ActivityForgotPasswordBinding
 import com.adirahav.diraleashkaa.ui.base.BaseActivity
-import com.adirahav.diraleashkaa.ui.home.HomeActivity
 import com.adirahav.diraleashkaa.ui.login.LoginActivity
-import com.adirahav.diraleashkaa.ui.signup.SignUpWelcomeFragment
 import com.airbnb.paris.extensions.style
 import com.google.gson.JsonObject
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.json.JSONObject
 import java.util.Date
 
 class ForgotPasswordActivity : BaseActivity<ForgotPasswordViewModel?, ActivityForgotPasswordBinding>() {
@@ -249,7 +241,7 @@ class ForgotPasswordActivity : BaseActivity<ForgotPasswordViewModel?, ActivityFo
 			}
 			else {
 				generateCodeFragment.layout?.emailError?.visibility = View.VISIBLE
-				Utilities.setTextViewString(generateCodeFragment.layout?.emailError, "forgot_password_credentials_error")
+				Utilities.setTextViewPhrase(generateCodeFragment.layout?.emailError, "forgot_password_credentials_error")
 				generateCodeFragment.layout?.email?.requestFocus()
 				Utilities.setButtonEnable(generateCodeFragment.layout?.submit)
 			}
@@ -270,7 +262,7 @@ class ForgotPasswordActivity : BaseActivity<ForgotPasswordViewModel?, ActivityFo
 					else {
 						val codeError = generateCodeFragment.codeDialog?.findViewById<TextView>(R.id.codeError)
 						codeError?.visibility = View.VISIBLE
-						Utilities.setTextViewString(codeError, "forgot_password_code_error")
+						Utilities.setTextViewPhrase(codeError, "forgot_password_code_error")
 
 						val codeList = generateCodeFragment.codeDialog?.findViewById<RecyclerView>(R.id.codeList)
 

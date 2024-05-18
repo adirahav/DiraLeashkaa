@@ -21,7 +21,7 @@ interface CalculatorsDao {
     @Query("DELETE FROM calculatorEntity")
     fun deleteAll()
 
-    @Query("SELECT * FROM propertyEntity where type = 'max_price' LIMIT 1")
+    @Query("SELECT * FROM propertyEntity where type = 'maxPrice' LIMIT 1")
     fun getMaxPrice(): PropertyEntity//LiveData<List<CalculatorEntity>>
 
 }

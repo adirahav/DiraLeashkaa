@@ -2,6 +2,7 @@ package com.adirahav.diraleashkaa.ui.contactus
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
+import com.adirahav.diraleashkaa.BuildConfig
 import com.adirahav.diraleashkaa.common.Configuration
 import com.adirahav.diraleashkaa.common.Enums
 import com.adirahav.diraleashkaa.common.Utilities
@@ -79,7 +80,11 @@ class ContactUsViewModel internal constructor(private val activity: ContactUsAct
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val call: Call<Boolean>? = contactUsService.contactUsAPI.sendMessage(ContactUsRequest(subject = subject, message = message))
+            val call: Call<Boolean>? = contactUsService.contactUsAPI.sendMessage(
+                    ContactUsRequest(
+                            subject = subject,
+                            message = message,
+                            appEnv = BuildConfig.BUILD_TYPE.uppercase()))
 
             call?.enqueue(object : Callback<Boolean> {
                 override fun onResponse(call: Call<Boolean>, response: Response<Boolean>) {

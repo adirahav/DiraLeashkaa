@@ -17,24 +17,24 @@ import kotlin.concurrent.schedule
 abstract class BaseViewModel : ViewModel() {
     private val TAG = "BaseViewModel"
 
-    // strings
-    val roomBaseStrings: MutableLiveData<ArrayList<PhraseEntity>?> = MutableLiveData()
+    // phrases
+    val localBasePhrasesCallback: MutableLiveData<ArrayList<PhraseEntity>?> = MutableLiveData()
 
-    //region strings
-    fun getRoomPhrases(applicationContext: Context) {
-        Utilities.log(Enums.LogType.Debug, TAG, "getRoomPhrases()")
+    //region phrases
+    fun getLocalPhrases(applicationContext: Context) {
+        Utilities.log(Enums.LogType.Debug, TAG, "getLocalPhrases()")
 
         CoroutineScope(Dispatchers.IO).launch {
-            val strings = DatabaseClient.getInstance(applicationContext)?.appDatabase?.stringsDao()?.getAll()
-            Timer("Strings", false).schedule(Configuration.LOCAL_AWAIT_MILLISEC) {
-                setStrings(strings as ArrayList<PhraseEntity>)
+            val phrases = DatabaseClient.getInstance(applicationContext)?.appDatabase?.phrasesDao()?.getAll()
+            Timer("Phrases", false).schedule(Configuration.LOCAL_AWAIT_MILLISEC) {
+                setPhrases(phrases as ArrayList<PhraseEntity>)
             }
         }
     }
 
-    private fun setStrings(strings: ArrayList<PhraseEntity>?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setStrings()", showToast = false)
-        this.roomBaseStrings.postValue(strings)
+    private fun setPhrases(phrases: ArrayList<PhraseEntity>?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()", showToast = false)
+        this.localBasePhrasesCallback.postValue(phrases)
     }
-    //endregion strings
+    //endregion phrases
 }

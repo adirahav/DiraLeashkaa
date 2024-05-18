@@ -1,7 +1,6 @@
 package com.adirahav.diraleashkaa.ui.forgotPassword
 
 import android.app.Dialog
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -74,7 +73,7 @@ class ForgotPasswordGenerateCodeFragment : Fragment() {
         // adjust container padding
         layout?.container?.setPadding(resources.getDimension(R.dimen.padding).toInt(), 0, resources.getDimension(R.dimen.padding).toInt(), 0)
 
-        // strings
+        // phrases
         setPhrases()
 
 
@@ -124,7 +123,7 @@ class ForgotPasswordGenerateCodeFragment : Fragment() {
         // email
         if (!Utilities.isEmailValid(layout?.email?.text.toString().trim())) {
             layout?.emailError?.visibility = View.VISIBLE
-            Utilities.setTextViewString(layout?.emailError, "forgot_password_email_error")
+            Utilities.setTextViewPhrase(layout?.emailError, "forgot_password_email_error")
 
             if (isValid) {
                 layout?.email?.requestFocus()

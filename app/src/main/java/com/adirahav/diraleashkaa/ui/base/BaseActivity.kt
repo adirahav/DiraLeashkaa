@@ -202,10 +202,10 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
     fun initBaseObserver() {
 
         Utilities.log(Enums.LogType.Debug, TAG, "initObserver()")
-        if (!viewModel!!.roomBaseStrings.hasObservers()) viewModel!!.roomBaseStrings.observe(this@BaseActivity, StringsObserver())
+        if (!viewModel!!.localBasePhrasesCallback.hasObservers()) viewModel!!.localBasePhrasesCallback.observe(this@BaseActivity, PhrasesObserver())
 
-        Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): getRoomPhrases")
-        viewModel!!.getRoomPhrases(applicationContext)
+        Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): getLocalPhrases")
+        viewModel!!.getLocalPhrases(applicationContext)
     }
 
     //endregion == lifecycle methods ==
@@ -658,15 +658,15 @@ abstract class BaseActivity<VM : BaseViewModel?, VB : ViewBinding> internal cons
     //endregion == views ==============
 
     //region observers
-    private inner class StringsObserver : Observer<ArrayList<PhraseEntity>?> {
-        override fun onChanged(strings: ArrayList<PhraseEntity>?) {
-            Utilities.log(Enums.LogType.Debug, TAG, "StringsObserver(): onChanged")
+    private inner class PhrasesObserver : Observer<ArrayList<PhraseEntity>?> {
+        override fun onChanged(phrases: ArrayList<PhraseEntity>?) {
+            Utilities.log(Enums.LogType.Debug, TAG, "PhrasesObserver(): onChanged")
 
-            if (strings == null) {
+            if (phrases == null) {
                 return
             }
 
-            Utilities.localPhrase = strings
+            Utilities.localPhrase = phrases
 
             setPhrases()
         }

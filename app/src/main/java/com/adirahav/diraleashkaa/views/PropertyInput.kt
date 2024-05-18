@@ -279,10 +279,10 @@ class PropertyInput @JvmOverloads constructor(context: Context, attrs: Attribute
                 when (dropDownOptions) {
                     "cities" -> {
                         CoroutineScope(Dispatchers.IO).launch {
-                            val roomPropertiesList = DatabaseClient.getInstance(context)?.appDatabase?.propertyDao()?.getAll()
+                            val localPropertiesList = DatabaseClient.getInstance(context)?.appDatabase?.propertyDao()?.getAll()
 
                             searchableSpinnerSuggestionItems = fixedParametersData?.citiesArray?.filter { cityEntity ->
-                                roomPropertiesList!!.any { propertyEntity ->
+                                localPropertiesList!!.any { propertyEntity ->
                                     propertyEntity.city == cityEntity.key
                                 }
                             }?.mapNotNull { it.value }

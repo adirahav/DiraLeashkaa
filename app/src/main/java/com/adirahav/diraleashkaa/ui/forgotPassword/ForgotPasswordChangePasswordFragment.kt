@@ -1,6 +1,5 @@
 package com.adirahav.diraleashkaa.ui.forgotPassword
 
-import android.app.Dialog
 import android.os.Bundle
 import android.text.InputType
 import androidx.fragment.app.Fragment
@@ -10,15 +9,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
-import androidx.core.text.HtmlCompat
 import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.*
 import com.adirahav.diraleashkaa.common.Utilities.setButtonDisable
-import com.adirahav.diraleashkaa.common.Utilities.setInputDisable
 import com.adirahav.diraleashkaa.data.network.response.UserResponse
 import com.adirahav.diraleashkaa.databinding.FragmentForgotPasswordChangePasswordBinding
-import com.adirahav.diraleashkaa.databinding.FragmentForgotPasswordGenerateCodeBinding
-import com.adirahav.diraleashkaa.ui.login.LoginActivity
 
 
 class ForgotPasswordChangePasswordFragment : Fragment() {
@@ -74,7 +69,7 @@ class ForgotPasswordChangePasswordFragment : Fragment() {
             0
         )
 
-        // strings
+        // phrases
         setPhrases()
     }
 
@@ -139,7 +134,7 @@ class ForgotPasswordChangePasswordFragment : Fragment() {
         if (!Utilities.isPasswordValid(layout?.newPassword?.text.toString().trim())) {
             layout?.newPasswordMessage?.text = Utilities.getLocalPhrase("forgot_password_new_password_error")
             layout?.newPasswordMessage?.visibility = View.VISIBLE
-            Utilities.setTextViewString(layout?.newPasswordMessage, "forgot_password_new_password_error")
+            Utilities.setTextViewPhrase(layout?.newPasswordMessage, "forgot_password_new_password_error")
 
             if (isValid) {
                 layout?.newPassword?.requestFocus()

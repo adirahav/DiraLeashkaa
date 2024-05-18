@@ -40,26 +40,26 @@ class UserViewModel internal constructor(
     // user
     val setUserCallback: MutableLiveData<UserEntity> = MutableLiveData()
     val getLocalUserCallback: MutableLiveData<UserEntity> = MutableLiveData()
-    val roomUserUpdateRoom: MutableLiveData<UserEntity> = MutableLiveData()
-    val roomUserUpdateServer: MutableLiveData<UserEntity> = MutableLiveData()
+    val updateLocalUserCallback: MutableLiveData<UserEntity> = MutableLiveData()
+    val updateUserCallback: MutableLiveData<UserEntity> = MutableLiveData()
 
     // terms of use
-    val termsOfUse: MutableLiveData<PhraseEntity> = MutableLiveData()
+    val termsOfUseCallback: MutableLiveData<PhraseEntity> = MutableLiveData()
 
     //region == fixed parameters ==============
-    fun getRoomFixedParameters(applicationContext: Context) {
-        Utilities.log(Enums.LogType.Debug, TAG, "getRoomFixedParameters()")
+    fun getLocalFixedParameters(applicationContext: Context) {
+        Utilities.log(Enums.LogType.Debug, TAG, "getLocalFixedParameters()")
 
         CoroutineScope(Dispatchers.IO).launch {
             val fixedParameters = DatabaseClient.getInstance(applicationContext)?.appDatabase?.fixedParametersDao()?.getAll()
             Timer("FixedParameters", false).schedule(Configuration.LOCAL_AWAIT_MILLISEC) {
-                setRoomFixedParameters(fixedParameters?.first())
+                setLocalFixedParameters(fixedParameters?.first())
             }
         }
     }
 
-    private fun setRoomFixedParameters(fixedParameters: FixedParametersEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomFixedParameters()", showToast = false)
+    private fun setLocalFixedParameters(fixedParameters: FixedParametersEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setLocalFixedParameters()", showToast = false)
         this.fixedParametersCallback.postValue(fixedParameters)
     }
     //endregion == fixed parameters ==============
@@ -182,38 +182,38 @@ class UserViewModel internal constructor(
 
     // update room user
     fun updateLocalUser(applicationContext: Context, userData: UserEntity?, caller: Enums.DBCaller) {
-        Utilities.log(Enums.LogType.Debug, TAG, "updateRoomUser()")
+        Utilities.log(Enums.LogType.Debug, TAG, "updateLocalUser()")
         DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.update(userData!!)!!
-        setRoomUserUpdate(userData, caller)
+        setUpdateLocalUser(userData, caller)
     }
 
-    private fun setRoomUserUpdate(user: UserEntity?, caller: Enums.DBCaller) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomUserUpdate()", showToast = false)
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomUserUpdate(): caller = ${caller}", showToast = false)
+    private fun setUpdateLocalUser(user: UserEntity?, caller: Enums.DBCaller) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setUpdateLocalUser()", showToast = false)
+        Utilities.log(Enums.LogType.Debug, TAG, "setUpdateLocalUser(): caller = ${caller}", showToast = false)
         if (caller == Enums.DBCaller.LOCAL) {
-            this.roomUserUpdateRoom.postValue(user)
+            this.updateLocalUserCallback.postValue(user)
         }
         else {
-            this.roomUserUpdateServer.postValue(user)
+            this.updateUserCallback.postValue(user)
         }
     }
 
-    // get room user
-    fun getRoomUser(applicationContext: Context, userID: Long?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "getRoomUser()")
+    // get local user
+    fun getLocalUser(applicationContext: Context, userID: Long?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "getLocalUser()")
         if (userID != null && userID > 0L) {
             CoroutineScope(Dispatchers.IO).launch {
                 val resultUser = DatabaseClient.getInstance(applicationContext)?.appDatabase?.userDao()?.findById(userID)
-                setRoomUserGet(resultUser)
+                setGettingLocalUser(resultUser)
             }
         }
         else {
-            setRoomUserGet(null)
+            setGettingLocalUser(null)
         }
     }
 
-    private fun setRoomUserGet(user: UserEntity?) {
-        Utilities.log(Enums.LogType.Debug, TAG, "setRoomUserGet()", showToast = false)
+    private fun setGettingLocalUser(user: UserEntity?) {
+        Utilities.log(Enums.LogType.Debug, TAG, "setGettingLocalUser()", showToast = false)
         this.getLocalUserCallback.postValue(user)
     }
 
@@ -253,7 +253,7 @@ class UserViewModel internal constructor(
 
     private fun setTermsOfUse(phrase: PhraseEntity?) {
         Utilities.log(Enums.LogType.Debug, TAG, "setTermsOfUse()", showToast = false)
-        this.termsOfUse.postValue(phrase)
+        this.termsOfUseCallback.postValue(phrase)
     }
 
     //endregion == terms of use ===================

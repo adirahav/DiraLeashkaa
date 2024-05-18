@@ -83,7 +83,7 @@ class SignUpFinancialInfoFragment : Fragment() {
             )
         }
 
-        // strings
+        // phrases
         setPhrases()
     }
 
@@ -125,22 +125,22 @@ class SignUpFinancialInfoFragment : Fragment() {
 
     //endregion == initialize =========
 
-    //region == strings ============
+    //region == phrases ============
 
     private fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
         Utilities.setLabelViewString(layout?.equityLabel, "signup_equity_label", "signup_equity_tooltip")
-        Utilities.setTextViewString(layout?.equityError, "signup_equity_error")
+        Utilities.setTextViewPhrase(layout?.equityError, "signup_equity_error")
 
         Utilities.setLabelViewString(layout?.incomesLabel, "signup_incomes_label", "signup_incomes_tooltip")
-        Utilities.setTextViewString(layout?.incomesError, "signup_incomes_error")
+        Utilities.setTextViewPhrase(layout?.incomesError, "signup_incomes_error")
 
         Utilities.setLabelViewString(layout?.commitmentsLabel, "signup_commitments_label", "signup_commitments_tooltip")
-        Utilities.setTextViewString(layout?.commitmentsError, "signup_commitments_error")
+        Utilities.setTextViewPhrase(layout?.commitmentsError, "signup_commitments_error")
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     fun submitForm() : Map<String, Any?> {
         var isValid = true

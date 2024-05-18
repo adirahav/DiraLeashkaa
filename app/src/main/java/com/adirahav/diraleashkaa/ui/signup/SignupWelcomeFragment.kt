@@ -44,7 +44,7 @@ class SignUpWelcomeFragment : Fragment() {
         // hide keyboard
         hideKeyboard(requireContext())
 
-        // strings
+        // phrases
         setPhrases()
     }
 
@@ -52,14 +52,14 @@ class SignUpWelcomeFragment : Fragment() {
         Utilities.await(Date(), AWAIT_SECONDS, ::responseAfterAwait)
     }
 
-    //region == strings ============
+    //region == phrases ============
 
     private fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
-        Utilities.setTextViewString(layout?.welcomeMessage, "signup_welcome_text")
+        Utilities.setTextViewPhrase(layout?.welcomeMessage, "signup_welcome_text")
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     private fun responseAfterAwait() {
         HomeActivity.start(requireContext())

@@ -109,17 +109,17 @@ class CalculatorsActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculat
     }
 
     override fun createViewModel(): CalculatorsViewModel {
-        val factory = CalculatorsViewModelFactory(DataManager.instance!!.calculatorsService)
+        val factory = CalculatorsViewModelFactory(this@CalculatorsActivity, DataManager.instance!!.calculatorsService)
         return ViewModelProvider(this, factory)[CalculatorsViewModel::class.java]
     }
 
     private fun initObserver() {
         if (getNetworkStatus() != Enums.NetworkStatus.NOT_CONNECTED) {
-            if (!viewModel!!.roomCalculators.hasObservers()) viewModel!!.roomCalculators.observe(this, RoomCalculatorsObserver())
+            if (!viewModel!!.localCalculatorsCallback.hasObservers()) viewModel!!.localCalculatorsCallback.observe(this, LocalCalculatorsObserver())
 
             if (!isDataInit) {
                 Utilities.log(Enums.LogType.Debug, TAG, "initObserver(): getServerCalculators")
-                viewModel!!.getRoomCalculators(applicationContext, userId)
+                viewModel!!.getLocalCalculators(applicationContext, userId)
             }
         }
         else {
@@ -127,12 +127,12 @@ class CalculatorsActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculat
         }
     }
 
-    //strings
+    //phrases
     override fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
         super.setPhrases()
     }
-    //strings
+    //phrases
 
     private fun setCalculators(calculator: List<CalculatorEntity>) {
 
@@ -148,7 +148,7 @@ class CalculatorsActivity : BaseActivity<CalculatorsViewModel?, ActivityCalculat
     }
 
     //region observers
-    private inner class RoomCalculatorsObserver : Observer<List<CalculatorEntity>?> {
+    private inner class LocalCalculatorsObserver : Observer<List<CalculatorEntity>?> {
         override fun onChanged(calculators: List<CalculatorEntity>?) {
 
             if (calculators != null) {

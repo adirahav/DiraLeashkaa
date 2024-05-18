@@ -18,6 +18,7 @@ import butterknife.ButterKnife
 import com.adirahav.diraleashkaa.R
 import com.adirahav.diraleashkaa.common.AppApplication
 import com.adirahav.diraleashkaa.common.Utilities
+import com.adirahav.diraleashkaa.common.Utilities.camelToSnakeCase
 import com.adirahav.diraleashkaa.data.network.entities.CalculatorEntity
 import kotlinx.coroutines.*
 import java.util.*
@@ -135,10 +136,11 @@ class CalculatorsAdapter(
         }
 
         // data container - picture
-        holder.picture!!.setImageResource(Utilities.findDrawableByName("icon_calculator_${calculator.type}"))
+        holder.picture!!.setImageResource(Utilities.findDrawableByName("icon_calculator_${calculator.type?.camelToSnakeCase()}"))
 
         // data container - title
-        holder.title!!.text = Utilities.getLocalPhrase("calculator_title_${calculator.type}")
+        holder.title!!.text = Utilities.getLocalPhrase("calculator_title_${calculator.type?.camelToSnakeCase()}")
+
     }
 
     override fun getItemCount(): Int {

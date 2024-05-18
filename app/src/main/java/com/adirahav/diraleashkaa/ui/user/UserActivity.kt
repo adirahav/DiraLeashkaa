@@ -70,8 +70,8 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
     // lifecycle owner
     var lifecycleOwner: LifecycleOwner? = null
 
-    // room/server data loaded
-    var isRoomUserLoaded: Boolean = false
+    // local/server data loaded
+    var isLocalUserLoaded: Boolean = false
     var isServerUserLoaded: Boolean = false
     var isDataInit: Boolean = false
 
@@ -113,14 +113,14 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
 
     fun initObserver() {
         log(Enums.LogType.Debug, TAG, "initObserver()", showToast = false)
-        if (!viewModel!!.setUserCallback.hasObservers()) viewModel!!.setUserCallback.observe(this@UserActivity, ServerUserObserver(Enums.ObserverAction.SAVE_SERVER))
-        if (!viewModel!!.getLocalUserCallback.hasObservers()) viewModel!!.getLocalUserCallback.observe(this@UserActivity, LocalUserObserver(Enums.ObserverAction.GET_LOCAL))
-        if (!viewModel!!.roomUserUpdateRoom.hasObservers()) viewModel!!.roomUserUpdateRoom.observe(this@UserActivity, LocalUserObserver(Enums.ObserverAction.UPDATE_LOCAL))
-        if (!viewModel!!.roomUserUpdateServer.hasObservers()) viewModel!!.roomUserUpdateServer.observe(this@UserActivity, LocalUserObserver(Enums.ObserverAction.UPDATE))
-        if (!viewModel!!.termsOfUse.hasObservers()) viewModel!!.termsOfUse.observe(this@UserActivity, TermsOfUseObserver())
+        if (!viewModel!!.setUserCallback.hasObservers()) viewModel!!.setUserCallback.observe(this@UserActivity, SaveUserObserver())
+        if (!viewModel!!.getLocalUserCallback.hasObservers()) viewModel!!.getLocalUserCallback.observe(this@UserActivity, GetLocalUserObserver())
+        if (!viewModel!!.updateLocalUserCallback.hasObservers()) viewModel!!.updateLocalUserCallback.observe(this@UserActivity, UpdateLocalUserObserver())
+        if (!viewModel!!.updateUserCallback.hasObservers()) viewModel!!.updateUserCallback.observe(this@UserActivity, UpdateUserObserver())
+        if (!viewModel!!.termsOfUseCallback.hasObservers()) viewModel!!.termsOfUseCallback.observe(this@UserActivity, TermsOfUseObserver())
 
-        if (!isRoomUserLoaded && !isDataInit) {
-            viewModel!!.getRoomUser(applicationContext, roomUID)
+        if (!isLocalUserLoaded && !isDataInit) {
+            viewModel!!.getLocalUser(applicationContext, roomUID)
         }
     }
 
@@ -138,8 +138,8 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
             loggedinUser = if (existLocalUser != null) existLocalUser else null
         }
 
-        // room/server data loaded
-        isRoomUserLoaded = false
+        // local/server data loaded
+        isLocalUserLoaded = false
         isServerUserLoaded = false
 
         isDataInit = false
@@ -164,7 +164,7 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
 
     //endregion == initialize =========
 
-    //region == strings ============
+    //region == phrases ============
 
     override fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
@@ -177,7 +177,7 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
         super.setPhrases()
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     //region == fragments ==========
 
@@ -282,75 +282,62 @@ class UserActivity : BaseActivity<UserViewModel?, ActivityUserBinding>() {
 
     //region == observers ==========
 
-    private inner class LocalUserObserver(action: Enums.ObserverAction) : Observer<UserEntity?> {
-        val _action = action
+    private inner class GetLocalUserObserver : Observer<UserEntity?> {
         override fun onChanged(user: UserEntity?) {
-            when (_action) {
-                Enums.ObserverAction.GET_LOCAL -> {
-                    log(Enums.LogType.Debug, TAG, "RoomUserObserver(): GET_ROOM. user = $user")
+            log(Enums.LogType.Debug, TAG, "GetLocalUserObserver(): user = $user")
 
-                    isRoomUserLoaded = true
+            isLocalUserLoaded = true
 
-                    if (user == null) {
-                        return
-                    }
-
-                    userData = user
-
-                    if (isRoomUserLoaded) {
-                        loadFragment()
-                    }
-                }
-
-                Enums.ObserverAction.UPDATE_LOCAL -> {
-                    log(Enums.LogType.Debug, TAG, "RoomUserObserver(): UPDATE_ROOM. user = $user")
-
-                    roomUID = user?.roomUID
-                    preferences?.setLong("roomUID", roomUID!!, false)
-
-                    //
-                    Utilities.displayActionSnackbar(activity, Utilities.getLocalPhrase("user_save_success"))
-                }
-
-                Enums.ObserverAction.UPDATE -> {
-                    log(Enums.LogType.Debug, TAG, "RoomUserObserver(): UPDATE_SERVER. user = $user")
-
-                    if (user == null) {
-                        return
-                    }
-
-                    userData = user
-
-                    roomUID = user?.roomUID
-                    preferences?.setLong("roomUID", roomUID!!, false)
-
-                    Utilities.displayActionSnackbar(activity, Utilities.getLocalPhrase("user_save_success"))
-                }
-
-                else -> {}
+            if (user == null) {
+                return
             }
 
+            userData = user
+
+            if (isLocalUserLoaded) {
+                loadFragment()
+            }
         }
     }
 
-    private inner class ServerUserObserver(action: Enums.ObserverAction) : Observer<UserEntity?> {
-        val _action = action
+    private inner class UpdateLocalUserObserver : Observer<UserEntity?> {
         override fun onChanged(user: UserEntity?) {
-            when (_action) {
-                Enums.ObserverAction.SAVE_SERVER -> {
-                    log(Enums.LogType.Debug, TAG, "ServerUserObserver(): INSERT_UPDATE_SERVER. user.email = ${user?.email}")
+            log(Enums.LogType.Debug, TAG, "LocalUserObserver(): user = $user")
 
-                    GlobalScope.launch {
+            roomUID = user?.roomUID
+            preferences?.setLong("roomUID", roomUID!!, false)
 
-                        viewModel!!.updateLocalUser(
-                            applicationContext,
-                            userData,
-                            Enums.DBCaller.SERVER
-                        )
-                    }
-                }
+            //
+            Utilities.displayActionSnackbar(activity, Utilities.getLocalPhrase("user_save_success"))
+        }
+    }
 
-                else -> {}
+    private inner class UpdateUserObserver : Observer<UserEntity?> {
+        override fun onChanged(user: UserEntity?) {
+            log(Enums.LogType.Debug, TAG, "UpdateUserObserver(): user = $user")
+
+            if (user == null) {
+                return
+            }
+
+            userData = user
+
+            roomUID = user?.roomUID
+            preferences?.setLong("roomUID", roomUID!!, false)
+
+            Utilities.displayActionSnackbar(activity, Utilities.getLocalPhrase("user_save_success"))
+        }
+    }
+
+    private inner class SaveUserObserver : Observer<UserEntity?> {
+        override fun onChanged(user: UserEntity?) {
+            log(Enums.LogType.Debug, TAG, "SaveUserObserver() user.email = ${user?.email}")
+            GlobalScope.launch {
+                viewModel!!.updateLocalUser(
+                    applicationContext,
+                    userData,
+                    Enums.DBCaller.SERVER
+                )
             }
         }
     }

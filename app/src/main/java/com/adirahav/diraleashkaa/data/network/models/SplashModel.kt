@@ -10,7 +10,7 @@ import com.google.gson.annotations.SerializedName
 
 data class SplashModel(
         @SerializedName("fixedParameters") var fixedParameters: FixedParametersEntity? = null,
-        @SerializedName("phrases") var strings: ArrayList<PhraseEntity?>,
+        @SerializedName("phrases") var phrases: ArrayList<PhraseEntity?>,
         @SerializedName("user") var user: UserEntity? = null,
         @SerializedName("restore") val restore: DeviceDataClass? = null,
         @SerializedName("announcements") val announcements: List<AnnouncementEntity>? = null,

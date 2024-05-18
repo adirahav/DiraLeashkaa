@@ -60,8 +60,8 @@ val MAX_CONNECTING_TRIES = 20
             var gotoLogin = false
             val existLocalUser = DatabaseClient.getInstance(activity.applicationContext)?.appDatabase?.userDao()?.getFirst()
             val existLocalFixedParameters = DatabaseClient.getInstance(activity.applicationContext)?.appDatabase?.fixedParametersDao()?.getFirst()
-            val existLocalStrings = DatabaseClient.getInstance(activity.applicationContext)?.appDatabase?.stringsDao()?.getFirst()
-            if (existLocalUser != null && existLocalFixedParameters != null && existLocalStrings != null) {
+            val existLocalPhrases = DatabaseClient.getInstance(activity.applicationContext)?.appDatabase?.phrasesDao()?.getFirst()
+            if (existLocalUser != null && existLocalFixedParameters != null && existLocalPhrases != null) {
                 if (activity.preferences!!.getString("token", "").isNullOrEmpty()) {
                     gotoLogin = true
                     LoginActivity.start(AppApplication.context, existLocalUser.email)
@@ -181,20 +181,20 @@ val MAX_CONNECTING_TRIES = 20
             }
 
             // ----------------
-            // strings
+            // phrases
             // ----------------
-            val stringsList = DatabaseClient.getInstance(applicationContext)?.appDatabase?.stringsDao()?.getAll()
+            val phrasesList = DatabaseClient.getInstance(applicationContext)?.appDatabase?.phrasesDao()?.getAll()
 
-            if (stringsList != null) {
-                if (stringsList.isNotEmpty()) {
-                    DatabaseClient.getInstance(applicationContext)?.appDatabase?.stringsDao()?.deleteAll()!!
+            if (phrasesList != null) {
+                if (phrasesList.isNotEmpty()) {
+                    DatabaseClient.getInstance(applicationContext)?.appDatabase?.phrasesDao()?.deleteAll()!!
                 }
             }
 
-            val localPhrases = splash?.strings
+            val localPhrases = splash?.phrases
             if (localPhrases != null) {
                 for (item in localPhrases) {
-                    DatabaseClient.getInstance(applicationContext)?.appDatabase?.stringsDao()?.insert(item as PhraseEntity)!!
+                    DatabaseClient.getInstance(applicationContext)?.appDatabase?.phrasesDao()?.insert(item as PhraseEntity)!!
                 }
             }
 

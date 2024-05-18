@@ -162,13 +162,13 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
 
     //endregion == initialize =========
 
-    //region == strings ============
+    //region == phrases ============
 
     override fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        Utilities.setTextViewString(layout.sendMessageSuccess, "contactus_message_send_success")
-        Utilities.setTextViewString(layout.sendMessageError, "contactus_message_send_error")
+        Utilities.setTextViewPhrase(layout.sendMessageSuccess, "contactus_message_send_success")
+        Utilities.setTextViewPhrase(layout.sendMessageError, "contactus_message_send_error")
 
         layout.buttons.back.text = Utilities.getLocalPhrase("button_back")
         layout.buttons.next.text = Utilities.getLocalPhrase("button_next")
@@ -178,7 +178,7 @@ class ContactUsActivity : BaseActivity<ContactUsViewModel?, ActivityContactusBin
         super.setPhrases()
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     //region == fragments ==========
 

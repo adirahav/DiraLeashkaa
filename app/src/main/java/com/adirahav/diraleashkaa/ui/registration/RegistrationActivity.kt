@@ -77,15 +77,12 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
     val payProgramFragment = RegistrationPayProgramFragment()
     val couponCodeFragment = RegistrationCouponCodeFragment()
 
-    // strings
-    var _roomPhrases: ArrayList<PhraseEntity>? = null
-
     // lifecycle owner
     var lifecycleOwner: LifecycleOwner? = null
 
-    // room/server data loaded
-    var isRoomFixedParametersLoaded: Boolean = false
-    var isRoomUserLoaded: Boolean = false
+    // local/server data loaded
+    var isLocalFixedParametersLoaded: Boolean = false
+    var isLocalUserLoaded: Boolean = false
     var isServerUserLoaded: Boolean = false
     var isDataInit: Boolean = false
 
@@ -145,8 +142,8 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
     override fun onStop() {
         super.onStop()
         log(Enums.LogType.Debug, TAG, "onStop()", showToast = false)
-        isRoomFixedParametersLoaded = false
-        isRoomUserLoaded = false
+        isLocalFixedParametersLoaded = false
+        isLocalUserLoaded = false
         isDataInit = false
     }
 
@@ -156,7 +153,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
     fun initObserver() {
         log(Enums.LogType.Debug, TAG, "initObserver()", showToast = false)
-        if (!viewModel!!.getLocalFixedParameters.hasObservers()) viewModel!!.getLocalFixedParameters.observe(this@RegistrationActivity, LocalFixedParametersObserver(Enums.ObserverAction.GET_LOCAL))
+        if (!viewModel!!.getLocalFixedParameters.hasObservers()) viewModel!!.getLocalFixedParameters.observe(this@RegistrationActivity, GetLocalFixedParametersObserver())
         if (!viewModel!!.couponRegistrationCallback.hasObservers()) viewModel!!.couponRegistrationCallback.observe(this@RegistrationActivity, CouponRegistrationObserver())
         if (!viewModel!!.payProgramRegistrationCallback.hasObservers()) viewModel!!.payProgramRegistrationCallback.observe(this@RegistrationActivity, PayRegistrationObserver())
         if (!viewModel!!.saveUserCallback.hasObservers()) viewModel!!.saveUserCallback.observe(this@RegistrationActivity, UserObserver(Enums.ObserverAction.SAVE_SERVER))
@@ -165,9 +162,9 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         if (!viewModel!!.updateServerUserCallback.hasObservers()) viewModel!!.updateServerUserCallback.observe(this@RegistrationActivity, LocalUserObserver(Enums.ObserverAction.UPDATE))
         if (!viewModel!!.unsubscribeCallback.hasObservers()) viewModel!!.unsubscribeCallback.observe(this@RegistrationActivity, UnsubscribeObserver())
 
-        if (!isRoomFixedParametersLoaded && !isRoomUserLoaded && !isDataInit) {
+        if (!isLocalFixedParametersLoaded && !isLocalUserLoaded && !isDataInit) {
             viewModel!!.getLocalFixedParameters(applicationContext)
-            viewModel!!.getRoomUser(applicationContext, roomUID)
+            viewModel!!.getLocalUser(applicationContext, roomUID)
         }
     }
 
@@ -179,8 +176,8 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         // user id
         roomUID = preferences?.getLong("roomUID", 0)
 
-        // room/server data loaded
-        isRoomUserLoaded = false
+        // local/server data loaded
+        isLocalUserLoaded = false
         isServerUserLoaded = false
 
         isDataInit = false
@@ -215,7 +212,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
     //endregion == initialize =========
 
-    //region == strings ============
+    //region == phrases ============
 
     override fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
@@ -232,7 +229,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         super.setPhrases()
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     //region == unsubscribe ========
 
@@ -444,28 +441,22 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
 
     //region == observers ==========
 
-    private inner class LocalFixedParametersObserver(action: Enums.ObserverAction) : Observer<FixedParametersEntity?> {
-        val _action = action
+    private inner class GetLocalFixedParametersObserver : Observer<FixedParametersEntity?> {
+
         override fun onChanged(fixedParameters: FixedParametersEntity?) {
-            when (_action) {
-                Enums.ObserverAction.GET_LOCAL -> {
-                    log(Enums.LogType.Debug, TAG, "RoomFixedParametersObserver(): GET_ROOM")
-                    isRoomFixedParametersLoaded = true
+            log(Enums.LogType.Debug, TAG, "GetLocalFixedParametersObserver()")
+            isLocalFixedParametersLoaded = true
 
-                    if (fixedParameters == null) {
-                        return
-                    }
+            if (fixedParameters == null) {
+                return
+            }
 
-                    fixedParametersData = FixedParameters.init(fixedParameters)
+            fixedParametersData = FixedParameters.init(fixedParameters)
 
-                    if (isRoomFixedParametersLoaded && isRoomUserLoaded) {
-                        updatePreferences()
-                        expiredRegistrationMessage()
-                        loadFragment()
-                    }
-                }
-
-                else -> {}
+            if (isLocalFixedParametersLoaded && isLocalUserLoaded) {
+                updatePreferences()
+                expiredRegistrationMessage()
+                loadFragment()
             }
         }
     }
@@ -487,9 +478,9 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
         override fun onChanged(user: UserEntity?) {
             when (_action) {
                 Enums.ObserverAction.GET_LOCAL -> {
-                    log(Enums.LogType.Debug, TAG, "RoomUserObserver(): GET_ROOM. user = $user")
+                    log(Enums.LogType.Debug, TAG, "LocalUserObserver(): GET_LOCAL. user = $user")
 
-                    isRoomUserLoaded = true
+                    isLocalUserLoaded = true
 
                     if (user == null) {
                         return
@@ -509,7 +500,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
                         calcAge = user.calcAge
                     )
 
-                    if (isRoomFixedParametersLoaded && isRoomUserLoaded) {
+                    if (isLocalFixedParametersLoaded && isLocalUserLoaded) {
                         updatePreferences()
                         expiredRegistrationMessage()
                         loadFragment()
@@ -517,7 +508,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
                 }
 
                 Enums.ObserverAction.UPDATE_LOCAL -> {
-                    log(Enums.LogType.Debug, TAG, "RoomUserObserver(): UPDATE_ROOM. user = $user")
+                    log(Enums.LogType.Debug, TAG, "LocalUserObserver(): UPDATE_LOCAL. user = $user")
 
                     roomUID = user?.roomUID
                     preferences?.setLong("roomUID", roomUID!!, false)
@@ -532,7 +523,7 @@ class RegistrationActivity : BaseActivity<RegistrationViewModel?, ActivityRegist
                 }
 
                 Enums.ObserverAction.SAVE_SERVER -> {
-                    log(Enums.LogType.Debug, TAG, "RoomUserObserver(): INSERT_UPDATE_SERVER. user = $user")
+                    log(Enums.LogType.Debug, TAG, "LocalUserObserver(): SAVE_SERVER. user = $user")
 
                     if (user == null) {
                         return

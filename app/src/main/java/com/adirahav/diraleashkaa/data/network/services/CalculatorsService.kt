@@ -1,8 +1,11 @@
 package com.adirahav.diraleashkaa.data.network.services
 
 import com.adirahav.diraleashkaa.BuildConfig.BASE_URL
+import com.adirahav.diraleashkaa.data.network.entities.PropertyEntity
 import com.adirahav.diraleashkaa.data.network.models.CalculatorModel
 import com.adirahav.diraleashkaa.data.network.models.PropertyModel
+import com.adirahav.diraleashkaa.data.network.requests.PropertyRequest
+import com.google.gson.GsonBuilder
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -23,22 +26,15 @@ class CalculatorsService private constructor() {
     }
 
     init {
-        val retrofit: Retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create()).baseUrl(BASE_URL).build()
+        val retrofit: Retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create(GsonBuilder().serializeNulls().create())).baseUrl(BASE_URL).build()
         calculatorsAPI = retrofit.create(CalculatorsAPI::class.java)
     }
 
     interface CalculatorsAPI {
-        @FormUrlEncoded
-        @POST("calculators/getList")
-        fun getList(
-
-        ): Call<CalculatorModel?>?
-
-        @FormUrlEncoded
-        @POST("calculators/maxPrice")
+        @PUT("calculator/maxPrice")
         fun maxPrice(
-                @Field("fieldName") fieldName: String?,
-                @Field("fieldValue") fieldValue: String?,
-        ): Call<PropertyModel?>?
+                @Header("Authorization") token: String?,
+                @Body request: PropertyRequest
+        ): Call<PropertyEntity?>?
     }
 }

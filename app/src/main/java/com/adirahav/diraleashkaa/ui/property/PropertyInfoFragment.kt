@@ -228,7 +228,7 @@ class PropertyInfoFragment : Fragment() {
 
         setActionsMenuEnable(false)
 
-        // strings
+        // phrases
         setPhrases()
     }
 
@@ -1162,44 +1162,44 @@ class PropertyInfoFragment : Fragment() {
 
     //endregion == initialize =========
 
-    //region == strings ============
+    //region == phrases ============
 
     private fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
-        Utilities.setPropertyInputString(layout?.city, "property_city_label")
-        Utilities.setPropertyInputString(layout?.cityElse, "property_city_else_label")
-        Utilities.setPropertyInputString(layout?.address, "property_address_label")
-        Utilities.setPropertyInputString(layout?.apartmentType, "property_apartment_type_label")
-        Utilities.setPropertyInputString(layout?.propertyPrice, "property_price_label")
-        Utilities.setPropertyInputString(layout?.equity, "property_equity_label")
-        Utilities.setPropertyInputString(layout?.equityCleaningExpenses, "property_equity_cleaning_expenses_label", null, "property_equity_cleaning_expenses_warning")
-        Utilities.setPropertyInputString(layout?.mortgageRequired, "property_mortgage_required_label", null, "property_mortgage_required_warning")
-        Utilities.setPropertyInputString(layout?.incomes, "property_incomes_label")
-        Utilities.setPropertyInputString(layout?.commitments, "property_commitments_label")
-        Utilities.setPropertyInputString(layout?.disposableIncome, "property_disposable_income_label")
-        Utilities.setPropertyInputString(layout?.possibleMonthlyRepayment, "property_possible_monthly_payment_label")
-        Utilities.setPropertyInputString(layout?.maxPercentOfFinancing, "property_max_percent_of_financing_label")
-        Utilities.setPropertyInputString(layout?.actualPercentOfFinancing, "property_actual_percent_of_financing_label", null, "property_actual_percent_of_financing_warning")
-        Utilities.setTextViewString(layout?.incidentalsTitle, "property_incidentals_title")
-        Utilities.setPropertyInputString(layout?.transferTax, "property_transfer_tax_label")
-        Utilities.setInputViewString(layout?.lawyer, "property_lawyer_label", "property_lawyer_label_without_value")
-        Utilities.setPropertyInputString(layout?.realEstateAgent, "property_real_estate_agent_label", "property_real_estate_agent_label_without_value")
-        Utilities.setPropertyInputString(layout?.brokerMortgage, "property_broker_mortgage_label")
-        Utilities.setPropertyInputString(layout?.repairing, "property_repairing_label")
-        Utilities.setPropertyInputString(layout?.incidentalsTotal, "property_incidentals_total_label")
-        Utilities.setInputViewString(layout?.rent, "property_rent_label", "property_rent_label_without_value")
-        Utilities.setPropertyInputString(layout?.lifeInsurance, "property_life_insurance_label")
-        Utilities.setPropertyInputString(layout?.structureInsurance, "property_structure_insurance_label")
-        Utilities.setPropertyInputString(layout?.rentCleaningExpenses, "property_rent_cleaning_expenses_label")
-        Utilities.setTextViewString(layout?.propertyMortgagePrepaymentLabel, "property_mortgage_repayment_title")
-        Utilities.setInputViewString(layout?.mortgagePeriod, "property_mortgage_period_label", null, "property_mortgage_period_warning")
-        Utilities.setPropertyInputString(layout?.mortgageMonthlyRepayment, "property_mortgage_monthly_repayment_label", null, "property_mortgage_monthly_repayment_warning")
-        Utilities.setPropertyInputString(layout?.mortgageMonthlyYield, "property_mortgage_monthly_yield_label", null, "property_mortgage_monthly_yield_warning")
+        Utilities.setPropertyInputPhrase(layout?.city, "property_city_label")
+        Utilities.setPropertyInputPhrase(layout?.cityElse, "property_city_else_label")
+        Utilities.setPropertyInputPhrase(layout?.address, "property_address_label")
+        Utilities.setPropertyInputPhrase(layout?.apartmentType, "property_apartment_type_label")
+        Utilities.setPropertyInputPhrase(layout?.propertyPrice, "property_price_label")
+        Utilities.setPropertyInputPhrase(layout?.equity, "property_equity_label")
+        Utilities.setPropertyInputPhrase(layout?.equityCleaningExpenses, "property_equity_cleaning_expenses_label", null, "property_equity_cleaning_expenses_warning")
+        Utilities.setPropertyInputPhrase(layout?.mortgageRequired, "property_mortgage_required_label", null, "property_mortgage_required_warning")
+        Utilities.setPropertyInputPhrase(layout?.incomes, "property_incomes_label")
+        Utilities.setPropertyInputPhrase(layout?.commitments, "property_commitments_label")
+        Utilities.setPropertyInputPhrase(layout?.disposableIncome, "property_disposable_income_label")
+        Utilities.setPropertyInputPhrase(layout?.possibleMonthlyRepayment, "property_possible_monthly_payment_label")
+        Utilities.setPropertyInputPhrase(layout?.maxPercentOfFinancing, "property_max_percent_of_financing_label")
+        Utilities.setPropertyInputPhrase(layout?.actualPercentOfFinancing, "property_actual_percent_of_financing_label", null, "property_actual_percent_of_financing_warning")
+        Utilities.setTextViewPhrase(layout?.incidentalsTitle, "property_incidentals_title")
+        Utilities.setPropertyInputPhrase(layout?.transferTax, "property_transfer_tax_label")
+        Utilities.setInputViewPhrase(layout?.lawyer, "property_lawyer_label", "property_lawyer_label_without_value")
+        Utilities.setPropertyInputPhrase(layout?.realEstateAgent, "property_real_estate_agent_label", "property_real_estate_agent_label_without_value")
+        Utilities.setPropertyInputPhrase(layout?.brokerMortgage, "property_broker_mortgage_label")
+        Utilities.setPropertyInputPhrase(layout?.repairing, "property_repairing_label")
+        Utilities.setPropertyInputPhrase(layout?.incidentalsTotal, "property_incidentals_total_label")
+        Utilities.setInputViewPhrase(layout?.rent, "property_rent_label", "property_rent_label_without_value")
+        Utilities.setPropertyInputPhrase(layout?.lifeInsurance, "property_life_insurance_label")
+        Utilities.setPropertyInputPhrase(layout?.structureInsurance, "property_structure_insurance_label")
+        Utilities.setPropertyInputPhrase(layout?.rentCleaningExpenses, "property_rent_cleaning_expenses_label")
+        Utilities.setTextViewPhrase(layout?.propertyMortgagePrepaymentLabel, "property_mortgage_repayment_title")
+        Utilities.setInputViewPhrase(layout?.mortgagePeriod, "property_mortgage_period_label", null, "property_mortgage_period_warning")
+        Utilities.setPropertyInputPhrase(layout?.mortgageMonthlyRepayment, "property_mortgage_monthly_repayment_label", null, "property_mortgage_monthly_repayment_warning")
+        Utilities.setPropertyInputPhrase(layout?.mortgageMonthlyYield, "property_mortgage_monthly_yield_label", null, "property_mortgage_monthly_yield_warning")
 
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     //region == change events ======
     private fun onCityChanged(key: String?) {

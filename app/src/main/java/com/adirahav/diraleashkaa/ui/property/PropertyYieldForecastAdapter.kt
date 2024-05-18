@@ -99,7 +99,7 @@ class PropertyYieldForecastAdapter(
         list = ArrayList()
     }
 
-    //region == strings ============
+    //region == phrases ============
 
     fun setItems(list: List<YieldForecastEntity?>) {
         this.list = list

@@ -164,7 +164,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
         }
     }
 
-    //strings
+    //phrases
     override fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
 
@@ -176,7 +176,7 @@ class SplashActivity : BaseActivity<SplashViewModel?, ActivitySplashBinding>() {
 
         super.setPhrases()
     }
-    //strings
+    //phrases
 
     private fun startLoadData() {
         layout?.loader?.visibility = View.VISIBLE

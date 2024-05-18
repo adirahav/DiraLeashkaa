@@ -205,7 +205,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
 
     //endregion == initialize =========
 
-    //region == strings ============
+    //region == phrases ============
 
     override fun setPhrases() {
         Utilities.log(Enums.LogType.Debug, TAG, "setPhrases()")
@@ -219,7 +219,7 @@ class SignUpActivity : BaseActivity<SignUpViewModel?, ActivitySignupBinding>() {
         super.setPhrases()
     }
 
-    //endregion == strings ============
+    //endregion == phrases ============
 
     //region == fragments ==========
 
